@@ -16,6 +16,7 @@ class NetworkGraph:
         self.max_capacity = max_capacity
         self.__pairs__ = list()
         self.__build_graph_edges__()
+        self.avg_capacity = None
 
     def number_of_nodes(self):
         return self.num_nodes
@@ -66,8 +67,22 @@ class NetworkGraph:
     def __getitem__(self, item):
         return self.inner_graph[item]
 
+    def get_avg_g_cap(self) -> float:
+        c = 0.0
+        if self.avg_capacity is None:
+            for i in range(self.number_of_nodes()):
+                for j in nx.neighbors(self.inner_graph, i):
+                    c += g[i][j][Consts.CAPACITY_STR]
+            self.avg_capacity = c / self.number_of_nodes()
+        return self.avg_capacity
 
-# g = NetworkGraph(9, 5)
+
+g = NetworkGraph(9, 5)
 # g.draw_network_graph()
-# print(g[0])
-# print(generate_tm(g, 0.2, Consts.GRAVITY))
+print(g[0])
+from model_input_generation import get_x_y_data, sample_tm_cyclic,sample_tm_average
+
+history_size = 10
+max_history_len = 500
+X_train, Y_train = get_x_y_data(g, [0.2], 20, sample_tm_cyclic, Consts.GRAVITY)
+pass

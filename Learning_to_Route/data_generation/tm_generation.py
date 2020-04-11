@@ -1,5 +1,6 @@
 from Learning_to_Route.common.consts import Consts
 from Learning_to_Route.common.size_consts import SizeConsts
+from Learning_to_Route.common.utils import norm_func
 from random import shuffle
 import numpy as np
 from functools import partial
@@ -51,7 +52,7 @@ def __bimodal_generation(g, pairs, percent, big=600, small=150, std=20):
     return flows
 
 
-def generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage=0.2, big=400, small=150):
+def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage=0.2, big=400, small=150):
     if flow_generation_type == Consts.BIMODAL:
         get_flows = partial(__bimodal_generation, percent=elephant_percentage, big=big, small=small)
     elif flow_generation_type == Consts.GRAVITY:
@@ -70,3 +71,22 @@ def generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentag
         pairs.append(all_pairs[new_ind])
         all_pairs.pop(new_ind)
     return get_flows(graph, pairs)
+
+
+def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, elephant_percentage=None, big=400, small=1):
+    tm = __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage, big, small)
+    num_nodes = graph.number_of_nodes()
+
+    tm_mat = np.zeros((num_nodes, num_nodes), dtype=np.float32)
+    for f in tm:
+        tm_mat[int(f[0]), int(f[1])] = max(0, f[2])
+    return tm_mat
+
+
+
+
+
+def one_sample_tm_base(graph, matrix_sparsity, tm_type, elephant_percentage, network_elephant, network_mice):
+    tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, elephant_percentage, big=network_elephant, small=network_mice)
+    assert np.all(tm >= 0)
+    return norm_func(tm, 1. * SizeConsts.ONE_Mb)
