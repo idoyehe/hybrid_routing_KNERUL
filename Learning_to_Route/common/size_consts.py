@@ -1,0 +1,24 @@
+class SizeConsts:
+    ONE_BIT = 1
+    ONE_BYTE = 8 * ONE_BIT
+    ONE_KB = 1024 * ONE_BYTE
+    ONE_MB = 1024 * ONE_KB
+    ONE_GB = 1024 * ONE_MB
+
+    ONE_Kb = 1000 * ONE_BIT
+    ONE_Mb = 1000 * ONE_Kb
+    ONE_Gb = 1000 * ONE_Mb
+
+    ONE_NS = 1
+    ONE_US = 1000 * ONE_NS
+    ONE_MS = 1000 * ONE_US
+    ONE_S = 1000 * ONE_US
+
+    ONE = 1
+    ONE_TEN = 10 * ONE
+    ONE_HUNDRED = 10 * ONE_TEN
+    ONE_THOUSAND = 10 * ONE_HUNDRED
+    ONE_MILLION = ONE_THOUSAND * ONE_THOUSAND
+
+    MSS_SIZE = 1460 * ONE_BYTE
+    RTT = 100
