@@ -63,4 +63,4 @@ class Consts:
 
     TM_AMNT = 15
 
-    Q_VALUE = 6
+    Q_VALUE = 5

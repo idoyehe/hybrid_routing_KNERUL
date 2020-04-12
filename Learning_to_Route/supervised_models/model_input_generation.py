@@ -42,7 +42,7 @@ def sample_tm_reg(graph, matrix_sparsity, tm_type, elephant_perc, network_elepha
     return res
 
 
-def get_x_y_data(graph, matrix_sparsity_list, num_histories, get_xy,
+def get_x_y_data(graph, matrix_sparsity, num_histories, get_xy,
                  tm_type=Consts.GRAVITY, max_history_len=50,
                  history_window=10, elephant_perc=0.2, mice_sz=1e-4, elephant_sz=1.5e-2,
                  **kwargs):
@@ -52,20 +52,20 @@ def get_x_y_data(graph, matrix_sparsity_list, num_histories, get_xy,
     network_elephant = elephant_sz * avg_node_capacity
     network_mice = mice_sz * avg_node_capacity
 
-    for sparsity in matrix_sparsity_list:  # participating pairs
-        for _ in range(num_histories):
+    for _ in range(num_histories):
 
-            res_norm = get_xy(graph, sparsity, tm_type, elephant_perc, network_elephant, network_mice,
-                              max_history_len + history_window + 1, **kwargs)
+        res_norm = get_xy(graph, matrix_sparsity, tm_type, elephant_perc, network_elephant, network_mice,
+                          max_history_len + history_window + 1, **kwargs)
 
-            x = []
-            y = []
-            for start_ind in range(len(res_norm) - history_window):  # was without -history_window
-                hist = res_norm[start_ind:start_ind + history_window]
-                next_tm = res_norm[start_ind + history_window]
-                x.append(np.stack(hist, 0))
-                y.append(next_tm.flatten())
+        x = []
+        y = []
+        for start_ind in range(len(res_norm) - history_window):  # was without -history_window
+            hist = res_norm[start_ind:start_ind + history_window]
+            next_tm = res_norm[start_ind + history_window]
+            x.append(np.stack(hist, 0))
+            y.append(next_tm.flatten())
 
-            X += x
-            Y += y
+        X += x
+        Y += y
     return np.asarray(X), np.asarray(Y)
+
