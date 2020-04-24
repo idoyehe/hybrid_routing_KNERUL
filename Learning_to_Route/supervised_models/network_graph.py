@@ -9,7 +9,7 @@ class NetworkGraph:
 
     def __init__(self, num_nodes: int, avg_degree: int, min_capacity: float = 0.1, max_capacity: float = 10.0, seed: int = 0):
         np.random.seed(seed=seed)
-        self.inner_graph = nx.DiGraph()
+        self.inner_graph = nx.Graph()
         self.num_nodes = num_nodes
         self.avg_degree = avg_degree
         self.min_capacity = min_capacity
