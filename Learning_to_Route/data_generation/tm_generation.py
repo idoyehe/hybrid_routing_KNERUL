@@ -10,7 +10,7 @@ def __gravity_generation(g, pairs, scale=1.0):
     flows = []
     nodes = set()
     for p in pairs:
-        nodes.add(p[0]);
+        nodes.add(p[0])
         nodes.add(p[1])
 
     capacity_map = {}
@@ -60,7 +60,7 @@ def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percent
     else:
         raise Exception("No exists flow generation type")
 
-    all_pairs = list(graph.pairs())
+    all_pairs = list(graph.get_all_pairs())
 
     # shuffle the pairs
     shuffle(all_pairs)
@@ -75,7 +75,7 @@ def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percent
 
 def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, elephant_percentage=None, big=400, small=1):
     tm = __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage, big, small)
-    num_nodes = graph.number_of_nodes()
+    num_nodes = graph.get_num_nodes
 
     tm_mat = np.zeros((num_nodes, num_nodes), dtype=np.float32)
     for f in tm:
@@ -83,10 +83,8 @@ def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, elephant_perc
     return tm_mat
 
 
-
-
-
 def one_sample_tm_base(graph, matrix_sparsity, tm_type, elephant_percentage, network_elephant, network_mice):
     tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, elephant_percentage, big=network_elephant, small=network_mice)
     assert np.all(tm >= 0)
+    return tm
     return norm_func(tm, 1. * SizeConsts.ONE_Mb)

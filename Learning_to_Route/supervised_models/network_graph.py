@@ -18,7 +18,8 @@ class NetworkGraph:
         self.__build_graph_edges__()
         self.avg_capacity = None
 
-    def number_of_nodes(self):
+    @property
+    def get_num_nodes(self):
         return self.num_nodes
 
     def nodes(self):
@@ -47,7 +48,8 @@ class NetworkGraph:
             outgoing_edges_list.append((current_vertex, neighbor, cap))
         return outgoing_edges_list
 
-    def pairs(self) -> list:
+
+    def get_all_pairs(self) -> list:
         return self.__pairs__
 
     def __build_graph_edges__(self):
@@ -70,8 +72,8 @@ class NetworkGraph:
     def get_avg_g_cap(self) -> float:
         c = 0.0
         if self.avg_capacity is None:
-            for i in range(self.number_of_nodes()):
+            for i in range(self.get_num_nodes):
                 for j in nx.neighbors(self.inner_graph, i):
                     c += self[i][j][Consts.CAPACITY_STR]
-            self.avg_capacity = c / self.number_of_nodes()
+            self.avg_capacity = c / self.get_num_nodes
         return self.avg_capacity
