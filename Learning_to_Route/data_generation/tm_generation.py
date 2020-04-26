@@ -87,4 +87,3 @@ def one_sample_tm_base(graph, matrix_sparsity, tm_type, elephant_percentage, net
     tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, elephant_percentage, big=network_elephant, small=network_mice)
     assert np.all(tm >= 0)
     return tm
-    return norm_func(tm, 1. * SizeConsts.ONE_Mb)

@@ -1,8 +1,10 @@
-'''
+"""
 Created on 29 Jun 2017
-
 @author: asafvaladarsky
-'''
+
+refactoring on 24/04/2020
+@by: Ido Yehezkel
+"""
 
 from consts import HistoryConsts
 from copy import deepcopy
@@ -58,8 +60,8 @@ class WNumpyOptimizer:
         cost, congestion = self._get_cost_given_weights(w, traffic_matrix)
         return -cost
 
-    def __get_edge_cost(self, cost_to_dest, g_mat):
-        cost_to_dst1 = cost_to_dest * self._graph_adjacency_matrix + g_mat
+    def __get_edge_cost(self, cost_to_dest, each_edge_weight):
+        cost_to_dst1 = cost_to_dest * self._graph_adjacency_matrix + each_edge_weight
         cost_to_dst2 = np.reshape(cost_to_dst1, [-1])
         cost_to_dst3 = cost_to_dst2[cost_to_dst2 != 0]
         return cost_to_dst3 * self._outgoing_edges
@@ -84,15 +86,14 @@ class WNumpyOptimizer:
         return prev_val + self._ingoing_edges @ (np.transpose(softmin_cost_vector * self._outgoing_edges) @ mul_val)
 
     def _get_flow_input_vector(self, softmin_cost_vector, demand, mask, dst=None):
-        '''
+        """
         input:
-            v: the node with demands
-            demand: the demand of node v
-            q: is the softmax cost vector matrix (dim = |V|x|E|)
+            demand: the demand of node
+            q: is the softmin cost vector matrix (dim = |V|x|E|)
             e_in: is the relationship matrix, a_ie=1 iff e \in In(i) (dim = |V|x|E|)
         output:
             s: is the flow input vector (dim=|E|)
-        '''
+        """
 
         def flow_completed(prev):
             if dst is None:
@@ -120,14 +121,14 @@ class WNumpyOptimizer:
         return edge_congestion  # final_s_value
 
     def _get_cost_given_weights(self, w, demand_split):
-        g_mat = (w * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
-        cost_all_adj = dict(nx.shortest_path_length(nx.from_numpy_matrix(g_mat, create_using=nx.DiGraph()), weight='weight'))
+        each_edge_weight = (w * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
+        cost_all_adj = dict(nx.shortest_path_length(nx.from_numpy_matrix(each_edge_weight, create_using=nx.DiGraph()), weight='weight'))
 
         res = np.zeros_like(self._edges_capacities, dtype=np.float32)
         for dst in range(len(demand_split)):
             dst_demand = np.expand_dims(demand_split[:, dst], 1)
             cost_to_dest = [cost_all_adj[j][dst] for j in range(self._num_nodes)]
-            edge_cost = self.__get_edge_cost(cost_to_dest, g_mat)
+            edge_cost = self.__get_edge_cost(cost_to_dest, each_edge_weight)
             softmin_cost_vector = self._softmin(edge_cost)
 
             cong = self._get_flow_input_vector(softmin_cost_vector, dst_demand, self._eye_masks[dst])
@@ -158,10 +159,10 @@ class WNumpyOptimizer:
 #                       (5, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1, EdgeConsts.TTL_FLOW_STR: 0})])
 #
 #     return g
-
-
+#
+#
 # ecmpNetwork = ECMPNetwork(get_base_graph())
 #
 # opt = WNumpyOptimizer(ecmpNetwork.get_adjacency, ecmpNetwork.get_capacities())
 # tm = tm_generation.one_sample_tm_base(ecmpNetwork, 0.3, Consts.GRAVITY, 0, 0, 0)
-# opt.step(np.concatenate([np.ones(8) * 0.5, np.ones(8)]), tm)
+# opt.step(np.concatenate([np.ones(16)]), tm)

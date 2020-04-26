@@ -11,11 +11,9 @@ import numpy as np
 
 class ECMPNetwork:
 
-    def __init__(self, graph, weight_func=None, max_weight=50, epsilon=1e-12):
+    def __init__(self, graph, max_weight=50, epsilon=1e-12):
         self._graph = graph.copy()
         self._graph_original = self._graph.copy()
-
-        self._weight_func = weight_func
 
         self._min_weight = epsilon  # min_weight
         self._max_weight = max_weight
@@ -60,7 +58,6 @@ class ECMPNetwork:
             self._c = c
         return self._c
 
-
     def get_node_capacities(self):
         if self._c_nodes is None:  # for happens only once
             c = np.zeros((self._num_nodes,), dtype=np.float32)
@@ -74,26 +71,21 @@ class ECMPNetwork:
 
         return self._c_nodes
 
-
     @property
     def get_all_edges_id(self):
         return self._all_ids
-
 
     @property
     def get_num_nodes(self):
         return self._num_nodes
 
-
     @property
     def get_num_edges(self):
         return self._num_edges
 
-
     @property
     def get_graph(self):
         return self._graph
-
 
     def get_all_pairs(self):
         """ return all nodes pairs"""
