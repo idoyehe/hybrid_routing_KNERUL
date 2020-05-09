@@ -7,6 +7,7 @@ refactoring on 24/04/2020
 """
 from consts import EdgeConsts
 import numpy as np
+import networkx as nx
 
 
 class ECMPNetwork:
@@ -102,3 +103,9 @@ class ECMPNetwork:
 
     def __getitem__(self, item):
         return self._graph[item]
+
+    def all_simple_paths(self, source, target):
+        return nx.all_simple_paths(self.get_graph, source=source, target=target)
+
+    def get_edge_key(self, edge, key):
+        return self.get_graph.edges[edge][key]
