@@ -9,7 +9,7 @@ from consts import EdgeConsts
 import numpy as np
 import networkx as nx
 from collections import defaultdict
-from utils import logger
+from logger import logger
 
 
 class ECMPNetwork:

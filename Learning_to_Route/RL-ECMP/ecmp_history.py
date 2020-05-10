@@ -6,11 +6,10 @@ refactoring on 26/04/2020
 @by: Ido Yehezkel
 """
 from gym import Env, spaces
-from ecmp_network import ECMPNetwork
+from ecmp_network import *
 from optimizer import WNumpyOptimizer
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from consts import HistoryConsts, ExtraData
-import numpy as np
 
 
 class ECMPHistoryEnv(Env):
@@ -39,7 +38,7 @@ class ECMPHistoryEnv(Env):
         self._history_start_id = 0
         self._current_history_index = 0
 
-        self._optimizer = WNumpyOptimizer(self._network.get_adjacency, self._network.get_edges_capacities())
+        self._optimizer = WNumpyOptimizer(self._network)
 
         self._history_len = history_length  # number of each state history
         self._history_action_type = history_action_type
