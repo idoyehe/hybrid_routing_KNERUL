@@ -8,57 +8,68 @@ refactoring on 24/04/2020
 
 from consts import HistoryConsts
 from copy import deepcopy
-from history import utils
-import numpy as np
-import networkx as nx
+
+from ecmp_network import *
 
 
 class WNumpyOptimizer:
     """TODO understand"""
 
-    def __init__(self, graph_adjacency_matrix, edges_capacities, max_iterations=500):
+    def __init__(self, net: ECMPNetwork, max_iterations=500):
         """
         constructor
         @param graph_adjacency_matrix: the graph adjacency matrix
         @param edges_capacities: all edges capacities
         @param max_iterations: number of max iterations
         """
+        self._ecmp_network = net
         self._max_iterations = max_iterations
         self._nx_graph = True
-        self._graph_adjacency_matrix = graph_adjacency_matrix
-        self._edges_capacities = edges_capacities
-        self._num_nodes = self._graph_adjacency_matrix.shape[0]
-        self.__initilize()
+        self._graph_adjacency_matrix = self._ecmp_network.get_adjacency
+        self._edges_capacities = self._ecmp_network.get_edges_capacities()
+        self._num_nodes = self._ecmp_network.get_num_nodes
+        self._initialize()
 
-    def __initilize(self):
-        self._num_edges, self._ingoing_edges, self._outgoing_edges, _ = utils.build_edges_map(self._graph_adjacency_matrix)
-
-        self._zero_diagonal = np.ones_like(self._graph_adjacency_matrix, dtype=np.float32) - np.eye(self._num_nodes, dtype=np.float32)
+    def _initialize(self):
+        self._num_edges, self._ingoing_edges, self._outgoing_edges, _ = self._ecmp_network.build_edges_map()
 
         self._mask = np.ones((self._num_nodes, self._num_nodes), dtype=np.float32) - np.eye(self._num_nodes, dtype=np.float32)
-        self._eye_mask = np.eye(self._num_nodes, dtype=np.float32)
         self._eye_masks = [np.expand_dims(self._mask[:, i], 1) for i in range(self._num_nodes)]
-        self._mask = np.transpose(self._mask)
 
-        self._q_zero_one = self._outgoing_edges.copy()
-        self._nonzero_outgoing = np.nonzero(self._outgoing_edges)
-        self._a_out_multi = np.tile(self._outgoing_edges, (1, self._num_nodes))
+    def step(self, weights_vector, traffic_matrix):
+        """
+        :param weights_vector: the weights vector per edge from agent
+        :param traffic_matrix: the traffic matrix to examine
+        :return: cost and congestion
+        """
+        cost, congestion = self._get_cost_given_weights(weights_vector, traffic_matrix)
+        return cost
 
-        self._routing_demand_sum = {k: np.ones((k, 1)) for k in range(1, self._num_nodes)}
+    def _get_cost_given_weights(self, weights_vector, traffic_matrix):
+        logger.debug("Calculate each edge weight")
+        each_edge_weight = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
+        # calculating each edge it's weights in matrix |edges|x|edges|
 
-        self._demand_for_dst = {}
-        for dst in range(self._num_nodes):
-            demand = np.eye(self._num_nodes)
-            demand = np.delete(demand, dst, 0)
-            demand = np.reshape(demand, (self._num_nodes - 1, self._num_nodes, 1))
-            self._demand_for_dst[dst] = demand
+        logger.debug("Creating directed graph based on edge weights")
+        directed_graph = nx.from_numpy_matrix(each_edge_weight, create_using=nx.DiGraph())
+        all_shortest_paths_costs = dict(nx.shortest_path_length(directed_graph, weight=EdgeConsts.WEIGHT_STR))
+        # calculating shortest paths form each node to each node, dictionary way
 
-        self._eye_nodes = np.eye(self._num_nodes)
+        result = np.zeros_like(list(self._edges_capacities.values()), dtype=np.float32)
+        for dst in range(len(traffic_matrix)):
+            dst_demand = np.expand_dims(traffic_matrix[:, dst], 1)  # getting all flows demands to dest from al sources
+            cost_to_dest = [all_shortest_paths_costs[j][dst] for j in range(self._num_nodes)]  # getting all costs to dest from al sources
 
-    def step(self, w, traffic_matrix):
-        """understand each of this functions"""
-        cost, congestion = self._get_cost_given_weights(w, traffic_matrix)
-        return -cost
+            edge_cost = self.__get_edge_cost(cost_to_dest, each_edge_weight)
+
+            softmin_cost_vector = self._soft_min(edge_cost)
+
+            cong = self._get_flow_input_vector(softmin_cost_vector, dst_demand, self._eye_masks[dst])
+            result += np.reshape(cong, [-1])  # , q_val
+
+        congestion = result / list(self._edges_capacities.values())
+        cost = np.max(congestion)
+        return cost, congestion
 
     def __get_edge_cost(self, cost_to_dest, each_edge_weight):
         cost_to_dst1 = cost_to_dest * self._graph_adjacency_matrix + each_edge_weight
@@ -67,15 +78,16 @@ class WNumpyOptimizer:
         return cost_to_dst3 * self._outgoing_edges
 
     @staticmethod
-    def _softmin(v, axis=1, alpha=HistoryConsts.SOFTMIN_ALPHA):
-        # this is semi true, we need to take into account the in degree of things
-        # as the softmax is vector dependet
-        # if we assume v is a matrix this will help, and now we run softmin
-        # across the per vector direction
+    def _soft_min(weights_vector, alpha=HistoryConsts.SOFTMIN_ALPHA):
+        """
+        :param weights_vector: vector of weights
+        :param alpha: for exponent expression
+        :return: sum over deges
+        """
 
-        exp_val = np.exp(alpha * v)
-        exp_val[v == 0] = 0
-        exp_val[np.logical_and(v != 0, exp_val == 0)] = HistoryConsts.EPSILON
+        exp_val = np.exp(alpha * weights_vector)
+        exp_val[weights_vector == 0] = 0
+        exp_val[np.logical_and(weights_vector != 0, exp_val == 0)] = HistoryConsts.EPSILON
 
         exp_val = np.transpose(exp_val) / np.sum(exp_val, axis=1)
 
@@ -106,7 +118,6 @@ class WNumpyOptimizer:
         cur_iter = 0
         demand_sum = np.sum(demand)
 
-
         while flow_completed(prev) < HistoryConsts.PERC_DEMAND:
             res_diff = (prev - prev_prev) * mask
             tmp = self._get_new_val(softmin_cost_vector, prev, res_diff)
@@ -120,49 +131,24 @@ class WNumpyOptimizer:
         edge_congestion = np.sum(np.transpose(softmin_cost_vector) @ (final_s_value * mask), axis=1)
         return edge_congestion  # final_s_value
 
-    def _get_cost_given_weights(self, w, demand_split):
-        each_edge_weight = (w * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
-        cost_all_adj = dict(nx.shortest_path_length(nx.from_numpy_matrix(each_edge_weight, create_using=nx.DiGraph()), weight='weight'))
 
-        res = np.zeros_like(self._edges_capacities, dtype=np.float32)
-        for dst in range(len(demand_split)):
-            dst_demand = np.expand_dims(demand_split[:, dst], 1)
-            cost_to_dest = [cost_all_adj[j][dst] for j in range(self._num_nodes)]
-            edge_cost = self.__get_edge_cost(cost_to_dest, each_edge_weight)
-            softmin_cost_vector = self._softmin(edge_cost)
-
-            cong = self._get_flow_input_vector(softmin_cost_vector, dst_demand, self._eye_masks[dst])
-            res += np.reshape(cong, [-1])  # , q_val
-
-        congestion = res / self._edges_capacities
-        cost = np.max(congestion)
-        return cost, res
-
-
-# from ecmp_network import *
 # from Learning_to_Route.data_generation import tm_generation
 # from Learning_to_Route.common.consts import Consts
-# import networkx
-#
-#
+# from consts import *
+
 # def get_base_graph():
 #     # init a triangle if we don't get a network graph
-#     g = networkx.Graph()
-#     g.add_nodes_from([0, 1, 2, 3, 4, 5])
-#     g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1, EdgeConsts.TTL_FLOW_STR: 0}),
-#                       (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1, EdgeConsts.TTL_FLOW_STR: 0}),
-#                       (2, 0, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1, EdgeConsts.TTL_FLOW_STR: 0}),
-#                       (4, 0, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1, EdgeConsts.TTL_FLOW_STR: 0}),
-#                       (3, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1, EdgeConsts.TTL_FLOW_STR: 0}),
-#                       (3, 4, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1, EdgeConsts.TTL_FLOW_STR: 0}),
-#                       (4, 5, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1, EdgeConsts.TTL_FLOW_STR: 0}),
-#                       (5, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1, EdgeConsts.TTL_FLOW_STR: 0})])
+#     g = nx.Graph()
+#     g.add_nodes_from([0, 1, 2])
+#     g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+#                       (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+#                       (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
 #
 #     return g
 #
 #
 # ecmpNetwork = ECMPNetwork(get_base_graph())
 #
-# opt = WNumpyOptimizer(ecmpNetwork.get_adjacency, ecmpNetwork.get_capacities())
+# opt = WNumpyOptimizer(ecmpNetwork)
 # tm = tm_generation.one_sample_tm_base(ecmpNetwork, 0.3, Consts.GRAVITY, 0, 0, 0)
-# opt.step(np.concatenate([np.ones(16)]), tm)
+# opt.step(np.array([0.5, 0.5, 1, 1, 1, 1]), tm)

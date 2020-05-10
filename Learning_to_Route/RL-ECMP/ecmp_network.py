@@ -46,7 +46,7 @@ class ECMPNetwork:
     def get_adjacency(self):
         return self._adj
 
-    def get_capacities(self):
+    def get_edges_capacities(self):
         if self._capacities is None:  # for happens only once
             logger.debug("Set per edge capacity")
             self._capacities = dict()
@@ -102,6 +102,25 @@ class ECMPNetwork:
 
     def get_edge_key(self, edge, key):
         return self.get_graph.edges[edge][key]
+
+    def build_edges_map(self):
+        """
+        @return: num of edges, map for each node its ingoing and outgoing edges
+        """
+        graph_adjacency = self.get_adjacency
+        num_edges = np.int32(np.sum(graph_adjacency))
+        ingoing = np.zeros((graph_adjacency.shape[0], num_edges))
+        outgoing = np.zeros((graph_adjacency.shape[0], num_edges))
+        eid = 0
+        e_map = {}
+        for i in range(graph_adjacency.shape[0]):
+            for j in range(graph_adjacency.shape[0]):
+                if graph_adjacency[i, j] == 1:
+                    outgoing[i, eid] = 1
+                    ingoing[j, eid] = 1
+                    e_map[(i, j)] = eid
+                    eid += 1
+        return num_edges, ingoing, outgoing, e_map
 
 # def get_base_graph():
 #     # init a triangle if we don't get a network graph

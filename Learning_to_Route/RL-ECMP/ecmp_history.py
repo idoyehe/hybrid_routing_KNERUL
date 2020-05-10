@@ -39,7 +39,7 @@ class ECMPHistoryEnv(Env):
         self._history_start_id = 0
         self._current_history_index = 0
 
-        self._optimizer = WNumpyOptimizer(self._network.get_adjacency, self._network.get_capacities())
+        self._optimizer = WNumpyOptimizer(self._network.get_adjacency, self._network.get_edges_capacities())
 
         self._history_len = history_length  # number of each state history
         self._history_action_type = history_action_type
