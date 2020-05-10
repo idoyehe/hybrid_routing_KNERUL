@@ -53,22 +53,22 @@ def get_optimal_load_balancing(net: ECMPNetwork, traffic_demand):
 
 
 
-def get_base_graph():
-    # init a triangle if we don't get a network graph
-    g = nx.Graph()
-    g.add_nodes_from([0, 1, 2])
-    g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-                      (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-                      (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
-
-    return g
-
-
-def get_flows_matrix():
-    return [[0, 5, 10], [0, 0, 7], [0, 0, 0]]
-
-
-ecmpNetwork = ECMPNetwork(get_base_graph())
-
-get_optimal_load_balancing(ecmpNetwork, get_flows_matrix())
+# def get_base_graph():
+#     # init a triangle if we don't get a network graph
+#     g = nx.Graph()
+#     g.add_nodes_from([0, 1, 2])
+#     g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+#                       (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+#                       (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
+#
+#     return g
+#
+#
+# def get_flows_matrix():
+#     return [[0, 5, 10], [0, 0, 7], [0, 0, 0]]
+#
+#
+# ecmpNetwork = ECMPNetwork(get_base_graph())
+#
+# get_optimal_load_balancing(ecmpNetwork, get_flows_matrix())
 
