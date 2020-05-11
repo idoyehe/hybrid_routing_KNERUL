@@ -7,9 +7,8 @@ refactoring on 24/04/2020
 """
 
 from consts import HistoryConsts
-from copy import deepcopy
-
 from ecmp_network import *
+from logger import logger
 
 
 class WNumpyOptimizer:
@@ -31,7 +30,8 @@ class WNumpyOptimizer:
         self._initialize()
 
     def _initialize(self):
-        self._num_edges, self._ingoing_edges, self._outgoing_edges, _ = self._ecmp_network.build_edges_map()
+        logger.debug("Building ingoing and outgoing edges map")
+        _, self._ingoing_edges, self._outgoing_edges, _ = self._ecmp_network.build_edges_map()
 
         self._mask = np.ones((self._num_nodes, self._num_nodes), dtype=np.float32) - np.eye(self._num_nodes, dtype=np.float32)
         self._eye_masks = [np.expand_dims(self._mask[:, i], 1) for i in range(self._num_nodes)]
@@ -57,14 +57,15 @@ class WNumpyOptimizer:
 
         result = np.zeros_like(list(self._edges_capacities.values()), dtype=np.float32)
         for dst in range(len(traffic_matrix)):
+            logger.info("Handle destination: {}".format(dst))
             dst_demand = np.expand_dims(traffic_matrix[:, dst], 1)  # getting all flows demands to dest from al sources
             cost_to_dest = [all_shortest_paths_costs[j][dst] for j in range(self._num_nodes)]  # getting all costs to dest from al sources
 
             edge_cost = self.__get_edge_cost(cost_to_dest, each_edge_weight)
 
-            softmin_cost_vector = self._soft_min(edge_cost)
+            soft_min_cost_vector = self._soft_min(edge_cost)
 
-            cong = self._get_flow_input_vector(softmin_cost_vector, dst_demand, self._eye_masks[dst])
+            cong = self._get_flow_input_vector(soft_min_cost_vector, dst_demand, self._eye_masks[dst], dst)
             result += np.reshape(cong, [-1])  # , q_val
 
         congestion = result / list(self._edges_capacities.values())
@@ -97,7 +98,7 @@ class WNumpyOptimizer:
         # loop magic goes here, basically converts the for loop into matrix operations
         return prev_val + self._ingoing_edges @ (np.transpose(softmin_cost_vector * self._outgoing_edges) @ mul_val)
 
-    def _get_flow_input_vector(self, softmin_cost_vector, demand, mask, dst=None):
+    def _get_flow_input_vector(self, softmin_cost_vector, demand, mask, dst):
         """
         input:
             demand: the demand of node
@@ -108,17 +109,16 @@ class WNumpyOptimizer:
         """
 
         def flow_completed(prev):
-            if dst is None:
-                return np.sum(prev * (1 - mask)) / demand_sum
-            else:
-                return prev[dst] / demand_sum
+            return (prev[dst] / demand_sum)[0]
 
+        logger.debug("Begin simulate flow to: {}".format(dst))
         prev = self._get_new_val(softmin_cost_vector, demand, demand)
         prev_prev = demand
         cur_iter = 0
         demand_sum = np.sum(demand)
 
         while flow_completed(prev) < HistoryConsts.PERC_DEMAND:
+            logger.debug("Iteration #: {}".format(cur_iter))
             res_diff = (prev - prev_prev) * mask
             tmp = self._get_new_val(softmin_cost_vector, prev, res_diff)
             prev_prev = prev
@@ -135,7 +135,8 @@ class WNumpyOptimizer:
 # from Learning_to_Route.data_generation import tm_generation
 # from Learning_to_Route.common.consts import Consts
 # from consts import *
-
+#
+#
 # def get_base_graph():
 #     # init a triangle if we don't get a network graph
 #     g = nx.Graph()
@@ -151,4 +152,4 @@ class WNumpyOptimizer:
 #
 # opt = WNumpyOptimizer(ecmpNetwork)
 # tm = tm_generation.one_sample_tm_base(ecmpNetwork, 0.3, Consts.GRAVITY, 0, 0, 0)
-# opt.step(np.array([0.5, 0.5, 1, 1, 1, 1]), tm)
+# opt.step(np.array([0.5, 0.5,1, 1, 1, 1]), tm)

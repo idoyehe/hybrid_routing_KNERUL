@@ -10,6 +10,8 @@ from ecmp_network import *
 from optimizer import WNumpyOptimizer
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from consts import HistoryConsts, ExtraData
+from Learning_to_Route.common.consts import Consts
+from flow_routing.find_optimal_load_balancing import get_optimal_load_balancing
 
 
 class ECMPHistoryEnv(Env):
@@ -32,18 +34,18 @@ class ECMPHistoryEnv(Env):
         self._network = ECMPNetwork(ecmp_topo)
 
         self._num_steps = max_steps
-        self._num_edges = self._network.get_num_edges()
-        self._num_nodes = self._network.get_num_nodes()
+        self._num_edges = self._network.get_num_edges
+        self._num_nodes = self._network.get_num_nodes
         self._all_pairs = self._network.get_all_pairs()
         self._history_start_id = 0
-        self._current_history_index = 0
+        self._current_history_index = -1
 
         self._optimizer = WNumpyOptimizer(self._network)
 
         self._history_len = history_length  # number of each state history
         self._history_action_type = history_action_type
-        self._num_train_histories = train_histories_length  # number of different train seniors
-        self._num_test_histories = test_histories_length  # number of different test seniors
+        self._num_train_histories = train_histories_length  # number of different train seniors per sparsity
+        self._num_test_histories = test_histories_length  # number of different test seniors per sparsity
         self._tm_type = tm_type
         self._tm_sparsity_list = tm_sparsity  # percentage of participating pairs, assumed to be a list
         self._mice_flow = mice_flow
@@ -84,21 +86,30 @@ class ECMPHistoryEnv(Env):
 
     def _sample_tm(self, p):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
-        tm = one_sample_tm_base(self._network.get_graph(), p, self._tm_type,
+        tm = one_sample_tm_base(self._network, p, self._tm_type,
                                 self._elephant_flows_percentage, self._elephant_flow, self._mice_flow)
         return tm
 
     def _init_all_observations(self):
         self._train_observations = []
         self._test_observations = []
+        self._opt_train_observations = []
+        self._opt_test_observations = []
 
         for _ in range(self._num_train_histories):
             for p in self._tm_sparsity_list:
-                self._train_observations.append([self._sample_tm(p) for _ in range(self._history_len + self._num_steps + 1)])
+                train_episode = [self._sample_tm(p) for _ in range(self._history_len + self._num_steps + 1)]
+                train_episode_optimal = [get_optimal_load_balancing(self._network, tm) for tm in train_episode]
+                self._train_observations.append(train_episode)
+                self._opt_train_observations.append(train_episode_optimal)
+                pass
 
         for _ in range(self._num_test_histories):
             for p in self._tm_sparsity_list:
-                self._test_observations.append([self._sample_tm(p) for _ in range(self._history_len + self._num_steps + 1)])
+                test_episode = [self._sample_tm(p) for _ in range(self._history_len + self._num_steps + 1)]
+                test_episode_optimal = [get_optimal_load_balancing(self._network, tm) for tm in test_episode]
+                self._test_observations.append(test_episode)
+                self._opt_test_observations.append(test_episode_optimal)
 
         self._actual_num_train_histories = len(self._train_observations)
         self._actual_num_test_histories = len(self._test_observations)
@@ -135,9 +146,9 @@ class ECMPHistoryEnv(Env):
         self._observations = self._test_observations if testing else self._train_observations
         self._num_hisotories = self._actual_num_test_histories if testing else self._actual_num_train_histories
         self._opt_res = self._opt_test_observations if testing else self._opt_train_observations
-        self._opt_avg_res = self._opt_avg_test_observations if testing else self._opt_avg_train_observations
-        self._opt_avg_expected = self._opt_avg_expected_test_observations if testing else self._opt_avg_expexcted_train_observations
-        self._opt_avg_actual = self._opt_avg_actual_test_observations if testing else self._opt_avg_actual_train_observations
+        # self._opt_avg_res = self._opt_avg_test_observations if testing else self._opt_avg_train_observations
+        # self._opt_avg_expected = self._opt_avg_expected_test_observations if testing else self._opt_avg_expexcted_train_observations
+        # self._opt_avg_actual = self._opt_avg_actual_test_observations if testing else self._opt_avg_actual_train_observations
         self._random_res = self._random_test_res if testing else self._random_train_res
 
     def _process_action(self, action):
@@ -159,7 +170,7 @@ class ECMPHistoryEnv(Env):
                     for _ in range(5):
                         action = np.random.rand(action_size)
                         action = self._process_action(action)
-                        reward = -1 * self._optimizer.step(tm, action)
+                        reward = -1 * self._optimizer.step(action, tm)
                         res_dict[train_index][tm_index].append(reward)
 
                     res_avg_tm.append(np.average(res_dict[train_index][tm_index]))
@@ -203,24 +214,24 @@ class ECMPHistoryEnv(Env):
         env_data[ExtraData.REWARD_OVER_PREV] = norm_reward / self._opt_res[self._current_history_index][
             self._history_start_id - 1 + self._history_len]
 
-        try:
-            env_data[ExtraData.REWARD_OVER_AVG] = norm_reward / self._opt_avg_expected[self._current_history_index][
-                self._history_start_id + self._history_len]
-            env_data[ExtraData.REWARD_OVER_AVG_EXPECTED] = norm_reward / self._opt_avg_expected[self._current_history_index][
-                self._history_start_id + self._history_len]
-            env_data[ExtraData.REWARD_OVER_AVG_ACTUAL] = norm_reward / self._opt_avg_actual[self._current_history_index][
-                self._history_start_id + self._history_len]
-        except:
-            env_data[ExtraData.REWARD_OVER_AVG] = -1.0
-            env_data[ExtraData.REWARD_OVER_AVG_EXPECTED] = -1.0
-            env_data[ExtraData.REWARD_OVER_AVG_ACTUAL] = -1.0
+        # try:
+        #     env_data[ExtraData.REWARD_OVER_AVG] = norm_reward / self._opt_avg_expected[self._current_history_index][
+        #         self._history_start_id + self._history_len]
+        #     env_data[ExtraData.REWARD_OVER_AVG_EXPECTED] = norm_reward / self._opt_avg_expected[self._current_history_index][
+        #         self._history_start_id + self._history_len]
+        #     env_data[ExtraData.REWARD_OVER_AVG_ACTUAL] = norm_reward / self._opt_avg_actual[self._current_history_index][
+        #         self._history_start_id + self._history_len]
+        # except:
+        #     env_data[ExtraData.REWARD_OVER_AVG] = -1.0
+        #     env_data[ExtraData.REWARD_OVER_AVG_EXPECTED] = -1.0
+        #     env_data[ExtraData.REWARD_OVER_AVG_ACTUAL] = -1.0
 
         env_data[ExtraData.REWARD_OVER_RANDOM] = norm_reward / self._random_res[self._current_history_index][
             self._history_start_id + self._history_len]
 
         self._history_start_id += 1
         observation = self._get_observation()
-        reward = current_reward / self._opt_res[self._current_history_index][self._history_start_id + self._history_len]
+        reward = env_data[ExtraData.REWARD_OVER_FUTURE]
         done = self._is_terminal
         info = env_data
 
@@ -236,6 +247,21 @@ class ECMPHistoryEnv(Env):
 
     def _get_reward(self):
         tm = self._observations[self._current_history_index][self._history_start_id + self._history_len]
-        return self._optimizer.step(tm, self._w)
+        return self._optimizer.step(self._w, tm)
 
-# python environments/trpo_runner.py --tm_type bimodal_load --elephant_load ${P} --env_type ecmp_history --ecmp_topo ${TOPO} --tm_template gravity,0.4,0 --max_path_length 50 --policy_type pg_cont_mlp --tensorflow --num_paths 5 --layers 150,100,50 --snapshot_mode all --step_size 0.01 --iter_per_test 20 --n_iter 5000 --n_parallel ${CPU} --history_action_type ${HIST_ACTION} --p 1.0
+
+from topologies import topologies
+
+topo_name = "TRIANGLE"
+env = ECMPHistoryEnv(ecmp_topo_name=topo_name,
+                     ecmp_topo=topologies[topo_name],
+                     max_steps=1,
+                     history_length=2,
+                     history_action_type=HistoryConsts.ACTION_W_EPSILON,
+                     train_histories_length=5,
+                     test_histories_length=5,
+                     tm_type=Consts.GRAVITY,
+                     tm_sparsity=[0.3, 0.5]
+                     )
+env.reset()
+env.step(np.array([0.5, 0.5, 1, 1, 1, 1]))

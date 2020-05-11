@@ -91,8 +91,17 @@ def _line():
         (3, 4, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
         (4, 5, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
     ])
-    nx.draw(g)
-    plt.show()
+    return g
+
+
+def _triangle():
+    # init a triangle if we don't get a network graph
+    g = nx.Graph()
+    g.add_nodes_from([0, 1, 2])
+    g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+                      (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+                      (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
+
     return g
 
 
@@ -103,4 +112,5 @@ topologies = {
     "FCN": _fcn(),
     "TREE": _tree(),
     "LINE": _line(),
+    "TRIANGLE": _triangle()
 }

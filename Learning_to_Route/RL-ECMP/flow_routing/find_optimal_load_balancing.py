@@ -2,7 +2,7 @@ import pulp as pl
 from consts import EdgeConsts
 from ecmp_network import ECMPNetwork, nx
 from collections import defaultdict
-from utils import logger
+from logger import logger
 
 
 def get_optimal_load_balancing(net: ECMPNetwork, traffic_demand):

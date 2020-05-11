@@ -17,7 +17,7 @@ class ECMPNetwork:
     def __init__(self, graph, min_weight=1e-12, max_weight=50):
         logger.info("Creating ECMP network")
         self._graph = graph.copy()
-        self._graph_original = self._graph.copy()
+        self._is_directed = nx.is_directed(self.get_graph)
 
         self._min_weight = min_weight  # min_weight
         self._max_weight = max_weight
@@ -76,7 +76,9 @@ class ECMPNetwork:
 
     @property
     def get_num_edges(self):
-        return self._num_edges
+        if self._is_directed:
+            return self._num_edges
+        return 2 * self._num_edges
 
     @property
     def get_graph(self):
