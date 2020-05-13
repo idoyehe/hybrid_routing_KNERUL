@@ -26,17 +26,16 @@ def get_optimal_load_balancing(net: ECMPNetwork, traffic_demand):
             vars_per_path = list()
             for path in net.all_simple_paths(source=src, target=dst):
                 logger.debug("Handle the path {}".format(str(path)))
-                var_name = "x_" + '->'.join(str(i) for i in path)
+                var_name = "p_" + '-'.join(str(i) for i in path)
                 var: pl.LpVariable = pl.LpVariable(var_name, lowBound=0)
                 vars_dict[var_name] = var  # adding variable to all vars dict
                 vars_per_path.append(var)
 
-                for edges_in_path in map(nx.utils.pairwise, [path]):
-                    for edge in list(edges_in_path):
-                        logger.debug("Handle edge {} in path {}".format(str(edge), str(path)))
-                        if edge[0] > edge[1]:
-                            edge = (edge[1], edge[0])
-                        vars_per_edge[edge].append((var, nodes_pair))
+                for edge in list(list(map(nx.utils.pairwise, [path]))[0]):
+                    logger.debug("Handle edge {} in path {}".format(str(edge), str(path)))
+                    if edge[0] > edge[1]:
+                        edge = (edge[1], edge[0])
+                    vars_per_edge[edge].append((var, nodes_pair))
 
             lp_problem += pl.lpSum(vars_per_path) == src_dest_flow
 
@@ -59,21 +58,48 @@ def get_optimal_load_balancing(net: ECMPNetwork, traffic_demand):
     return pl.value(r), per_edge_flow_fraction
 
 
-def get_base_graph():
-    # init a triangle if we don't get a network graph
-    g = nx.Graph()
-    g.add_nodes_from([0, 1, 2])
-    g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-                      (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-                      (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
+def get_ecmp_edge_flow_fraction(net: ECMPNetwork, traffic_demand):
+    per_edge_flow_fraction = dict()
 
-    return g
+    logger.info("Handling all flows")
+    for nodes_pair in net.get_all_pairs():
+        src, dst = nodes_pair
+        src_dest_flow = traffic_demand[src][dst]
+        if src_dest_flow > 0:
+            logger.debug("Handle flow form {} to {}".format(src, dst))
+            shortest_path_generator = list(net.all_shortest_path(source=src, target=dst, weight=None))
+            fraction = 1 / len(shortest_path_generator)
 
+            for path in shortest_path_generator:
+                for edge in list(list(map(nx.utils.pairwise, [path]))[0]):
+                    logger.debug("Handle edge {} in path {}".format(str(edge), str(path)))
+                    if edge[0] > edge[1]:
+                        edge = (edge[1], edge[0])
 
-def get_flows_matrix():
-    return [[0, 5, 10], [0, 0, 7], [0, 0, 0]]
+                    if edge not in per_edge_flow_fraction.keys():
+                        per_edge_flow_fraction[edge] = np.zeros((net.get_num_nodes, net.get_num_nodes))
+                    per_edge_flow_fraction[edge][src][dst] += fraction
 
+    return per_edge_flow_fraction
 
-ecmpNetwork = ECMPNetwork(get_base_graph())
-
-get_optimal_load_balancing(ecmpNetwork, get_flows_matrix())
+#
+# def get_base_graph():
+#     # init a triangle if we don't get a network graph
+#     g = nx.Graph()
+#     g.add_nodes_from([0, 1, 2, 3])
+#     g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+#                       (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+#                       (2, 3, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+#                       (3, 0, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
+#
+#     return g
+#
+#
+# def get_flows_matrix():
+#     return [[0, 0, 5, 0], [0, 0, 0, 7], [0, 0, 0, 0], [0, 0, 0, 0]]
+#
+#
+# ecmpNetwork = ECMPNetwork(get_base_graph())
+#
+# get_optimal_load_balancing(ecmpNetwork, get_flows_matrix())
+# get_ecmp_edge_flow_fraction(ecmpNetwork, get_flows_matrix())

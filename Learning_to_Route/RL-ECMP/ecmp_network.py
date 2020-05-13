@@ -102,6 +102,25 @@ class ECMPNetwork:
     def all_simple_paths(self, source, target):
         return nx.all_simple_paths(self.get_graph, source=source, target=target)
 
+    def all_shortest_path(self, source, target, weight):
+        """
+        Parameters
+        ----------
+        G : NetworkX graph
+
+        source : node
+        Starting node for path.
+
+        target : node
+        Ending node for path.
+
+        weight : None or string, optional (default = None)
+        If None, every edge has weight/distance/cost 1.
+        If a string, use this edge attribute as the edge weight.
+        Any edge attribute not present defaults to 1.
+        """
+        return nx.all_shortest_paths(self.get_graph, source=source, target=target, weight=weight)
+
     def get_edge_key(self, edge, key):
         return self.get_graph.edges[edge][key]
 
