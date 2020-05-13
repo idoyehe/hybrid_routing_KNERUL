@@ -6,7 +6,7 @@ from topologies import topologies
 
 
 def generate_traffic_matrix_baseline(graph: ECMPNetwork,
-                                     matrix_sparsity: int, tm_type, elephant_percentage: float,
+                                     matrix_sparsity: float, tm_type, elephant_percentage: float,
                                      network_elephant, network_mice, total_matrices: int):
     return [one_sample_tm_base(graph=graph,
                                matrix_sparsity=matrix_sparsity,
@@ -58,10 +58,11 @@ def calculate_congestion_per_matrices(net: ECMPNetwork, k: int, traffic_matrix_l
 
 
 ecmpNetwork = ECMPNetwork(topologies["MESH"])
-
+average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
 tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
-                                       matrix_sparsity=0.3, tm_type=Consts.GRAVITY,
-                                       elephant_percentage=None, network_elephant=None, network_mice=None,
-                                       total_matrices=1000)
-c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=1, traffic_matrix_list=tms)
+                                       matrix_sparsity=0.3,
+                                       tm_type=Consts.BIMODAL,
+                                       elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
+                                       total_matrices=100)
+c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=3, traffic_matrix_list=tms)
 print(np.average(c_l))

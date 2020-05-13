@@ -1,5 +1,4 @@
 from Learning_to_Route.common.consts import Consts
-from Learning_to_Route.common.size_consts import SizeConsts
 from Learning_to_Route.common.utils import norm_func
 from random import shuffle
 import numpy as np
@@ -38,16 +37,14 @@ def __bimodal_generation(g, pairs, percent, big=600, small=150, std=20):
     num_big_pairs_selected = int(np.ceil(len(pairs) * percent))
 
     for i, pair in enumerate(pairs):
-        fsize_mb = -1
-        while fsize_mb < 0:
+        fsize = -1
+        while fsize < 0:
             if i < num_big_pairs_selected:
-                fsize_mb = np.random.normal(big, std)
+                fsize = np.random.normal(big, std)
             else:
-                fsize_mb = np.random.normal(small, std)
+                fsize = np.random.normal(small, std)
 
-        fsize_bits = fsize_mb * SizeConsts.ONE_Mb
-
-        flows.append((pair[0], pair[1], fsize_bits))
+        flows.append((pair[0], pair[1], fsize))
 
     return flows
 
