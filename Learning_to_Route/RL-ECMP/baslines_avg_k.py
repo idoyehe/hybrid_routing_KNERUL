@@ -74,7 +74,7 @@ average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
 tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
                                        k=K,
                                        matrix_sparsity=0.3,
-                                       tm_type=Consts.BIMODAL,
+                                       tm_type=Consts.GRAVITY,
                                        elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
                                        total_matrices=1000)
 c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=5, traffic_matrix_list=tms)

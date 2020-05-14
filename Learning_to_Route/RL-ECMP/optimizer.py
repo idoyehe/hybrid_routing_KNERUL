@@ -133,23 +133,11 @@ class WNumpyOptimizer:
 
 
 # from Learning_to_Route.data_generation import tm_generation
+# from topologies import topologies
 # from Learning_to_Route.common.consts import Consts
-# from consts import *
 #
-#
-# def get_base_graph():
-#     # init a triangle if we don't get a network graph
-#     g = nx.Graph()
-#     g.add_nodes_from([0, 1, 2])
-#     g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-#                       (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-#                       (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
-#
-#     return g
-#
-#
-# ecmpNetwork = ECMPNetwork(get_base_graph())
+# ecmpNetwork = ECMPNetwork(topologies["TRIANGLE"])
 #
 # opt = WNumpyOptimizer(ecmpNetwork)
-# tm = tm_generation.one_sample_tm_base(ecmpNetwork, 0.3, Consts.GRAVITY, 0, 0, 0)
-# opt.step(np.array([0.5, 0.5,1, 1, 1, 1]), tm)
+# tm = tm_generation.one_sample_tm_base(ecmpNetwork, 1, Consts.GRAVITY, 0, 0, 0)
+# opt.step(np.array([1, 1, 1, 1, 1, 1]), tm)

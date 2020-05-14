@@ -1,20 +1,21 @@
-import pulp as pl
 from consts import EdgeConsts
 from ecmp_network import ECMPNetwork, nx
 from collections import defaultdict
 from logger import logger
 import numpy as np
+from docplex.mp.model import Model
 
 
 def get_optimal_load_balancing(net: ECMPNetwork, traffic_demand):
-    lp_problem = pl.LpProblem('Load_Balancing', pl.LpMinimize)
+    m = Model(name='Lp for flow load balancing')
     vars_dict = dict()  # dictionary to store all variable problem
 
     # the object variable and function.
     logger.info("Creating linear programing problem")
-    r = pl.LpVariable("r", lowBound=0, upBound=1)
+    r = m.continuous_var(name="r")
     vars_dict["r"] = r
-    lp_problem += r
+
+    m.minimize(r)
 
     vars_per_edge = defaultdict(list)  # dictionary to save all variable related to edge.
     logger.info("Handling all flows")
@@ -27,7 +28,8 @@ def get_optimal_load_balancing(net: ECMPNetwork, traffic_demand):
             for path in net.all_simple_paths(source=src, target=dst):
                 logger.debug("Handle the path {}".format(str(path)))
                 var_name = "p_" + '-'.join(str(i) for i in path)
-                var: pl.LpVariable = pl.LpVariable(var_name, lowBound=0)
+                var = m.continuous_var(lb=0, name=var_name)
+
                 vars_dict[var_name] = var  # adding variable to all vars dict
                 vars_per_path.append(var)
 
@@ -37,25 +39,24 @@ def get_optimal_load_balancing(net: ECMPNetwork, traffic_demand):
                         edge = (edge[1], edge[0])
                     vars_per_edge[edge].append((var, nodes_pair))
 
-            lp_problem += pl.lpSum(vars_per_path) == src_dest_flow
+            m.add_constraint(m.sum(vars_per_path) == src_dest_flow)
 
     for edge, var_list in vars_per_edge.items():
-        lp_problem += pl.lpSum([elem[0] for elem in var_list]) <= net.get_edge_key(edge, EdgeConsts.CAPACITY_STR) * r
+        m.add_constraint(m.sum([elem[0] for elem in var_list]) <= net.get_edge_key(edge, EdgeConsts.CAPACITY_STR) * r)
 
-    status = lp_problem.solve()
-    logger.debug(lp_problem)
-    logger.info("Status: {}".format(pl.LpStatus[status]))
+
+    m.solve()
     for var_name, var in vars_dict.items():
-        logger.debug("Value of variable: {} is: {}".format(var_name, pl.value(var)))
+        logger.debug("Value of variable: {} is: {}".format(var_name, var.solution_value))
 
     per_edge_flow_fraction = dict()
     for edge, var_list in vars_per_edge.items():
         edge_per_demend = np.zeros((net.get_num_nodes, net.get_num_nodes))
         for var, (src, dst) in var_list:
-            edge_per_demend[src][dst] += var.value() / traffic_demand[src][dst]
+            edge_per_demend[src][dst] += var.solution_value/ traffic_demand[src][dst]
         per_edge_flow_fraction[edge] = edge_per_demend
 
-    return pl.value(r), per_edge_flow_fraction
+    return r.solution_value, per_edge_flow_fraction
 
 
 def get_ecmp_edge_flow_fraction(net: ECMPNetwork, traffic_demand):
@@ -82,24 +83,14 @@ def get_ecmp_edge_flow_fraction(net: ECMPNetwork, traffic_demand):
 
     return per_edge_flow_fraction
 
-#
-# def get_base_graph():
-#     # init a triangle if we don't get a network graph
-#     g = nx.Graph()
-#     g.add_nodes_from([0, 1, 2, 3])
-#     g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-#                       (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-#                       (2, 3, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-#                       (3, 0, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
-#
-#     return g
+
+# from topologies import topologies
 #
 #
 # def get_flows_matrix():
-#     return [[0, 0, 5, 0], [0, 0, 0, 7], [0, 0, 0, 0], [0, 0, 0, 0]]
+#     return [[0, 5, 10], [0, 0, 7], [0, 0, 0]]
 #
-#
-# ecmpNetwork = ECMPNetwork(get_base_graph())
-#
+# ecmpNetwork = ECMPNetwork(topologies["TRIANGLE"])
+# #
 # get_optimal_load_balancing(ecmpNetwork, get_flows_matrix())
 # get_ecmp_edge_flow_fraction(ecmpNetwork, get_flows_matrix())
