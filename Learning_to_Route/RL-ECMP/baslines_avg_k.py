@@ -57,25 +57,26 @@ def calculate_congestion_per_matrices(net: ECMPNetwork, k: int, traffic_matrix_l
 
         congestion_per_edge = defaultdict(int)
         max_congestion = 0
+        opt, _ = get_optimal_load_balancing(net, current_traffic_matrix, cutoff_path_len)  # heuristic flows splittings
         for edge, frac_matrix in per_edge_flow_fraction.items():
             congestion_per_edge[edge] += np.sum(frac_matrix * current_traffic_matrix)
             congestion_per_edge[edge] /= net.get_edge_key(edge=edge, key=EdgeConsts.CAPACITY_STR)
             if congestion_per_edge[edge] > max_congestion:
                 max_congestion = congestion_per_edge[edge]
 
-        congestion_list.append(max_congestion)
+        congestion_list.append(max_congestion/opt)
 
     return congestion_list
 
 
-# K = 1
-# ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
-# average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
-# tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
-#                                        k=K,
-#                                        matrix_sparsity=0.3,
-#                                        tm_type=Consts.GRAVITY,
-#                                        elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
-#                                        total_matrices=100)
-# c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=K, traffic_matrix_list=tms)
-# print(np.average(c_l))
+K = 3
+ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
+average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
+tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
+                                       k=K,
+                                       matrix_sparsity=0.3,
+                                       tm_type=Consts.GRAVITY,
+                                       elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
+                                       total_matrices=100)
+c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=K, traffic_matrix_list=tms)
+print(np.average(c_l))
