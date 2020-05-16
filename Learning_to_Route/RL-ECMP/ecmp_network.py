@@ -14,9 +14,9 @@ from logger import logger
 
 class ECMPNetwork:
 
-    def __init__(self, graph, min_weight=1e-12, max_weight=50):
+    def __init__(self, topo, min_weight=1e-12, max_weight=50):
         logger.info("Creating ECMP network")
-        self._graph = graph.copy()
+        self._graph = topo.copy()
         self._is_directed = nx.is_directed(self.get_graph)
 
         self._min_weight = min_weight  # min_weight
@@ -99,8 +99,8 @@ class ECMPNetwork:
     def __getitem__(self, item):
         return self._graph[item]
 
-    def all_simple_paths(self, source, target):
-        return nx.all_simple_paths(self.get_graph, source=source, target=target)
+    def all_simple_paths(self, source, target,cutoff=None):
+        return nx.all_simple_paths(self.get_graph, source=source, target=target,cutoff=cutoff)
 
     def all_shortest_path(self, source, target, weight):
         """

@@ -2,7 +2,7 @@ from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from Learning_to_Route.common.consts import Consts
 from flow_routing.find_optimal_load_balancing import *
 from ecmp_network import ECMPNetwork, EdgeConsts
-from topologies import topologies
+from topologies import topologies, topology_zoo_loader
 
 
 def generate_traffic_matrix_baseline(graph: ECMPNetwork, k: int,
@@ -16,20 +16,20 @@ def generate_traffic_matrix_baseline(graph: ECMPNetwork, k: int,
                                network_mice=network_mice) for _ in range(total_matrices + k)]
 
 
-def calculate_congestion_per_matrices(net: ECMPNetwork, k: int, traffic_matrix_list: list):
+def calculate_congestion_per_matrices(net: ECMPNetwork, k: int, traffic_matrix_list: list, cutoff_path_len=None):
     logger.info("Calculating congestion to all traffic matrices by {} previous average".format(k))
 
     assert k < len(traffic_matrix_list)
     congestion_list = list()
     for index, current_traffic_matrix in enumerate(traffic_matrix_list[k:]):
 
-        logger.debug("Current matrix index is: {}".format(index))
+        logger.info("Current matrix index is: {}".format(index))
         avg_traffic_matrix = np.mean(traffic_matrix_list[index:index + k], axis=0)
 
         assert avg_traffic_matrix.shape == current_traffic_matrix.shape
 
         logger.debug("Solving LP problem for previous {} avenge".format(k))
-        _, per_edge_flow_fraction_lp = get_optimal_load_balancing(net, avg_traffic_matrix)  # heuristic flows splittings
+        _, per_edge_flow_fraction_lp = get_optimal_load_balancing(net, avg_traffic_matrix, cutoff_path_len)  # heuristic flows splittings
 
         logger.debug("Handling the flows that exist in real matrix but not in average one")
         completion_flows_matrix = np.zeros(avg_traffic_matrix.shape)
@@ -68,14 +68,14 @@ def calculate_congestion_per_matrices(net: ECMPNetwork, k: int, traffic_matrix_l
     return congestion_list
 
 
-K = 1
-ecmpNetwork = ECMPNetwork(topologies["MESH"])
-average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
-tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
-                                       k=K,
-                                       matrix_sparsity=0.3,
-                                       tm_type=Consts.GRAVITY,
-                                       elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
-                                       total_matrices=1000)
-c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=5, traffic_matrix_list=tms)
-print(np.average(c_l))
+# K = 1
+# ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
+# average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
+# tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
+#                                        k=K,
+#                                        matrix_sparsity=0.3,
+#                                        tm_type=Consts.GRAVITY,
+#                                        elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
+#                                        total_matrices=100)
+# c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=K, traffic_matrix_list=tms)
+# print(np.average(c_l))

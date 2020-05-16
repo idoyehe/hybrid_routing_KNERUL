@@ -133,10 +133,11 @@ class WNumpyOptimizer:
 
 
 # from Learning_to_Route.data_generation import tm_generation
-# from topologies import topologies
+# from topologies import topologies,topology_zoo_loader
 # from Learning_to_Route.common.consts import Consts
 #
-# ecmpNetwork = ECMPNetwork(topologies["TRIANGLE"])
+# ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Atmnet.gml"))
+
 #
 # opt = WNumpyOptimizer(ecmpNetwork)
 # tm = tm_generation.one_sample_tm_base(ecmpNetwork, 1, Consts.GRAVITY, 0, 0, 0)
