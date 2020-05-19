@@ -2,7 +2,7 @@ from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from Learning_to_Route.common.consts import Consts
 from flow_routing.find_optimal_load_balancing import *
 from ecmp_network import ECMPNetwork, EdgeConsts
-from topologies import topologies, topology_zoo_loader
+from topologies import topology_zoo_loader
 
 
 def generate_traffic_matrix_baseline(graph: ECMPNetwork, k: int,
@@ -69,14 +69,14 @@ def calculate_congestion_per_matrices(net: ECMPNetwork, k: int, traffic_matrix_l
     return congestion_list
 
 
-K = 3
-ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
-average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
-tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
-                                       k=K,
-                                       matrix_sparsity=0.3,
-                                       tm_type=Consts.GRAVITY,
-                                       elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
-                                       total_matrices=100)
-c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=K, traffic_matrix_list=tms)
-print(np.average(c_l))
+# K = 3
+# ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
+# average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
+# tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
+#                                        k=K,
+#                                        matrix_sparsity=0.3,
+#                                        tm_type=Consts.GRAVITY,
+#                                        elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
+#                                        total_matrices=100)
+# c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=K, traffic_matrix_list=tms)
+# print(np.average(c_l))
