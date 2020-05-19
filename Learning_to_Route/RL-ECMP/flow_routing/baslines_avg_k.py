@@ -69,14 +69,14 @@ def calculate_congestion_per_matrices(net: ECMPNetwork, k: int, traffic_matrix_l
     return congestion_list
 
 
-# K = 3
-# ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
-# average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
-# tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
-#                                        k=K,
-#                                        matrix_sparsity=0.3,
-#                                        tm_type=Consts.GRAVITY,
-#                                        elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
-#                                        total_matrices=100)
-# c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=K, traffic_matrix_list=tms)
-# print(np.average(c_l))
+K = 3
+ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
+average_capacity = np.mean(list(ecmpNetwork.get_edges_capacities().values()))
+tms = generate_traffic_matrix_baseline(graph=ecmpNetwork,
+                                       k=K,
+                                       matrix_sparsity=0.3,
+                                       tm_type=Consts.GRAVITY,
+                                       elephant_percentage=0.2, network_elephant=average_capacity, network_mice=average_capacity * 0.1,
+                                       total_matrices=100)
+c_l = calculate_congestion_per_matrices(net=ecmpNetwork, k=K, traffic_matrix_list=tms)
+print(np.average(c_l))

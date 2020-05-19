@@ -31,6 +31,8 @@ class ECMPNetwork:
         self._num_edges = len(self._graph.edges())
         self._actual_weight = np.zeros(self._graph.number_of_edges())
         self._set_adjacency()  # mark all adjacent nodes
+        self._g_directed = None
+        self._reducing_map_dict = None
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
@@ -99,8 +101,8 @@ class ECMPNetwork:
     def __getitem__(self, item):
         return self._graph[item]
 
-    def all_simple_paths(self, source, target,cutoff=None):
-        return nx.all_simple_paths(self.get_graph, source=source, target=target,cutoff=cutoff)
+    def all_simple_paths(self, source, target, cutoff=None):
+        return nx.all_simple_paths(self.get_graph, source=source, target=target, cutoff=cutoff)
 
     def all_shortest_path(self, source, target, weight):
         """
@@ -143,6 +145,28 @@ class ECMPNetwork:
                     eid += 1
         return num_edges, ingoing, outgoing, e_map
 
+    def reducing_undirected2directed(self):
+        if self._g_directed is None:
+            self._g_directed = nx.DiGraph()
+            self._g_directed.add_nodes_from(self._graph.nodes)
+            current_node_index = self.get_num_nodes
+            self._reducing_map_dict = dict()
+            for (u, v, u_v_capacity) in self._graph.edges.data(EdgeConsts.CAPACITY_STR):
+                x_index = current_node_index
+                y_index = current_node_index + 1
+                current_node_index += 2
+                _virtual_edges_data = {EdgeConsts.WEIGHT_STR: 0, EdgeConsts.CAPACITY_STR: float("inf")}
+                _reduced_edge_data = {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: u_v_capacity}
+
+                self._g_directed.add_edge(u_of_edge=u, v_of_edge=x_index, **_virtual_edges_data)
+                self._g_directed.add_edge(u_of_edge=v, v_of_edge=x_index, **_virtual_edges_data)
+                self._g_directed.add_edge(u_of_edge=y_index, v_of_edge=u, **_virtual_edges_data)
+                self._g_directed.add_edge(u_of_edge=y_index, v_of_edge=v, **_virtual_edges_data)
+
+                self._g_directed.add_edge(u_of_edge=x_index, v_of_edge=y_index, **_reduced_edge_data)
+                self._reducing_map_dict[(u, v)] = (x_index, y_index)
+        return self._g_directed, self._reducing_map_dict
+
 # def get_base_graph():
 #     # init a triangle if we don't get a network graph
 #     g = nx.Graph()
@@ -155,6 +179,7 @@ class ECMPNetwork:
 #
 #
 # ecmpNetwork = ECMPNetwork(get_base_graph())
+# ecmpNetwork.reducing_undirected2directed()
 # adj = ecmpNetwork.get_adjacency
 # pairs = ecmpNetwork.get_all_pairs()
 # capcities = ecmpNetwork.get_capacities()
