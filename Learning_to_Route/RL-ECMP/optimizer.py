@@ -141,16 +141,18 @@ class WNumpyOptimizer:
         return edge_congestion  # final_s_value
 
 
-from Learning_to_Route.data_generation import tm_generation
-from topologies import topologies, topology_zoo_loader
-from Learning_to_Route.common.consts import Consts
-from flow_routing.find_optimal_load_balancing import get_optimal_load_balancing
-
-ecmpNetwork = NetworkClass(topologies["TRIANGLE"])
-tm = tm_generation.one_sample_tm_base(ecmpNetwork, 1, Consts.GRAVITY, 0, 0, 0)
-# ecmpNetwork = NetworkClass(ecmpNetwork.reducing_undirected2directed()[0])
-
-opt = WNumpyOptimizer(ecmpNetwork)
-print(get_optimal_load_balancing(net=ecmpNetwork, traffic_demand=tm)[0])
-cost, congestion_dict = opt.step([1, 0.1, 100, 100, 1, 1], tm)
-print(cost)
+# from Learning_to_Route.data_generation import tm_generation
+# from topologies import topologies, topology_zoo_loader
+# from Learning_to_Route.common.consts import Consts
+# from flow_routing.find_optimal_load_balancing import get_optimal_load_balancing
+# from flow_routing.find_optimal_load_balancingV2 import get_optimal_load_balancing as get_optimal_load_balancingv2
+#
+# ecmpNetwork = NetworkClass(topologies["TRIANGLE"])
+# tm = tm_generation.one_sample_tm_base(ecmpNetwork, 1, Consts.GRAVITY, 0, 0, 0)
+# # ecmpNetwork = NetworkClass(ecmpNetwork.reducing_undirected2directed()[0])
+#
+# opt = WNumpyOptimizer(ecmpNetwork)
+# print(get_optimal_load_balancing(net=ecmpNetwork, traffic_demands=tm)[0])
+# print(get_optimal_load_balancingv2(net=ecmpNetwork, traffic_demands=tm)[0])
+# cost, congestion_dict = opt.step([1, 0.1, 100, 100, 1, 1], tm)
+# print(cost)

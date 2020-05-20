@@ -6,7 +6,7 @@ import numpy as np
 from docplex.mp.model import Model
 
 
-def get_optimal_load_balancing(net: NetworkClass, traffic_demand, cutoff_path_len=None):
+def get_optimal_load_balancing(net: NetworkClass, traffic_demands, cutoff_path_len=None):
     m = Model(name='Lp for flow load balancing')
     vars_dict = dict()  # dictionary to store all variable problem
 
@@ -21,7 +21,7 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demand, cutoff_path_le
     logger.info("LP: Handling all flows")
     for nodes_pair in net.get_all_pairs():
         src, dst = nodes_pair
-        src_dest_flow = traffic_demand[src][dst]
+        src_dest_flow = traffic_demands[src][dst]
         if src_dest_flow > 0:
             logger.debug("Handle flow form {} to {}".format(src, dst))
             vars_per_path = list()
@@ -53,7 +53,7 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demand, cutoff_path_le
     for edge, var_list in vars_per_edge.items():
         edge_per_demend = np.zeros((net.get_num_nodes, net.get_num_nodes))
         for var, (src, dst) in var_list:
-            edge_per_demend[src][dst] += var.solution_value / traffic_demand[src][dst]
+            edge_per_demend[src][dst] += var.solution_value / traffic_demands[src][dst]
         per_edge_flow_fraction[edge] = edge_per_demend
 
     return r.solution_value, per_edge_flow_fraction
