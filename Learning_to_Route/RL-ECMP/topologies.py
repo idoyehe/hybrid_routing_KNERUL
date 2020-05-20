@@ -15,7 +15,7 @@ def _star():
         (4, 0, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
         (5, 0, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
     ])
-
+    g.graph["Name"] = "Star_6_Nodes"
     return g
 
 
@@ -31,7 +31,7 @@ def _ring():
         (4, 5, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
         (5, 0, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
     ])
-
+    g.graph["Name"] = "Ring_6_Nodes"
     return g
 
 
@@ -48,7 +48,7 @@ def _mesh():
         (0, 4, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
         (4, 5, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
     ])
-
+    g.graph["Name"] = "Mesh_6_Nodes"
     return g
 
 
@@ -62,6 +62,7 @@ def _fcn():
             g.add_edge(n1, n2, **{EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10})
 
     assert len(g.edges) == len(g.nodes) * (len(g.nodes) - 1) / 2
+    g.graph["Name"] = "FCN_6_Nodes"
     return g
 
 
@@ -77,6 +78,7 @@ def _tree():
         (2, 4, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
         (2, 5, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
     ])
+    g.graph["Name"] = "Tree_6_Nodes"
     return g
 
 
@@ -92,6 +94,7 @@ def _line():
         (3, 4, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
         (4, 5, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
     ])
+    g.graph["Name"] = "Line_6_Nodes"
     return g
 
 
@@ -102,7 +105,7 @@ def _triangle():
     g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
                       (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
                       (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
-
+    g.graph["Name"] = "Triangle_3_Nodes"
     return g
 
 
@@ -114,6 +117,7 @@ def topology_zoo_loader(url: str, capacity_label: str = "LinkSpeed", default_cap
             g.edges[edge][EdgeConsts.CAPACITY_STR] = int(g.edges[edge][capacity_label])
         else:
             g.edges[edge][EdgeConsts.CAPACITY_STR] = default_capacity
+    g.graph["Name"] = g.graph["Network"]
     return g
 
 

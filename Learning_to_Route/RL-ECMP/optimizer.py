@@ -7,14 +7,14 @@ refactoring on 24/04/2020
 """
 
 from consts import HistoryConsts
-from ecmp_network import *
+from network_class import *
 from logger import logger
 
 
 class WNumpyOptimizer:
     """TODO understand"""
 
-    def __init__(self, net: ECMPNetwork, max_iterations=500):
+    def __init__(self, net: NetworkClass, max_iterations=500):
         """
         constructor
         @param graph_adjacency_matrix: the graph adjacency matrix
@@ -31,7 +31,7 @@ class WNumpyOptimizer:
 
     def _initialize(self):
         logger.debug("Building ingoing and outgoing edges map")
-        _, self._ingoing_edges, self._outgoing_edges, _ = self._ecmp_network.build_edges_map()
+        _, self._ingoing_edges, self._outgoing_edges, self._e_map = self._ecmp_network.build_edges_map()
 
         self._mask = np.ones((self._num_nodes, self._num_nodes), dtype=np.float32) - np.eye(self._num_nodes, dtype=np.float32)
         self._eye_masks = [np.expand_dims(self._mask[:, i], 1) for i in range(self._num_nodes)]
@@ -42,8 +42,8 @@ class WNumpyOptimizer:
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
-        cost, congestion = self._get_cost_given_weights(weights_vector, traffic_matrix)
-        return cost
+        cost, congestion_dict = self._get_cost_given_weights(weights_vector, traffic_matrix)
+        return cost, congestion_dict
 
     def _get_cost_given_weights(self, weights_vector, traffic_matrix):
         logger.debug("Calculate each edge weight")
@@ -68,9 +68,18 @@ class WNumpyOptimizer:
             cong = self._get_flow_input_vector(soft_min_cost_vector, dst_demand, self._eye_masks[dst], dst)
             result += np.reshape(cong, [-1])  # , q_val
 
-        congestion = result / list(self._edges_capacities.values())
-        cost = np.max(congestion)
-        return cost, congestion
+        congestion_dict = defaultdict(int)
+        for _edge, eid in self._e_map.items():
+            if _edge[0] > _edge[1]:
+                _edge = (_edge[1], _edge[0])
+            assert _edge[0] < _edge[1]
+            congestion_dict[_edge] += result[eid]
+
+        for _edge, cong in congestion_dict.items():
+            congestion_dict[_edge] /= self._edges_capacities[_edge]
+
+        cost = max(congestion_dict.values())
+        return cost, dict(congestion_dict)
 
     def __get_edge_cost(self, cost_to_dest, each_edge_weight):
         cost_to_dst1 = cost_to_dest * self._graph_adjacency_matrix + each_edge_weight
@@ -132,13 +141,16 @@ class WNumpyOptimizer:
         return edge_congestion  # final_s_value
 
 
-# from Learning_to_Route.data_generation import tm_generation
-# from topologies import topologies,topology_zoo_loader
-# from Learning_to_Route.common.consts import Consts
-#
-# ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Atmnet.gml"))
+from Learning_to_Route.data_generation import tm_generation
+from topologies import topologies, topology_zoo_loader
+from Learning_to_Route.common.consts import Consts
+from flow_routing.find_optimal_load_balancing import get_optimal_load_balancing
 
-#
-# opt = WNumpyOptimizer(ecmpNetwork)
-# tm = tm_generation.one_sample_tm_base(ecmpNetwork, 1, Consts.GRAVITY, 0, 0, 0)
-# opt.step(np.array([1, 1, 1, 1, 1, 1]), tm)
+ecmpNetwork = NetworkClass(topologies["TRIANGLE"])
+tm = tm_generation.one_sample_tm_base(ecmpNetwork, 1, Consts.GRAVITY, 0, 0, 0)
+# ecmpNetwork = NetworkClass(ecmpNetwork.reducing_undirected2directed()[0])
+
+opt = WNumpyOptimizer(ecmpNetwork)
+print(get_optimal_load_balancing(net=ecmpNetwork, traffic_demand=tm)[0])
+cost, congestion_dict = opt.step([1, 0.1, 100, 100, 1, 1], tm)
+print(cost)

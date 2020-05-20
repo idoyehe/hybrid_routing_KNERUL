@@ -1,12 +1,12 @@
 from consts import EdgeConsts
-from ecmp_network import ECMPNetwork, nx
+from network_class import NetworkClass, nx
 from collections import defaultdict
 from logger import logger
 import numpy as np
 from docplex.mp.model import Model
 
 
-def get_optimal_load_balancing(net: ECMPNetwork, traffic_demand, cutoff_path_len=None):
+def get_optimal_load_balancing(net: NetworkClass, traffic_demand, cutoff_path_len=None):
     m = Model(name='Lp for flow load balancing')
     vars_dict = dict()  # dictionary to store all variable problem
 
@@ -59,7 +59,7 @@ def get_optimal_load_balancing(net: ECMPNetwork, traffic_demand, cutoff_path_len
     return r.solution_value, per_edge_flow_fraction
 
 
-def get_ecmp_edge_flow_fraction(net: ECMPNetwork, traffic_demand):
+def get_ecmp_edge_flow_fraction(net: NetworkClass, traffic_demand):
     per_edge_flow_fraction = dict()
 
     logger.info("Handling all flows")

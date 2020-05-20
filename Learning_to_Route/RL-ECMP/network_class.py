@@ -12,7 +12,7 @@ from collections import defaultdict
 from logger import logger
 
 
-class ECMPNetwork:
+class NetworkClass:
 
     def __init__(self, topo, min_weight=1e-12, max_weight=50):
         logger.info("Creating ECMP network")
@@ -47,6 +47,12 @@ class ECMPNetwork:
     @property
     def get_adjacency(self):
         return self._adj
+
+    @property
+    def get_name(self):
+        if "Name" in self.get_graph.graph:
+            return self.get_graph.graph["Name"]
+        return ""
 
     def get_edges_capacities(self):
         if self._capacities is None:  # for happens only once

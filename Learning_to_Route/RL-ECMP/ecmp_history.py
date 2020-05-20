@@ -6,7 +6,7 @@ refactoring on 26/04/2020
 @by: Ido Yehezkel
 """
 from gym import Env, spaces
-from ecmp_network import *
+from network_class import *
 from optimizer import WNumpyOptimizer
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from consts import HistoryConsts, ExtraData
@@ -31,7 +31,7 @@ class ECMPHistoryEnv(Env):
                  testing=False):
 
         self._g_name = ecmp_topo_name
-        self._network = ECMPNetwork(ecmp_topo)
+        self._network = NetworkClass(ecmp_topo)
 
         self._num_steps = max_steps
         self._num_edges = self._network.get_num_edges
@@ -69,11 +69,6 @@ class ECMPHistoryEnv(Env):
 
         self._all_rewards = []
         self._init_random_baseline()
-
-        try:
-            self._dump_data()
-        except:
-            pass
 
     def get_num_steps(self):
         return self._num_steps
@@ -146,9 +141,6 @@ class ECMPHistoryEnv(Env):
         self._observations = self._test_observations if testing else self._train_observations
         self._num_hisotories = self._actual_num_test_histories if testing else self._actual_num_train_histories
         self._opt_res = self._opt_test_observations if testing else self._opt_train_observations
-        # self._opt_avg_res = self._opt_avg_test_observations if testing else self._opt_avg_train_observations
-        # self._opt_avg_expected = self._opt_avg_expected_test_observations if testing else self._opt_avg_expexcted_train_observations
-        # self._opt_avg_actual = self._opt_avg_actual_test_observations if testing else self._opt_avg_actual_train_observations
         self._random_res = self._random_test_res if testing else self._random_train_res
 
     def _process_action(self, action):
@@ -213,19 +205,6 @@ class ECMPHistoryEnv(Env):
             self._history_start_id + self._history_len]
         env_data[ExtraData.REWARD_OVER_PREV] = norm_reward / self._opt_res[self._current_history_index][
             self._history_start_id - 1 + self._history_len]
-
-        # try:
-        #     env_data[ExtraData.REWARD_OVER_AVG] = norm_reward / self._opt_avg_expected[self._current_history_index][
-        #         self._history_start_id + self._history_len]
-        #     env_data[ExtraData.REWARD_OVER_AVG_EXPECTED] = norm_reward / self._opt_avg_expected[self._current_history_index][
-        #         self._history_start_id + self._history_len]
-        #     env_data[ExtraData.REWARD_OVER_AVG_ACTUAL] = norm_reward / self._opt_avg_actual[self._current_history_index][
-        #         self._history_start_id + self._history_len]
-        # except:
-        #     env_data[ExtraData.REWARD_OVER_AVG] = -1.0
-        #     env_data[ExtraData.REWARD_OVER_AVG_EXPECTED] = -1.0
-        #     env_data[ExtraData.REWARD_OVER_AVG_ACTUAL] = -1.0
-
         env_data[ExtraData.REWARD_OVER_RANDOM] = norm_reward / self._random_res[self._current_history_index][
             self._history_start_id + self._history_len]
 

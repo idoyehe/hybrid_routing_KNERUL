@@ -1,12 +1,12 @@
 from consts import EdgeConsts
-from ecmp_network import ECMPNetwork, nx
+from network_class import NetworkClass, nx
 from collections import defaultdict
 from logger import logger
 import numpy as np
 from docplex.mp.model import Model
 
 
-def get_optimal_load_balancing(net: ECMPNetwork, traffic_demands):
+def get_optimal_load_balancing(net: NetworkClass, traffic_demands):
     m = Model(name='Lp for flow load balancing')
     vars_dict = dict()  # dictionary to store all variable problem
 
@@ -52,6 +52,10 @@ def get_optimal_load_balancing(net: ECMPNetwork, traffic_demands):
             in_g_i_j = [edges_vars_dict[in_edge][i][j] for in_edge in in_edge_dict[i]]
             m.add_constraint(m.sum(out_g_i_j) - m.sum(in_g_i_j) == traffic_demands[i][j])
 
+            in_g_i_j = [edges_vars_dict[in_edge][j][i] for in_edge in in_edge_dict[i]]
+            out_g_i_j = [edges_vars_dict[out_edge][j][i ] for out_edge in out_edge_dict[i]]
+            m.add_constraint(m.sum(in_g_i_j) - m.sum(out_g_i_j) == traffic_demands[j][i])
+
     for k in reduced_directed.nodes:
         for i in net.get_graph.nodes:  # iterate over original node only
             for j in net.get_graph.nodes:
@@ -76,7 +80,7 @@ def get_optimal_load_balancing(net: ECMPNetwork, traffic_demands):
     return r.solution_value, per_edge_flow_fraction
 
 
-def get_ecmp_edge_flow_fraction(net: ECMPNetwork, traffic_demand):
+def get_ecmp_edge_flow_fraction(net: NetworkClass, traffic_demand):
     per_edge_flow_fraction = dict()
 
     logger.info("Handling all flows")
@@ -101,14 +105,14 @@ def get_ecmp_edge_flow_fraction(net: ECMPNetwork, traffic_demand):
     return per_edge_flow_fraction
 
 
-# from topologies import topologies
+from topologies import topologies
+
+
+def get_flows_matrix():
+    return [[0, 5, 10], [0, 0, 7], [0, 0, 0]]
+
+
+ecmpNetwork = NetworkClass(topologies["TRIANGLE"])
 #
-#
-# def get_flows_matrix():
-#     return [[0, 5, 10], [0, 0, 7], [0, 0, 0]]
-#
-#
-# ecmpNetwork = ECMPNetwork(topologies["TRIANGLE"])
-# #
-# get_optimal_load_balancing(ecmpNetwork, get_flows_matrix())
-# get_ecmp_edge_flow_fraction(ecmpNetwork, get_flows_matrix())
+get_optimal_load_balancing(ecmpNetwork, get_flows_matrix())
+get_ecmp_edge_flow_fraction(ecmpNetwork, get_flows_matrix())
