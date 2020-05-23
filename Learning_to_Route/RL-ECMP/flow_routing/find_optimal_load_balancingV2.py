@@ -1,82 +1,67 @@
 from consts import EdgeConsts
 from network_class import NetworkClass, nx
 from collections import defaultdict
-from logger import logger
+from logger import *
 import numpy as np
 from docplex.mp.model import Model
 
 
 def get_optimal_load_balancing(net: NetworkClass, traffic_demands):
     m = Model(name='Lp for flow load balancing')
-    vars_dict = dict()  # dictionary to store all variable problem
 
     # the object variable and function.
     logger.info("Creating linear programing problem")
     r = m.continuous_var(name="r")
-    vars_dict["r"] = r
-
     m.minimize(r)
 
-    edges_vars_dict = dict()
+    arch_g_vars_dict = defaultdict(dict)
     reduced_directed, edge_map_dict = net.reducing_undirected2directed()
 
-    out_edge_dict = defaultdict(list)
-    in_edge_dict = defaultdict(list)
+    out_archs_dict = defaultdict(list)
+    in_archs_dict = defaultdict(list)
 
     for u, v, capacity in reduced_directed.edges.data(EdgeConsts.CAPACITY_STR):
-        _edge = (u, v)
-        out_edge_dict[u].append(_edge)
-        in_edge_dict[v].append(_edge)
+        _arch = (u, v)
+        out_archs_dict[u].append(_arch)
+        in_archs_dict[v].append(_arch)
 
-        edges_vars_dict[_edge] = []
-        _all_edge_vars = []
         for i in range(net.get_num_nodes):
-            from_i2j_demends = []
             for j in range(net.get_num_nodes):
                 if i == j:
-                    from_i2j_demends.append(0)
+                    arch_g_vars_dict[_arch][(i, j)] = m.continuous_var(name="{}_g_{}_{}".format(str(_arch), i, j), lb=0, ub=0)
                     continue
-                g_var = m.continuous_var(name="{}_g_{}_{}".format(str(_edge), i, j), lb=0)
-                vars_dict[g_var.name] = g_var
-                from_i2j_demends.append(g_var)
-                _all_edge_vars.append(g_var)
-            edges_vars_dict[_edge].append(from_i2j_demends)
+                g_var = m.continuous_var(name="{}_g_{}_{}".format(str(_arch), i, j), lb=0)
+                arch_g_vars_dict[_arch][(i, j)] = g_var
+
         if capacity != float("inf"):
-            m.add_constraint(m.sum(_all_edge_vars) <= capacity * r)
-
-    for i in net.get_graph.nodes:  # iterate over original node only
-        for j in net.get_graph.nodes:
-            if i == j:
-                continue
-            out_g_i_j = [edges_vars_dict[out_edge][i][j] for out_edge in out_edge_dict[i]]
-            in_g_i_j = [edges_vars_dict[in_edge][i][j] for in_edge in in_edge_dict[i]]
-            m.add_constraint(m.sum(out_g_i_j) - m.sum(in_g_i_j) == traffic_demands[i][j])
-
-            in_g_i_j = [edges_vars_dict[in_edge][j][i] for in_edge in in_edge_dict[i]]
-            out_g_i_j = [edges_vars_dict[out_edge][j][i ] for out_edge in out_edge_dict[i]]
-            m.add_constraint(m.sum(in_g_i_j) - m.sum(out_g_i_j) == traffic_demands[j][i])
+            m.add_constraint(m.sum(arch_g_vars_dict[_arch].values()) <= capacity * r)
 
     for k in reduced_directed.nodes:
         for i in net.get_graph.nodes:  # iterate over original node only
             for j in net.get_graph.nodes:
-                if i == j or i == k or j == k:
+                if i == j or j == k:
                     continue
-                out_g_i_j = [edges_vars_dict[out_edge][i][j] for out_edge in out_edge_dict[k]]
-                in_g_i_j = [edges_vars_dict[in_edge][i][j] for in_edge in in_edge_dict[k]]
-                m.add_constraint(m.sum(out_g_i_j) - m.sum(in_g_i_j) == 0)
+
+                out_g_k_i_j = [arch_g_vars_dict[out_arch][(i, j)] for out_arch in out_archs_dict[k]]
+                in_g_k_i_j = [arch_g_vars_dict[in_arch][(i, j)] for in_arch in in_archs_dict[k]]
+                if i == k:
+                    m.add_constraint(m.sum(out_g_k_i_j) - m.sum(in_g_k_i_j) == traffic_demands[i][j])
+                else:
+                    m.add_constraint(m.sum(out_g_k_i_j) - m.sum(in_g_k_i_j) == 0)
 
     logger.info("LP: Solving")
     m.solve()
-    for var_name, var in vars_dict.items():
-        logger.info("Value of variable: {} is: {}".format(var_name, var.solution_value))
+    if logger.level == logging.DEBUG:
+        m.print_solution()
 
     per_edge_flow_fraction = dict()
     for edge, virtual_edge in edge_map_dict.items():
-        edge_per_demend = np.zeros((net.get_num_nodes, net.get_num_nodes))
-        for src, dst in net.get_all_pairs():
-            if traffic_demands[src][dst] != 0:
-                edge_per_demend[src][dst] += edges_vars_dict[virtual_edge][src][dst].solution_value / traffic_demands[src][dst]
-        per_edge_flow_fraction[edge] = edge_per_demend
+        edge_per_demands = np.zeros((net.get_num_nodes, net.get_num_nodes))
+        for (src, dst), var in arch_g_vars_dict[virtual_edge].items():
+            if traffic_demands[src][dst] > 0:
+                edge_per_demands[src][dst] += var.solution_value / traffic_demands[src][dst]
+
+        per_edge_flow_fraction[edge] = edge_per_demands
     return r.solution_value, per_edge_flow_fraction
 
 

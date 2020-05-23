@@ -49,6 +49,14 @@ class NetworkClass:
         return self._adj
 
     @property
+    def edges(self):
+        return self.get_graph.edges
+
+    @property
+    def nodes(self):
+        return self.get_graph.nodes
+
+    @property
     def get_name(self):
         if "Name" in self.get_graph.graph:
             return self.get_graph.graph["Name"]
@@ -171,6 +179,8 @@ class NetworkClass:
 
                 self._g_directed.add_edge(u_of_edge=x_index, v_of_edge=y_index, **_reduced_edge_data)
                 self._reducing_map_dict[(u, v)] = (x_index, y_index)
+
+            self._g_directed = NetworkClass(self._g_directed)
         return self._g_directed, self._reducing_map_dict
 
 # def get_base_graph():
