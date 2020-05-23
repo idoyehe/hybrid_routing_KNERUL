@@ -1,82 +1,97 @@
-from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
-from Learning_to_Route.common.consts import Consts
 from flow_routing.find_optimal_load_balancing import *
 from network_class import NetworkClass, EdgeConsts
 from topologies import topologies, topology_zoo_loader
 from docplex.mp.model import Model
 
 
-def _set_polyhedron_H1_constratins(net: NetworkClass, lp_edge):
-    m = Model(name='Lp for oblivious routing with edge')
-    traffic_demands = [
-        [m.continuous_var(name="D_{}_{}".format(i, j), lb=0) if i != j else 0 for j in range(net.get_num_nodes)]
-        for i in range(net.get_num_nodes)]
+def oblivious_routing(net: NetworkClass):
+    m = Model(name="Applegate's and Cohen's Oblivious Routing LP formulations")
+    reduced_directed = net.get_graph.to_directed()
+    r = m.continuous_var(name="r")
+    m.minimize(r)
 
-    edges_vars_dict = dict()
-    reduced_directed, edge_map_dict = net.reducing_undirected2directed()
+    pi_edges_dict = defaultdict(dict)
+    pe_edges_dict = defaultdict(dict)
+    f_arch_dict = defaultdict(dict)
 
-    out_edge_dict = defaultdict(list)
-    in_edge_dict = defaultdict(list)
+    out_arches = defaultdict(list)
+    in_arches = defaultdict(list)
+    for _e in net.edges:
+        _e_list_sum = []
+        for _h in net.edges:
+            pi_edges_dict[_e][_h] = m.continuous_var(name="PI_{}_{}".format(_e, _h), lb=0)
+            cap_h = net.get_edge_key(_h, EdgeConsts.CAPACITY_STR)
+            _e_list_sum.append(cap_h * pi_edges_dict[_e][_h])
+        m.add_constraint(m.sum(_e_list_sum) <= r)
 
-    for u, v, capacity in reduced_directed.edges.data(EdgeConsts.CAPACITY_STR):
-        _edge = (u, v)
-        out_edge_dict[u].append(_edge)
-        in_edge_dict[v].append(_edge)
-
-        edges_vars_dict[_edge] = []
-        _all_edge_vars = []
+    for _e in net.edges:
+        _capacity_e = net.get_edge_key(_e, EdgeConsts.CAPACITY_STR)
+        _arch = _e
+        _reversed_arch = (_e[1], _e[0])
         for i in range(net.get_num_nodes):
-            from_i2j_demends = []
             for j in range(net.get_num_nodes):
                 if i == j:
-                    from_i2j_demends.append(0)
-                    continue
-                g_var = m.continuous_var(name="{}_g_{}_{}".format(str(_edge), i, j), lb=0)
-                from_i2j_demends.append(g_var)
-                _all_edge_vars.append(g_var)
-            edges_vars_dict[_edge].append(from_i2j_demends)
-        if capacity != float("inf"):
-            m.add_constraint(m.sum(_all_edge_vars) <= capacity)
-        if (u, v) == lp_edge:
-            m.maximize(m.sum(_all_edge_vars) / capacity)
+                    pe_edges_dict[_e][(i, j)] = 0
+                    f_arch_dict[_arch][(i, j)] = 0
+                    f_arch_dict[_reversed_arch][(i, j)] = 0
+                else:
+                    pe_edges_dict[_e][(i, j)] = m.continuous_var(name="PE_{}_{}".format(_e, (i, j)), lb=0)
+                    f_arch_dict[_arch][(i, j)] = m.continuous_var(name="f_{}_{}".format(_arch, (i, j)), lb=0)
+                    f_arch_dict[_reversed_arch][(i, j)] = m.continuous_var(name="f_{}_{}".format(_reversed_arch, (i, j)), lb=0)
 
-    for i in net.get_graph.nodes:  # iterate over original node only
-        for j in net.get_graph.nodes:
-            if i == j:
-                continue
-            out_g_i_j = [edges_vars_dict[out_edge][i][j] for out_edge in out_edge_dict[i]]
-            in_g_i_j = [edges_vars_dict[in_edge][i][j] for in_edge in in_edge_dict[i]]
-            m.add_constraint(m.sum(out_g_i_j) - m.sum(in_g_i_j) == traffic_demands[i][j])
+                    f_e = f_arch_dict[_arch][(i, j)] + f_arch_dict[_reversed_arch][(i, j)]
+                    m.add_constraint(f_e / _capacity_e <= pe_edges_dict[_e][(i, j)])
 
-            in_g_i_j = [edges_vars_dict[in_edge][j][i] for in_edge in in_edge_dict[i]]
-            out_g_i_j = [edges_vars_dict[out_edge][j][i ] for out_edge in out_edge_dict[i]]
-            m.add_constraint(m.sum(in_g_i_j) - m.sum(out_g_i_j) == traffic_demands[j][i])
+        in_arches[_arch[1]].append(_arch)
+        out_arches[_arch[0]].append(_arch)
 
-    for k in reduced_directed.nodes:  # iterate over all nodes
-        for i in net.get_graph.nodes:
-            if i == k:
-                continue
-            for j in net.get_graph.nodes:
+        in_arches[_reversed_arch[1]].append(_reversed_arch)
+        out_arches[_reversed_arch[0]].append(_reversed_arch)
+
+    # flow constrains
+    for k in net.nodes:
+        for i in net.nodes:
+            for j in net.nodes:
                 if i == j or j == k:
                     continue
-                out_g_i_j = [edges_vars_dict[out_edge][i][j] for out_edge in out_edge_dict[k]]
-                in_g_i_j = [edges_vars_dict[in_edge][i][j] for in_edge in in_edge_dict[k]]
-                m.add_constraint(m.sum(out_g_i_j) - m.sum(in_g_i_j) == 0)
 
+                f_out_arch_k = [f_arch_dict[_out_arch][(i, j)] for _out_arch in out_arches[k]]
+                f_in_arch_k = [f_arch_dict[_in_arch][(i, j)] for _in_arch in in_arches[k]]
+                if i == k:
+                    m.add_constraint(m.sum(f_out_arch_k) - m.sum(f_in_arch_k) == 1)
+                else:
+                    m.add_constraint(m.sum(f_out_arch_k) - m.sum(f_in_arch_k) == 0)
+
+    for _e in net.edges:
+        for i in range(net.get_num_nodes):
+            for _arc in reduced_directed.edges:
+                _edge_of_arch = _arc
+                j = _arc[0]
+                k = _arc[1]
+                if _edge_of_arch not in list(net.edges):
+                    _edge_of_arch = (_arc[1], _arc[0])
+                    assert _edge_of_arch in net.edges
+
+                m.add_constraint((pi_edges_dict[_e][_edge_of_arch] + pe_edges_dict[_e][(i, j)] - pe_edges_dict[_e][(i, k)]) >= 0)
+
+    logger.info("LP: Solving")
     m.solve()
-    m.print_solution()
-    for i in net.get_graph.nodes:  # iterate over original node only
-        for j in net.get_graph.nodes:
-            if i == j:
-                t_val = 0
-            else:
-                t_val = traffic_demands[i][j].solution_value
-            print("D_{}_{}={}".format(i, j, t_val))
+    if logger.level == logging.DEBUG:
+        m.print_solution()
 
-    return traffic_demands
+    per_edge_flow_fraction = dict()
+    for _edge in net.edges:
+        edge_per_demands = np.zeros((net.get_num_nodes, net.get_num_nodes))
+        _arch = _edge
+        _reversed_arch = (_edge[1], _edge[0])
+        for src, dst in net.get_all_pairs():
+            assert src != dst
+            edge_per_demands[src, dst] += f_arch_dict[_arch][(src, dst)].solution_value + f_arch_dict[_reversed_arch][
+                (src, dst)].solution_value
+
+        per_edge_flow_fraction[_edge] = edge_per_demands
+    return r.solution_value, per_edge_flow_fraction
 
 
-ecmpNetwork = NetworkClass(topologies["TRIANGLE"])
-# ecmpNetwork = ECMPNetwork(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
-lp_edge = ecmpNetwork.reducing_undirected2directed()[1][(0, 1)]
-_set_polyhedron_H1_constratins(ecmpNetwork, lp_edge)
+net = NetworkClass(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
+oblivious_routing(net)
