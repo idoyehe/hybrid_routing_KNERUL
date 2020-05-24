@@ -65,9 +65,6 @@ class TMType:
     # TMs types
     BIMODAL = "bimodal"
     GRAVITY = "gravity"
-    GAUSSIAN = "gaus"
-    EXP = "exp"
-    BIMODAL_LOAD = "bimodal_load"
 
 class ActionType:
     ACTION_OBLIVIOUS_PATH = "oblivious"

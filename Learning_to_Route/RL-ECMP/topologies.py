@@ -109,12 +109,14 @@ def _triangle():
     return g
 
 
-def topology_zoo_loader(url: str, capacity_label: str = "LinkSpeed", default_capacity: int = 100):
+def topology_zoo_loader(url: str, default_capacity: int = 100):
+    CAPACITY_LABEL_DEFAULT: str = "LinkSpeed"
+
     gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
     g = nx.parse_gml(gml, label="id", )
     for edge in g.edges:
-        if capacity_label in g.edges[edge]:
-            g.edges[edge][EdgeConsts.CAPACITY_STR] = int(g.edges[edge][capacity_label])
+        if CAPACITY_LABEL_DEFAULT in g.edges[edge]:
+            g.edges[edge][EdgeConsts.CAPACITY_STR] = int(g.edges[edge][CAPACITY_LABEL_DEFAULT])
         else:
             g.edges[edge][EdgeConsts.CAPACITY_STR] = default_capacity
     g.graph["Name"] = g.graph["Network"]
