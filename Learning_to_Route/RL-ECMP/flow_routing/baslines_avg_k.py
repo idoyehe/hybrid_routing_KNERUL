@@ -1,29 +1,14 @@
-from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
-from Learning_to_Route.common.consts import Consts
 from flow_routing.find_optimal_load_balancing import *
-from network_class import NetworkClass, EdgeConsts
+from network_class import NetworkClass
+from consts import EdgeConsts
+from generating_tms import load_dump_file
 from topologies import topology_zoo_loader
-import pickle
+from logger import logger
+from argparse import ArgumentParser
+from sys import argv
 
 
-def generate_traffic_matrix_baseline(net: NetworkClass, k: int,
-                                     matrix_sparsity: float, tm_type, elephant_percentage: float,
-                                     network_elephant, network_mice, total_matrices: int):
-    logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices + k))
-    tm_list = list()
-    for _ in range(total_matrices + k):
-        tm = one_sample_tm_base(graph=net,
-                                matrix_sparsity=matrix_sparsity,
-                                tm_type=tm_type,
-                                elephant_percentage=elephant_percentage, network_elephant=network_elephant,
-                                network_mice=network_mice)
-        opt, _ = get_optimal_load_balancing(net, tm, None)  # heuristic flows splittings
-        tm_list.append((tm, opt))
-
-    return tm_list
-
-
-def calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix_list: list, from_dumped=False, cutoff_path_len=None):
+def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix_list: list, from_dumped=False, cutoff_path_len=None):
     logger.info("Calculating congestion to all traffic matrices by {} previous average".format(k))
 
     assert k < len(traffic_matrix_list)
@@ -31,7 +16,7 @@ def calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix_
     for index, (current_traffic_matrix, current_opt) in enumerate(traffic_matrix_list[k:]):
 
         logger.info("Current matrix index is: {}".format(index))
-        avg_traffic_matrix = np.mean(traffic_matrix_list[index:index + k], axis=0)
+        avg_traffic_matrix = np.mean(list(map(lambda t: t[0], traffic_matrix_list[index:index + k])), axis=0)
 
         assert avg_traffic_matrix.shape == current_traffic_matrix.shape
 
@@ -75,41 +60,16 @@ def calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix_
     return congestion_list
 
 
-def dump_tms_and_opt(net: NetworkClass, k: int, matrix_sparsity: float, tm_type, elephant_percentage: float,
-                     network_elephant, network_mice, total_matrices: int):
-    tms = generate_traffic_matrix_baseline(net=net,
-                                           k=k, matrix_sparsity=matrix_sparsity, tm_type=tm_type,
-                                           elephant_percentage=elephant_percentage, network_elephant=network_elephant,
-                                           network_mice=network_mice,
-                                           total_matrices=total_matrices)
-    file_name: str = "C:\\Users\\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\RL-ECMP\\tm_dumps\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(
-        net.get_name, net.get_num_nodes, net.get_num_nodes, k, tm_type, matrix_sparsity)
-    dump_file = open(file_name, 'wb')
-    pickle.dump(tms, dump_file)
-    dump_file.close()
-    return file_name
-
-
-def load_tms_and_opt(file_name: str):
-    dumped_file = open(file_name, 'rb')
-    tms = pickle.load(dumped_file)
-    dumped_file.close()
-    assert isinstance(tms, list)
-    return tms
+def _getOptions(args=argv[1:]):
+    parser = ArgumentParser(description="Parses path for dump file")
+    parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
+    options = parser.parse_args(args)
+    return options
 
 
 if __name__ == "__main__":
-    net = NetworkClass(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
-    average_capacity = np.mean(list(net.get_edges_capacities().values()))
-    K = 3
-    filename: str = dump_tms_and_opt(net=net, k=K,
-                                     matrix_sparsity=0.3,
-                                     tm_type=Consts.GRAVITY,
-                                     elephant_percentage=0.2,
-                                     network_elephant=average_capacity,
-                                     network_mice=average_capacity * 0.1,
-                                     total_matrices=1)
-
-    _tms = load_tms_and_opt(filename)
-    c_l = calculate_congestion_per_matrices(net=net, k=K, traffic_matrix_list=_tms)
+    dump_path = _getOptions().dumped_path
+    loaded_dict = load_dump_file(dump_path)
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+    c_l = _calculate_congestion_per_matrices(net=net, k=loaded_dict["k"], traffic_matrix_list=loaded_dict["tms"])
     print(np.average(c_l))
