@@ -88,16 +88,3 @@ def get_ecmp_edge_flow_fraction(net: NetworkClass, traffic_demand):
                     per_edge_flow_fraction[edge][src][dst] += fraction
 
     return per_edge_flow_fraction
-
-
-from topologies import topologies
-
-
-def get_flows_matrix():
-    return [[0, 5, 10], [0, 0, 7], [0, 0, 0]]
-
-
-ecmpNetwork = NetworkClass(topologies["TRIANGLE"])
-#
-get_optimal_load_balancing(ecmpNetwork, get_flows_matrix())
-get_ecmp_edge_flow_fraction(ecmpNetwork, get_flows_matrix())

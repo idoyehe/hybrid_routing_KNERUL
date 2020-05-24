@@ -15,7 +15,7 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demands, cutoff_path_l
 
     m.minimize(r)
 
-    vars_per_edge = defaultdict(dict)  # dictionary to save all variable related to edge.
+    vars_per_edge = defaultdict(list)  # dictionary to save all variable related to edge.
     logger.info("LP: Handling all flows")
     for src, dst in net.get_all_pairs():
         nodes_pair = (src, dst)
@@ -25,7 +25,7 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demands, cutoff_path_l
             vars_per_path = list()
             for path in net.all_simple_paths(source=src, target=dst, cutoff=cutoff_path_len):
                 logger.debug("Handle the path {}".format(str(path)))
-                var = m.continuous_var(lb=0, name="p_" + '-'.join(str(i) for i in path))
+                var = m.continuous_var(lb=0, name="p_" + '>'.join(str(i) for i in path))
 
                 vars_per_path.append(var)
 
@@ -33,13 +33,13 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demands, cutoff_path_l
                     logger.debug("Handle edge {} in path {}".format(str(edge), str(path)))
                     if edge[0] > edge[1]:
                         edge = (edge[1], edge[0])
-                    vars_per_edge[edge][nodes_pair] = var
+                    vars_per_edge[edge].append((var, nodes_pair))
 
             m.add_constraint(m.sum(vars_per_path) == src_dest_flow)
 
     for edge, var_list in vars_per_edge.items():
         _capacity_edge = net.get_edge_key(edge, EdgeConsts.CAPACITY_STR)
-        m.add_constraint(m.sum(var_list.values()) <= _capacity_edge * r)
+        m.add_constraint(m.sum([elem[0] for elem in var_list]) <= _capacity_edge * r)
 
     logger.info("LP: Solving")
     m.solve()
@@ -49,7 +49,7 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demands, cutoff_path_l
     per_edge_flow_fraction = dict()
     for edge, flow_frac_dict in vars_per_edge.items():
         edge_per_demend = np.zeros((net.get_num_nodes, net.get_num_nodes))
-        for (src, dst), var in flow_frac_dict.items():
+        for var, (src, dst) in var_list:
             edge_per_demend[src][dst] += var.solution_value / traffic_demands[src][dst]
         per_edge_flow_fraction[edge] = edge_per_demend
 
@@ -79,16 +79,3 @@ def get_ecmp_edge_flow_fraction(net: NetworkClass, traffic_demand):
                     per_edge_flow_fraction[edge][src][dst] += fraction
 
     return per_edge_flow_fraction
-
-
-# from topologies import topologies
-#
-#
-# def get_flows_matrix():
-#     return [[0, 5, 10], [0, 0, 7], [0, 0, 0]]
-#
-#
-# ecmpNetwork = NetworkClass(topologies["TRIANGLE"])
-#
-# get_optimal_load_balancing(ecmpNetwork, get_flows_matrix())
-# get_ecmp_edge_flow_fraction(ecmpNetwork, get_flows_matrix())
