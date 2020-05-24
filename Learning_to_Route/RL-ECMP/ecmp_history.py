@@ -229,11 +229,11 @@ class ECMPHistoryEnv(Env):
         return self._optimizer.step(self._w, tm)
 
 
-from topologies import topologies
+from topologies import BASIC_TOPOLOGIES
 
 topo_name = "TRIANGLE"
 env = ECMPHistoryEnv(ecmp_topo_name=topo_name,
-                     ecmp_topo=topologies[topo_name],
+                     ecmp_topo=BASIC_TOPOLOGIES[topo_name],
                      max_steps=1,
                      history_length=2,
                      history_action_type=HistoryConsts.ACTION_W_EPSILON,

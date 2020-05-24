@@ -1,10 +1,14 @@
 from flow_routing.find_optimal_load_balancing import *
-from network_class import NetworkClass, EdgeConsts
-from topologies import topologies, topology_zoo_loader
-from docplex.mp.model import Model
+from network_class import NetworkClass
+from consts import EdgeConsts
+from generating_tms import load_dump_file
+from topologies import topology_zoo_loader
+from logger import logger
+from argparse import ArgumentParser
+from sys import argv
 
 
-def oblivious_routing(net: NetworkClass):
+def _oblivious_routing(net: NetworkClass):
     m = Model(name="Applegate's and Cohen's Oblivious Routing LP formulations")
     reduced_directed = net.get_graph.to_directed()
     r = m.continuous_var(name="r")
@@ -74,7 +78,7 @@ def oblivious_routing(net: NetworkClass):
 
                 m.add_constraint((pi_edges_dict[_e][_edge_of_arch] + pe_edges_dict[_e][(i, j)] - pe_edges_dict[_e][(i, k)]) >= 0)
 
-    logger.info("LP: Solving")
+    logger.info("LP Solving {}".format(m.name))
     m.solve()
     if logger.level == logging.DEBUG:
         m.print_solution()
@@ -93,5 +97,43 @@ def oblivious_routing(net: NetworkClass):
     return r.solution_value, per_edge_flow_fraction
 
 
-net = NetworkClass(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
-oblivious_routing(net)
+def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: list, oblivious_routing_per_edge: dict):
+    logger.info("Calculating congestion to all traffic matrices by {} oblivious routing")
+
+    congestion_ratios = list()
+    for index, (current_traffic_matrix, current_opt) in enumerate(traffic_matrix_list):
+        logger.info("Current matrix index is: {}".format(index))
+
+        assert current_traffic_matrix.shape == (net.get_num_nodes, net.get_num_nodes)
+
+        logger.debug('Calculating the congestion per edge and finding max edge congestion')
+
+        congestion_per_edge = defaultdict(int)
+        max_congestion = 0
+        for edge, frac_matrix in oblivious_routing_per_edge.items():
+            congestion_per_edge[edge] += np.sum(frac_matrix * current_traffic_matrix)
+            congestion_per_edge[edge] /= net.get_edge_key(edge=edge, key=EdgeConsts.CAPACITY_STR)
+            if congestion_per_edge[edge] > max_congestion:
+                max_congestion = congestion_per_edge[edge]
+
+        congestion_ratios.append(max_congestion / current_opt)
+
+    return congestion_ratios
+
+
+def _getOptions(args=argv[1:]):
+    parser = ArgumentParser(description="Parses path for dump file")
+    parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
+    options = parser.parse_args(args)
+    return options
+
+
+if __name__ == "__main__":
+    dump_path = _getOptions().dumped_path
+    loaded_dict = load_dump_file(dump_path)
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+    oblivious_ratio, oblivious_routing_per_edge = _oblivious_routing(net)
+    print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
+    c_l = _calculate_congestion_per_matrices(net=net, traffic_matrix_list=loaded_dict["tms"],
+                                             oblivious_routing_per_edge=oblivious_routing_per_edge)
+    print(np.average(c_l))

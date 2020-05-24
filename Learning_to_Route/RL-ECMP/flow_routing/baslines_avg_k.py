@@ -8,11 +8,11 @@ from argparse import ArgumentParser
 from sys import argv
 
 
-def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix_list: list, from_dumped=False, cutoff_path_len=None):
+def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix_list: list, cutoff_path_len=None):
     logger.info("Calculating congestion to all traffic matrices by {} previous average".format(k))
 
     assert k < len(traffic_matrix_list)
-    congestion_list = list()
+    congestion_ratios = list()
     for index, (current_traffic_matrix, current_opt) in enumerate(traffic_matrix_list[k:]):
 
         logger.info("Current matrix index is: {}".format(index))
@@ -55,9 +55,9 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
             if congestion_per_edge[edge] > max_congestion:
                 max_congestion = congestion_per_edge[edge]
 
-        congestion_list.append(max_congestion / current_opt)
+        congestion_ratios.append(max_congestion / current_opt)
 
-    return congestion_list
+    return congestion_ratios
 
 
 def _getOptions(args=argv[1:]):

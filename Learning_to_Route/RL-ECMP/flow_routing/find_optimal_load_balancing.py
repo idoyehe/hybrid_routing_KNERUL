@@ -41,7 +41,7 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demands, cutoff_path_l
         _capacity_edge = net.get_edge_key(edge, EdgeConsts.CAPACITY_STR)
         m.add_constraint(m.sum([elem[0] for elem in var_list]) <= _capacity_edge * r)
 
-    logger.info("LP: Solving")
+    logger.info("LP Solving {}".format(m.name))
     m.solve()
     if logger.level == logging.DEBUG:
         m.print_solution()

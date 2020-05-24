@@ -49,7 +49,7 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demands):
                 else:
                     m.add_constraint(m.sum(out_g_k_i_j) - m.sum(in_g_k_i_j) == 0)
 
-    logger.info("LP: Solving")
+    logger.info("LP Solving {}".format(m.name))
     m.solve()
     if logger.level == logging.DEBUG:
         m.print_solution()

@@ -123,7 +123,7 @@ def topology_zoo_loader(url: str, default_capacity: int = 100):
     return g
 
 
-topologies = {
+BASIC_TOPOLOGIES = {
     "STAR": _star(),
     "RING": _ring(),
     "MESH": _mesh(),
