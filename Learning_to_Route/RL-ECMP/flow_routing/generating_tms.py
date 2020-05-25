@@ -50,14 +50,16 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, k: int,
                                       network_elephant, network_mice, total_matrices: int):
     logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices + k))
     tm_list = list()
-    for _ in range(total_matrices + k):
+    for index in range(total_matrices + k):
         tm = one_sample_tm_base(graph=net,
-                                matrix_sparsity=matrix_sparsity,
-                                tm_type=tm_type,
-                                elephant_percentage=elephant_percentage, network_elephant=network_elephant,
-                                network_mice=network_mice)
+                                    matrix_sparsity=matrix_sparsity,
+                                    tm_type=tm_type,
+                                    elephant_percentage=elephant_percentage, network_elephant=network_elephant,
+                                    network_mice=network_mice)
         opt, _ = get_optimal_load_balancing(net, tm)  # heuristic flows splittings
         tm_list.append((tm, opt))
+        logger.info("Current TM {} with optimal routing {}".format(index,opt))
+
 
     return tm_list
 
