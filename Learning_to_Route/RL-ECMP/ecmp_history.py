@@ -12,28 +12,39 @@ from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from consts import HistoryConsts, ExtraData
 from Learning_to_Route.common.consts import Consts
 from flow_routing.find_optimal_load_balancing import get_optimal_load_balancing
+from flow_routing.generating_tms import load_dump_file
+from topologies import topology_zoo_loader
 
 
 class ECMPHistoryEnv(Env):
 
-    def __init__(self, ecmp_topo_name,
-                 ecmp_topo,
+    def __init__(self,
                  max_steps,
-                 history_length,
-                 history_action_type,
-                 train_histories_length,
-                 test_histories_length,
-                 tm_type,
-                 tm_sparsity,
+                 ecmp_topo=None,
+                 path_dumped=None,
+                 history_length=None,
+                 history_action_type=None,
+                 train_histories_length=None,
+                 test_histories_length=None,
+                 tm_type=None,
+                 tm_sparsity=None,
                  elephant_flows_percentage=None,
                  elephant_flow=None,
                  mice_flow=None,
                  testing=False):
 
-        self._g_name = ecmp_topo_name
-        self._network = NetworkClass(ecmp_topo)
-
         self._num_steps = max_steps
+
+        if path_dumped is None:
+            self._network = NetworkClass(ecmp_topo)
+            self._tms = None
+        else:
+            loaded_dict = load_dump_file(file_name=path_dumped)
+            self._network = NetworkClass(
+                topology_zoo_loader(url=loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+            self._tms = loaded_dict["tms"]
+
+        self._g_name = self._network.get_name
         self._num_edges = self._network.get_num_edges
         self._num_nodes = self._network.get_num_nodes
         self._all_pairs = self._network.get_all_pairs()
@@ -74,7 +85,8 @@ class ECMPHistoryEnv(Env):
         return self._num_steps
 
     def _set_observation_space(self):
-        self._observation_space = spaces.Box(low=0.0, high=np.inf, shape=(self._history_len, self._num_nodes, self._num_nodes))
+        self._observation_space = spaces.Box(low=0.0, high=np.inf,
+                                             shape=(self._history_len, self._num_nodes, self._num_nodes))
 
     def _set_action_space(self):
         self._action_space = spaces.Box(low=1.0, high=50.0, shape=(self._num_edges,))
@@ -91,18 +103,40 @@ class ECMPHistoryEnv(Env):
         self._opt_train_observations = []
         self._opt_test_observations = []
 
-        for _ in range(self._num_train_histories):
-            for p in self._tm_sparsity_list:
-                train_episode = [self._sample_tm(p) for _ in range(self._history_len + self._num_steps + 1)]
-                train_episode_optimal = [get_optimal_load_balancing(self._network, tm) for tm in train_episode]
+        if self._tms is None:
+            for _ in range(self._num_train_histories):
+                for p in self._tm_sparsity_list:
+                    train_episode = [self._sample_tm(p) for _ in range(self._history_len + self._num_steps)]
+                    train_episode_optimal = [get_optimal_load_balancing(self._network, tm)[0] for tm in train_episode]
+                    self._train_observations.append(train_episode)
+                    self._opt_train_observations.append(train_episode_optimal)
+
+            for _ in range(self._num_test_histories):
+                for p in self._tm_sparsity_list:
+                    test_episode = [self._sample_tm(p) for _ in range(self._history_len + self._num_steps)]
+                    test_episode_optimal = [get_optimal_load_balancing(self._network, tm)[0] for tm in test_episode]
+                    self._test_observations.append(test_episode)
+                    self._opt_test_observations.append(test_episode_optimal)
+
+        else:
+            self._num_train_histories = int(len(self._tms) * 0.75)
+            self._num_test_histories = int(len(self._tms) * 0.25)
+            episode_total_matrices = self._history_len + self._num_steps
+            for start_index in range(0, self._num_train_histories, episode_total_matrices):
+                train_episode = list()
+                train_episode_optimal = list()
+                for tm_element in self._tms[start_index: start_index + episode_total_matrices]:
+                    train_episode.append(tm_element[0])
+                    train_episode_optimal.append(tm_element[1])
                 self._train_observations.append(train_episode)
                 self._opt_train_observations.append(train_episode_optimal)
-                pass
 
-        for _ in range(self._num_test_histories):
-            for p in self._tm_sparsity_list:
-                test_episode = [self._sample_tm(p) for _ in range(self._history_len + self._num_steps + 1)]
-                test_episode_optimal = [get_optimal_load_balancing(self._network, tm) for tm in test_episode]
+            for start_index in range(self._num_train_histories, len(self._tms), episode_total_matrices):
+                test_episode = list()
+                test_episode_optimal = list()
+                for tm_element in self._tms[start_index: start_index + episode_total_matrices]:
+                    test_episode.append(tm_element[0])
+                    test_episode_optimal.append(tm_element[1])
                 self._test_observations.append(test_episode)
                 self._opt_test_observations.append(test_episode_optimal)
 
@@ -186,7 +220,8 @@ class ECMPHistoryEnv(Env):
 
     def _get_observation(self):
         self._current_history = np.stack(
-            self._observations[self._current_history_index][self._history_start_id:self._history_start_id + self._history_len])
+            self._observations[self._current_history_index][
+            self._history_start_id:self._history_start_id + self._history_len])
         return self._current_history.flatten()
 
     def step(self, action):
@@ -229,18 +264,7 @@ class ECMPHistoryEnv(Env):
         return self._optimizer.step(self._w, tm)
 
 
-from topologies import BASIC_TOPOLOGIES
-
-topo_name = "TRIANGLE"
-env = ECMPHistoryEnv(ecmp_topo_name=topo_name,
-                     ecmp_topo=BASIC_TOPOLOGIES[topo_name],
-                     max_steps=1,
-                     history_length=2,
-                     history_action_type=HistoryConsts.ACTION_W_EPSILON,
-                     train_histories_length=5,
-                     test_histories_length=5,
-                     tm_type=Consts.GRAVITY,
-                     tm_sparsity=[0.3, 0.5]
-                     )
+env = ECMPHistoryEnv(max_steps=95,
+                     history_length=5,
+                     path_dumped="C:\\Users\\IdoYe\PycharmProjects\\Research_Implementing\\Learning_to_Route\\RL-ECMP\\flow_routing\\TMs_DB\\IBM_tms_18X18_length_10000_K_5_gravity_sparsity_0.3")
 env.reset()
-env.step(np.array([0.5, 0.5, 1, 1, 1, 1]))
