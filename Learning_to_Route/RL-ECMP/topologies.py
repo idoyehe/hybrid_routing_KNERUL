@@ -113,7 +113,7 @@ def topology_zoo_loader(url: str, default_capacity: int = 100):
     CAPACITY_LABEL_DEFAULT: str = "LinkSpeed"
 
     gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
-    g = nx.parse_gml(gml, label="id", )
+    g = nx.parse_gml(gml, label="id")
     for edge in g.edges:
         if CAPACITY_LABEL_DEFAULT in g.edges[edge]:
             g.edges[edge][EdgeConsts.CAPACITY_STR] = int(g.edges[edge][CAPACITY_LABEL_DEFAULT])
