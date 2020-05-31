@@ -75,5 +75,5 @@ if __name__ == "__main__":
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     n = args.number_of_matrices
     shuffle(loaded_dict["tms"])
-    c_l = _calculate_congestion_per_matrices(net=net, k=k, traffic_matrix_list=loaded_dict["tms"][0:n + k])
+    c_l = _calculate_congestion_per_matrices(net=net, k=k, traffic_matrix_list=loaded_dict["tms"][0:n])
     print(np.average(c_l))
