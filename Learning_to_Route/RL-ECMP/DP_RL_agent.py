@@ -47,28 +47,19 @@ def _getOptions(args=argv[1:]):
 # env.reset()
 
 
-class MyMlpPolicy(MlpPolicy):
-    ARCH = None
-
-    def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, **_kwargs):
-        super(MyMlpPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse,
-                                          net_arch=[{"pi": MyMlpPolicy.ARCH, "vf": MyMlpPolicy.ARCH}],
-                                          **_kwargs)
-
-
 if __name__ == "__main__":
     args = _getOptions()
-    MyMlpPolicy.ARCH = args.mlp_architecture
 
-    print("Architecture is: {}".format(MyMlpPolicy.ARCH))
+    print("Architecture is: {}".format(args.mlp_architecture))
     gamma = args.gamma
     print("gamma = {}".format(gamma))
 
     save_path = args.save_path
 
     env = make_vec_env(ecmp_history.ECMP_ENV_GYM_ID, n_envs=1)
-    model = PPO(MlpPolicy, env, verbose=1, gamma=gamma, n_steps=350)
+    policy_kwargs = dict(net_arch=args.mlp_architecture)
 
-    # model.learn(total_timesteps=(7 * 50 * 1500))
-    model.learn(total_timesteps=(20))
+    model = PPO(MlpPolicy, env, verbose=1, gamma=gamma, n_steps=350, policy_kwargs=policy_kwargs)
+
+    model.learn(total_timesteps=(350 * 1500))
     # model.save(path=save_path)

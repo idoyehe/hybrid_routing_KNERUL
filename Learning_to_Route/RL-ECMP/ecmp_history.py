@@ -217,7 +217,6 @@ class ECMPHistoryEnv(Env):
         return self._current_history
 
     def step(self, action):
-        print("Step")
         self._w = self._process_action(action)
 
         cost = self._get_reward()

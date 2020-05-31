@@ -52,6 +52,7 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
             if congestion_per_edge[edge] > max_congestion:
                 max_congestion = congestion_per_edge[edge]
 
+        assert max_congestion >= current_opt
         congestion_ratios.append(max_congestion / current_opt)
 
     return congestion_ratios
