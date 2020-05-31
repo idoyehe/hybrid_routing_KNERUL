@@ -33,7 +33,12 @@ def _dump_tms_and_opt(net: NetworkClass, url: str, matrix_sparsity: float, tm_ty
                                             total_matrices=total_matrices)
 
     capacity = list(net.get_edges_capacities().values())[0]
-    dict2dump = {"tms": tms, "url": url, "capacity": capacity, "matrix_sparsity": matrix_sparsity}
+    dict2dump = {
+        "tms": tms,
+        "url": url,
+        "capacity": capacity,
+        "tms_sparsity": matrix_sparsity,
+        "tms_type": tm_type, }
 
     file_name: str = os.getcwd() + "\\TMs_DB\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name, net.get_num_nodes,
                                                                                             net.get_num_nodes, total_matrices, tm_type,

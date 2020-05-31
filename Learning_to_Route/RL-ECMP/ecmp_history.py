@@ -38,11 +38,15 @@ class ECMPHistoryEnv(Env):
         if path_dumped is None:
             self._network = NetworkClass(ecmp_topo)
             self._tms = None
+            self._tm_type = tm_type
+            self._tm_sparsity_list = tm_sparsity  # percentage of participating pairs, assumed to be a list
         else:
             loaded_dict = load_dump_file(file_name=path_dumped)
             self._network = NetworkClass(
                 topology_zoo_loader(url=loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
             self._tms = loaded_dict["tms"]
+            self._tm_type = loaded_dict["tms_type"]
+            self._tm_sparsity_list = [loaded_dict["tms_sparsity"]]  # percentage of participating pairs, assumed to be a list
 
         self._g_name = self._network.get_name
         self._num_edges = self._network.get_num_edges
@@ -57,8 +61,6 @@ class ECMPHistoryEnv(Env):
         self._history_action_type = history_action_type
         self._num_train_histories = train_histories_length  # number of different train seniors per sparsity
         self._num_test_histories = test_histories_length  # number of different test seniors per sparsity
-        self._tm_type = tm_type
-        self._tm_sparsity_list = tm_sparsity  # percentage of participating pairs, assumed to be a list
         self._mice_flow = mice_flow
         self._elephant_flow = elephant_flow
         self._elephant_flows_percentage = elephant_flows_percentage
@@ -93,9 +95,13 @@ class ECMPHistoryEnv(Env):
 
     def _sample_tm(self, p):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
-        tm = one_sample_tm_base(self._network, p, self._tm_type,
-                                self._elephant_flows_percentage, self._elephant_flow, self._mice_flow)
-        return tm
+
+        if self._tms is None:
+            tm = one_sample_tm_base(self._network, p, self._tm_type, self._elephant_flows_percentage, self._elephant_flow, self._mice_flow)
+            opt = get_optimal_load_balancing(self._network, tm)[0]
+        else:
+            tm, opt = np.random.choice(self._tms)
+        return tm, opt
 
     def _init_all_observations(self):
         self._train_observations = []
@@ -103,40 +109,25 @@ class ECMPHistoryEnv(Env):
         self._opt_train_observations = []
         self._opt_test_observations = []
 
-        if self._tms is None:
-            for _ in range(self._num_train_histories):
-                for p in self._tm_sparsity_list:
-                    train_episode = [self._sample_tm(p) for _ in range(self._history_len + self._num_steps)]
-                    train_episode_optimal = [get_optimal_load_balancing(self._network, tm)[0] for tm in train_episode]
-                    self._train_observations.append(train_episode)
-                    self._opt_train_observations.append(train_episode_optimal)
-
-            for _ in range(self._num_test_histories):
-                for p in self._tm_sparsity_list:
-                    test_episode = [self._sample_tm(p) for _ in range(self._history_len + self._num_steps)]
-                    test_episode_optimal = [get_optimal_load_balancing(self._network, tm)[0] for tm in test_episode]
-                    self._test_observations.append(test_episode)
-                    self._opt_test_observations.append(test_episode_optimal)
-
-        else:
-            self._num_train_histories = int(len(self._tms) * 0.75)
-            self._num_test_histories = int(len(self._tms) * 0.25)
-            episode_total_matrices = self._history_len + self._num_steps
-            for start_index in range(0, self._num_train_histories, episode_total_matrices):
+        for _ in range(self._num_train_histories):
+            for p in self._tm_sparsity_list:
                 train_episode = list()
                 train_episode_optimal = list()
-                for tm_element in self._tms[start_index: start_index + episode_total_matrices]:
-                    train_episode.append(tm_element[0])
-                    train_episode_optimal.append(tm_element[1])
+                for _ in range(self._history_len + self._num_steps):
+                    tm, opt = self._sample_tm(p)
+                    train_episode.append(tm)
+                    train_episode_optimal.append(opt)
                 self._train_observations.append(train_episode)
                 self._opt_train_observations.append(train_episode_optimal)
 
-            for start_index in range(self._num_train_histories, len(self._tms), episode_total_matrices):
-                test_episode = list()
-                test_episode_optimal = list()
-                for tm_element in self._tms[start_index: start_index + episode_total_matrices]:
-                    test_episode.append(tm_element[0])
-                    test_episode_optimal.append(tm_element[1])
+        for _ in range(self._num_test_histories):
+            test_episode = list()
+            test_episode_optimal = list()
+            for p in self._tm_sparsity_list:
+                for _ in range(self._history_len + self._num_steps):
+                    tm, opt = self._sample_tm(p)
+                    test_episode.append(tm)
+                    test_episode_optimal.append(opt)
                 self._test_observations.append(test_episode)
                 self._opt_test_observations.append(test_episode_optimal)
 
