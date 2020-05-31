@@ -6,6 +6,7 @@ from topologies import topology_zoo_loader
 from logger import logger
 from argparse import ArgumentParser
 from sys import argv
+from random import shuffle
 
 
 def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix_list: list, cutoff_path_len=None):
@@ -41,10 +42,6 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
             else:
                 per_edge_flow_fraction[edge] = frac_matrix
 
-        for edge, frac_matrix in per_edge_flow_fraction_ecmp.items():
-            if edge not in per_edge_flow_fraction.keys():
-                per_edge_flow_fraction[edge] = frac_matrix
-
         logger.debug('Calculating the congestion per edge and finding max edge congestion')
 
         congestion_per_edge = defaultdict(int)
@@ -63,13 +60,19 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for dump file")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
+    parser.add_argument("-k", '--average_k', type=int, help="The last average K to based on")
+    parser.add_argument("-n", '--number_of_matrices', type=int, help="The number of matrices")
     options = parser.parse_args(args)
     return options
 
 
 if __name__ == "__main__":
-    dump_path = _getOptions().dumped_path
-    loaded_dict = load_dump_file(dump_path)
+    args = _getOptions()
+    dumped_path = args.dumped_path
+    k = args.average_k
+    loaded_dict = load_dump_file(dumped_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
-    c_l = _calculate_congestion_per_matrices(net=net, k=loaded_dict["k"], traffic_matrix_list=loaded_dict["tms"])
+    n = args.number_of_matrices
+    shuffle(loaded_dict["tms"])
+    c_l = _calculate_congestion_per_matrices(net=net, k=k, traffic_matrix_list=loaded_dict["tms"][0:n + k])
     print(np.average(c_l))
