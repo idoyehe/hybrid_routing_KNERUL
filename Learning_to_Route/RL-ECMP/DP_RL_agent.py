@@ -14,91 +14,61 @@
 
 import gym
 import ecmp_history
-import tensorflow as tf
-
-from stable_baselines.common.policies import FeedForwardPolicy
-from stable_baselines import PPO1
-import os
-import sys
-import inspect
-from shutil import rmtree
-
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
-
-# arch_str = arg_or_default("--arch", default="32,16")
-arch_str = arg_or_default("--arch", default="64,32")
-if arch_str == "":
-    arch = []
-else:
-    arch = [int(layer_width) for layer_width in arch_str.split(",")]
-print("Architecture is: %s" % str(arch))
-
-training_sess = None
-
-env = gym.make('PccNs-v0')
-# env = gym.make('CartPole-v0')
-
-gamma = arg_or_default("--gamma", default=0.99)
-print("gamma = %f" % gamma)
+from stable_baselines3.ppo import MlpPolicy
+from stable_baselines3 import PPO
+from stable_baselines3.common.cmd_util import make_vec_env
+from argparse import ArgumentParser
+from sys import argv
 
 
-class MyMlpPolicy(FeedForwardPolicy):
+def _getOptions(args=argv[1:]):
+    parser = ArgumentParser(description="Parses TMs Generating script arguments")
+    parser.add_argument("-p", "--save_path", type=str, help="The path to save the model")
+    parser.add_argument("-arch", "--mlp_architecture", type=str, help="The architecture of the neural network")
+    parser.add_argument("-gamma", "--gamma", type=float, help="Gamma Value")
+    options = parser.parse_args(args)
+    options.mlp_architecture = [int(layer_width) for layer_width in options.mlp_architecture.split(",")]
+    return options
+
+
+#
+# # for i in range(0, 6):
+# # with model.graph.as_default():
+# #     saver = tf.compat.v1.train.Saver()
+# #     saver.save(training_sess, "./pcc_model_%d.ckpt" % i)
+# model.learn(total_timesteps=(100 * 8192))
+#
+# env.testing(True)
+# obs = env.reset()
+# for _ in range(10 * 8192):
+#     action, _states = model.predict(obs)
+#     obs, reward, done, info = env.step(action)
+#
+# env.reset()
+
+
+class MyMlpPolicy(MlpPolicy):
+    ARCH = None
 
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, **_kwargs):
-        super(MyMlpPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse, net_arch=[{"pi": arch, "vf": arch}],
-                                          feature_extraction="mlp", **_kwargs)
-        global training_sess
-        training_sess = sess
+        super(MyMlpPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse,
+                                          net_arch=[{"pi": MyMlpPolicy.ARCH, "vf": MyMlpPolicy.ARCH}],
+                                          **_kwargs)
 
 
-model = PPO1(MyMlpPolicy, env, verbose=1, schedule='constant', timesteps_per_actorbatch=8192, optim_batchsize=2048, gamma=gamma)
+if __name__ == "__main__":
+    args = _getOptions()
+    MyMlpPolicy.ARCH = args.mlp_architecture
 
-# for i in range(0, 6):
-# with model.graph.as_default():
-#     saver = tf.compat.v1.train.Saver()
-#     saver.save(training_sess, "./pcc_model_%d.ckpt" % i)
-model.learn(total_timesteps=(100 * 8192))
+    print("Architecture is: {}".format(MyMlpPolicy.ARCH))
+    gamma = args.gamma
+    print("gamma = {}".format(gamma))
 
-env.testing(True)
-obs = env.reset()
-for _ in range(10 * 8192):
-    action, _states = model.predict(obs)
-    obs, reward, done, info = env.step(action)
+    save_path = args.save_path
 
-env.reset()
-env.testing(False)
+    env = make_vec_env(ecmp_history.ECMP_ENV_GYM_ID, n_envs=1)
+    model = PPO(MlpPolicy, env, verbose=1, gamma=gamma, n_steps=350)
 
-#
-# # Save the model to the location specified below.
-#
-# default_export_dir = parentdir + "/tmp/pcc_saved_models/model_A/"
-#
-# rmtree(parentdir + '/tmp', ignore_errors=True)
-#
-# export_dir = arg_or_default("--model-dir", default=default_export_dir)
-# with model.graph.as_default():
-#     pol = model.policy_pi  # act_model
-#
-#     obs_ph = pol.obs_ph
-#     act = pol.deterministic_action
-#     sampled_act = pol.action
-#
-#     obs_input = tf.compat.v1.saved_model.utils.build_tensor_info(obs_ph)
-#     outputs_tensor_info = tf.saved_model.utils.build_tensor_info(act)
-#     stochastic_act_tensor_info = tf.saved_model.utils.build_tensor_info(sampled_act)
-#     signature = tf.compat.v1.saved_model.signature_def_utils.build_signature_def(
-#         inputs={"ob": obs_input},
-#         outputs={"act": outputs_tensor_info, "stochastic_act": stochastic_act_tensor_info},
-#         method_name=tf.saved_model.PREDICT_METHOD_NAME)
-#
-#     signature_map = {tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY:
-#                          signature}
-#
-#     model_builder = tf.compat.v1.saved_model.builder.SavedModelBuilder(export_dir)
-#     model_builder.add_meta_graph_and_variables(model.sess,
-#                                                tags=[tf.saved_model.SERVING],
-#                                                signature_def_map=signature_map,
-#                                                clear_devices=True)
-#     model_builder.save(as_text=True)
+    # model.learn(total_timesteps=(7 * 50 * 1500))
+    model.learn(total_timesteps=(20))
+    # model.save(path=save_path)

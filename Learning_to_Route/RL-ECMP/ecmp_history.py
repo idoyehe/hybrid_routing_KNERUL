@@ -5,15 +5,15 @@ Created on 26 Jun 2017
 refactoring on 26/04/2020
 @by: Ido Yehezkel
 """
-from gym import Env, spaces
+from gym import Env, spaces, envs, register
 from network_class import *
 from optimizer import WNumpyOptimizer
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from consts import HistoryConsts, ExtraData
-from Learning_to_Route.common.consts import Consts
 from flow_routing.find_optimal_load_balancing import get_optimal_load_balancing
 from flow_routing.generating_tms import load_dump_file
 from topologies import topology_zoo_loader
+import random
 
 
 class ECMPHistoryEnv(Env):
@@ -54,7 +54,7 @@ class ECMPHistoryEnv(Env):
         self._all_pairs = self._network.get_all_pairs()
         self._history_start_id = 0
         self._current_history_index = -1
-
+        self._epochs = 0
         self._optimizer = WNumpyOptimizer(self._network)
 
         self._history_len = history_length  # number of each state history
@@ -98,9 +98,9 @@ class ECMPHistoryEnv(Env):
 
         if self._tms is None:
             tm = one_sample_tm_base(self._network, p, self._tm_type, self._elephant_flows_percentage, self._elephant_flow, self._mice_flow)
-            opt = get_optimal_load_balancing(self._network, tm)[0]
+            opt, _ = get_optimal_load_balancing(self._network, tm)
         else:
-            tm, opt = np.random.choice(self._tms)
+            tm, opt = random.choice(self._tms)
         return tm, opt
 
     def _init_all_observations(self):
@@ -187,7 +187,8 @@ class ECMPHistoryEnv(Env):
                     for _ in range(5):
                         action = np.random.rand(action_size)
                         action = self._process_action(action)
-                        reward = -1 * self._optimizer.step(action, tm)
+                        cost, _ = self._optimizer.step(action, tm)
+                        reward = -1 * cost
                         res_dict[train_index][tm_index].append(reward)
 
                     res_avg_tm.append(np.average(res_dict[train_index][tm_index]))
@@ -213,18 +214,19 @@ class ECMPHistoryEnv(Env):
         self._current_history = np.stack(
             self._observations[self._current_history_index][
             self._history_start_id:self._history_start_id + self._history_len])
-        return self._current_history.flatten()
+        return self._current_history
 
     def step(self, action):
+        print("Step")
         self._w = self._process_action(action)
 
-        current_reward = self._get_reward()
+        cost = self._get_reward()
         self._is_terminal = self._history_start_id + 1 == self._num_steps
 
         norm_factor = -1
 
         env_data = {}
-        norm_reward = norm_factor * current_reward
+        norm_reward = norm_factor * cost
 
         # how do we compare against the optimal congestion if we assume we know the future
         env_data[ExtraData.REWARD_OVER_FUTURE] = norm_reward / self._opt_res[self._current_history_index][
@@ -244,6 +246,11 @@ class ECMPHistoryEnv(Env):
 
     def reset(self):
         self._history_start_id = 0
+
+        if (self._current_history_index + 1) == self._num_hisotories:
+            self._epochs += 1
+            print("Epoch: #{}".format(self._epochs))
+
         self._current_history_index = (self._current_history_index + 1) % self._num_hisotories
         return self._get_observation()
 
@@ -252,10 +259,19 @@ class ECMPHistoryEnv(Env):
 
     def _get_reward(self):
         tm = self._observations[self._current_history_index][self._history_start_id + self._history_len]
-        return self._optimizer.step(self._w, tm)
+        cost, congestion_dict = self._optimizer.step(self._w, tm)
+        return cost
 
 
-env = ECMPHistoryEnv(max_steps=95,
-                     history_length=5,
-                     path_dumped="C:\\Users\\IdoYe\PycharmProjects\\Research_Implementing\\Learning_to_Route\\RL-ECMP\\flow_routing\\TMs_DB\\IBM_tms_18X18_length_10000_K_5_gravity_sparsity_0.3")
-env.reset()
+ECMP_ENV_GYM_ID: str = 'ecmp-history-v0'
+
+if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
+    register(id=ECMP_ENV_GYM_ID,
+             entry_point='ecmp_history:ECMPHistoryEnv',
+             kwargs={
+                 'max_steps': 50,
+                 'history_length': 10,
+                 'path_dumped': "C:\\Users\\idoye\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\RL-ECMP\\flow_routing\\TMs_DB\\IBM_tms_18X18_length_10000_gravity_sparsity_0.3",
+                 'train_histories_length': 7,
+                 'test_histories_length': 1}
+             )

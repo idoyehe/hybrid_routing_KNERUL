@@ -57,15 +57,19 @@ class WNumpyOptimizer:
 
         result = np.zeros_like(list(self._edges_capacities.values()), dtype=np.float32)
         for dst in range(len(traffic_matrix)):
-            logger.info("Handle destination: {}".format(dst))
+            # logger.info("Handle destination: {}".format(dst))
             dst_demand = np.expand_dims(traffic_matrix[:, dst], 1)  # getting all flows demands to dest from al sources
+
+            total_demands = np.sum(dst_demand)
+
+            if total_demands == 0.0:
+                continue
+
             cost_to_dest = [all_shortest_paths_costs[j][dst] for j in range(self._num_nodes)]  # getting all costs to dest from al sources
-
             edge_cost = self.__get_edge_cost(cost_to_dest, each_edge_weight)
-
             soft_min_cost_vector = self._soft_min(edge_cost)
 
-            cong = self._get_flow_input_vector(soft_min_cost_vector, dst_demand, self._eye_masks[dst], dst)
+            cong = self._get_flow_input_vector(soft_min_cost_vector, dst_demand, total_demands, self._eye_masks[dst], dst)
             result += np.reshape(cong, [-1])  # , q_val
 
         congestion_dict = defaultdict(int)
@@ -107,7 +111,7 @@ class WNumpyOptimizer:
         # loop magic goes here, basically converts the for loop into matrix operations
         return prev_val + self._ingoing_edges @ (np.transpose(softmin_cost_vector * self._outgoing_edges) @ mul_val)
 
-    def _get_flow_input_vector(self, softmin_cost_vector, demand, mask, dst):
+    def _get_flow_input_vector(self, softmin_cost_vector, demand, total_demands, mask, dst):
         """
         input:
             demand: the demand of node
@@ -117,16 +121,14 @@ class WNumpyOptimizer:
             s: is the flow input vector (dim=|E|)
         """
 
-        def flow_completed(prev):
-            return (prev[dst] / demand_sum)[0]
-
         logger.debug("Begin simulate flow to: {}".format(dst))
         prev = self._get_new_val(softmin_cost_vector, demand, demand)
         prev_prev = demand
         cur_iter = 0
-        demand_sum = np.sum(demand)
 
-        while flow_completed(prev) < HistoryConsts.PERC_DEMAND:
+        assert total_demands > 0.0
+
+        while float(prev[dst]) / total_demands < HistoryConsts.PERC_DEMAND:
             logger.debug("Iteration #: {}".format(cur_iter))
             res_diff = (prev - prev_prev) * mask
             tmp = self._get_new_val(softmin_cost_vector, prev, res_diff)
@@ -139,7 +141,6 @@ class WNumpyOptimizer:
         final_s_value = prev
         edge_congestion = np.sum(np.transpose(softmin_cost_vector) @ (final_s_value * mask), axis=1)
         return edge_congestion  # final_s_value
-
 
 # from Learning_to_Route.data_generation import tm_generation
 # from topologies import topologies, topology_zoo_loader
