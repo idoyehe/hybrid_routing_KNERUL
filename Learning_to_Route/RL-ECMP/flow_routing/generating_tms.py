@@ -14,7 +14,6 @@ def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
     parser.add_argument("-topo", "--topology_url", type=str, help="The url to load graph topology from")
     parser.add_argument("-cap", "--default_capacity", type=float, help="The capacity for each edge")
-    parser.add_argument("-k", "--k", help="The average k based", type=int)
     parser.add_argument("-n", "--total_matrices", type=int, help="The number of total matrices")
     parser.add_argument("-sp", "--sparsity", type=float, help="The sparsity of the matrix")
     parser.add_argument("-m_type", "--tm_type", type=str, help="The type of the matrix")
@@ -25,41 +24,39 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def _dump_tms_and_opt(net: NetworkClass, url: str, k: int, matrix_sparsity: float, tm_type, elephant_percentage: float,
+def _dump_tms_and_opt(net: NetworkClass, url: str, matrix_sparsity: float, tm_type, elephant_percentage: float,
                       network_elephant, network_mice, total_matrices: int):
     tms = _generate_traffic_matrix_baseline(net=net,
-                                            k=k, matrix_sparsity=matrix_sparsity, tm_type=tm_type,
+                                            matrix_sparsity=matrix_sparsity, tm_type=tm_type,
                                             elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                             network_mice=network_mice,
                                             total_matrices=total_matrices)
 
     capacity = list(net.get_edges_capacities().values())[0]
-    dict2dump = {"tms": tms, "url": url, "k": k, "capacity": capacity}
+    dict2dump = {"tms": tms, "url": url, "capacity": capacity, "matrix_sparsity": matrix_sparsity}
 
-    file_name: str = os.getcwd() + "\\TMs_DB\\{}_tms_{}X{}_length_{}_K_{}_{}_sparsity_{}".format(net.get_name, net.get_num_nodes,
-                                                                                                 net.get_num_nodes, total_matrices, k,
-                                                                                                 tm_type, matrix_sparsity)
+    file_name: str = os.getcwd() + "\\TMs_DB\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name, net.get_num_nodes,
+                                                                                            net.get_num_nodes, total_matrices, tm_type,
+                                                                                            matrix_sparsity)
     dump_file = open(file_name, 'wb')
     pickle.dump(dict2dump, dump_file)
     dump_file.close()
     return file_name
 
 
-def _generate_traffic_matrix_baseline(net: NetworkClass, k: int,
-                                      matrix_sparsity: float, tm_type, elephant_percentage: float,
+def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, tm_type, elephant_percentage: float,
                                       network_elephant, network_mice, total_matrices: int):
-    logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices + k))
+    logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices))
     tm_list = list()
-    for index in range(total_matrices + k):
+    for index in range(total_matrices):
         tm = one_sample_tm_base(graph=net,
-                                    matrix_sparsity=matrix_sparsity,
-                                    tm_type=tm_type,
-                                    elephant_percentage=elephant_percentage, network_elephant=network_elephant,
-                                    network_mice=network_mice)
+                                matrix_sparsity=matrix_sparsity,
+                                tm_type=tm_type,
+                                elephant_percentage=elephant_percentage, network_elephant=network_elephant,
+                                network_mice=network_mice)
         opt, _ = get_optimal_load_balancing(net, tm)  # heuristic flows splittings
         tm_list.append((tm, opt))
-        logger.info("Current TM {} with optimal routing {}".format(index,opt))
-
+        logger.info("Current TM {} with optimal routing {}".format(index, opt))
 
     return tm_list
 
@@ -79,7 +76,7 @@ if __name__ == "__main__":
         args.network_elephant = 2 * np.mean(list(net.get_edges_capacities().values()))
         args.network_mice = 0.1 * args.network_elephant
 
-    filename: str = _dump_tms_and_opt(net=net, k=args.k, url=args.topology_url,
+    filename: str = _dump_tms_and_opt(net=net, url=args.topology_url,
                                       matrix_sparsity=args.sparsity,
                                       tm_type=args.tm_type,
                                       elephant_percentage=args.elephant_percentage,
