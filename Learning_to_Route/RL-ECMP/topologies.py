@@ -110,16 +110,31 @@ def _triangle():
 
 
 def topology_zoo_loader(url: str, default_capacity: int = 100):
-    CAPACITY_LABEL_DEFAULT: str = "LinkSpeed"
+    CAPACITY_LABEL_DEFAULT: str = "LinkSpeedRaw"
+    if url.startswith("http"):
+        gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
+    else:
+        local_path = url
+        gml_file = open(local_path, "r")
+        gml = "".join(gml_file.readlines())
+        gml_file.close()
 
-    gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
     g = nx.parse_gml(gml, label="id")
+    need_to_remove = list()
     for edge in g.edges:
+        if "LinkStatus" in g.edges[edge]:
+            need_to_remove.append(edge)
+            continue
         if CAPACITY_LABEL_DEFAULT in g.edges[edge]:
             g.edges[edge][EdgeConsts.CAPACITY_STR] = int(g.edges[edge][CAPACITY_LABEL_DEFAULT])
         else:
             g.edges[edge][EdgeConsts.CAPACITY_STR] = default_capacity
+
+    for edge in need_to_remove:
+        g.remove_edge(*edge)
+
     g.graph["Name"] = g.graph["Network"]
+    g = nx.Graph(g)
     return g
 
 

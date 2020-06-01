@@ -110,6 +110,7 @@ class NetworkClass:
                     if dst_ind == src_ind:
                         continue
                     self._all_pairs.append((src_ind, dst_ind))
+        assert len(self._all_pairs) == self.get_num_nodes * (self.get_num_nodes - 1)
         return self._all_pairs
 
     def __getitem__(self, item):

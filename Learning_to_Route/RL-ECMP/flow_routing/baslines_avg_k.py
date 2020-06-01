@@ -9,7 +9,7 @@ from sys import argv
 from random import shuffle
 
 
-def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix_list: list, cutoff_path_len=None):
+def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix_list: list):
     logger.info("Calculating congestion to all traffic matrices by {} previous average".format(k))
 
     assert k < len(traffic_matrix_list)
