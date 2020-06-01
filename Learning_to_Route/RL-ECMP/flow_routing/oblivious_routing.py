@@ -54,18 +54,29 @@ def _oblivious_routing(net: NetworkClass):
         out_arches[_reversed_arch[0]].append(_reversed_arch)
 
     # flow constrains
-    for k in net.nodes:
-        for i in net.nodes:
-            for j in net.nodes:
-                if i == j or j == k:
-                    continue
+    for src, dst in net.get_all_pairs():
+        assert src != dst
+        flow = (src, dst)
 
-                f_out_arch_k = [f_arch_dict[_out_arch][(i, j)] for _out_arch in out_arches[k]]
-                f_in_arch_k = [f_arch_dict[_in_arch][(i, j)] for _in_arch in in_arches[k]]
-                if i == k:
-                    m.add_constraint(m.sum(f_out_arch_k) - m.sum(f_in_arch_k) == 1)
-                else:
-                    m.add_constraint(m.sum(f_out_arch_k) - m.sum(f_in_arch_k) == 0)
+        # Flow conservation at the source
+        out_flow_origin_source = [f_arch_dict[out_arch][flow] for out_arch in out_arches[src]]
+        in_flow_origin_source = [f_arch_dict[in_arch][flow] for in_arch in in_arches[src]]
+        m.add_constraint(m.sum(out_flow_origin_source) == 1)
+        m.add_constraint(m.sum(in_flow_origin_source) == 0)
+
+        # Flow conservation at the destination
+        out_flow_to_dest = [f_arch_dict[out_arch][flow] for out_arch in out_arches[dst]]
+        in_flow_to_dest = [f_arch_dict[in_arch][flow] for in_arch in in_arches[dst]]
+        m.add_constraint((m.sum(in_flow_to_dest) == 1))
+        m.add_constraint(m.sum(out_flow_to_dest) == 0)
+
+        for u in reduced_directed.nodes:
+            if u in flow:
+                continue
+            # Flow conservation at transit node
+            out_flow = [f_arch_dict[out_arch][flow] for out_arch in out_arches[u]]
+            in_flow = [f_arch_dict[in_arch][flow] for in_arch in in_arches[u]]
+            m.add_constraint(m.sum(out_flow) - m.sum(in_flow) == 0)
 
     for _e in net.edges:
         for i in range(net.get_num_nodes):
@@ -140,3 +151,4 @@ if __name__ == "__main__":
     c_l = _calculate_congestion_per_matrices(net=net, traffic_matrix_list=loaded_dict["tms"],
                                              oblivious_routing_per_edge=oblivious_routing_per_edge)
     print(np.average(c_l))
+
