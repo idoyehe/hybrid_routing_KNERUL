@@ -41,7 +41,8 @@ def _oblivious_routing(net: NetworkClass):
                 else:
                     pe_edges_dict[_e][(i, j)] = m.continuous_var(name="PE_{}_{}".format(_e, (i, j)), lb=0)
                     f_arch_dict[_arch][(i, j)] = m.continuous_var(name="f_{}_{}".format(_arch, (i, j)), lb=0)
-                    f_arch_dict[_reversed_arch][(i, j)] = m.continuous_var(name="f_{}_{}".format(_reversed_arch, (i, j)), lb=0)
+                    f_arch_dict[_reversed_arch][(i, j)] = m.continuous_var(
+                        name="f_{}_{}".format(_reversed_arch, (i, j)), lb=0)
 
                     f_e = f_arch_dict[_arch][(i, j)] + f_arch_dict[_reversed_arch][(i, j)]
                     m.add_constraint(f_e / _capacity_e <= pe_edges_dict[_e][(i, j)])
@@ -76,7 +77,8 @@ def _oblivious_routing(net: NetworkClass):
                     _edge_of_arch = (_arc[1], _arc[0])
                     assert _edge_of_arch in net.edges
 
-                m.add_constraint((pi_edges_dict[_e][_edge_of_arch] + pe_edges_dict[_e][(i, j)] - pe_edges_dict[_e][(i, k)]) >= 0)
+                m.add_constraint(
+                    (pi_edges_dict[_e][_edge_of_arch] + pe_edges_dict[_e][(i, j)] - pe_edges_dict[_e][(i, k)]) >= 0)
 
     logger.info("LP Solving {}".format(m.name))
     m.solve()
@@ -113,6 +115,7 @@ def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: l
         for edge, frac_matrix in oblivious_routing_per_edge.items():
             congestion_per_edge[edge] += np.sum(frac_matrix * current_traffic_matrix)
             congestion_per_edge[edge] /= net.get_edge_key(edge=edge, key=EdgeConsts.CAPACITY_STR)
+            assert congestion_per_edge[edge] >= current_opt
             if congestion_per_edge[edge] > max_congestion:
                 max_congestion = congestion_per_edge[edge]
 
