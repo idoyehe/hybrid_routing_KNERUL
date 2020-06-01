@@ -46,18 +46,16 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demands, cutoff_path_l
     if logger.level == logging.DEBUG:
         m.print_solution()
 
-    per_edge_flow_fraction = dict()
+    per_edge_flow_fraction = defaultdict(lambda: np.zeros(shape=traffic_demands.shape))
     for edge, flow_frac_dict in vars_per_edge.items():
-        edge_per_demend = np.zeros((net.get_num_nodes, net.get_num_nodes))
         for var, (src, dst) in flow_frac_dict:
-            edge_per_demend[src][dst] += var.solution_value / traffic_demands[src][dst]
-        per_edge_flow_fraction[edge] = edge_per_demend
+            per_edge_flow_fraction[edge][src][dst] += float(var.solution_value / traffic_demands[src][dst])
 
     return r.solution_value, per_edge_flow_fraction
 
 
 def get_ecmp_edge_flow_fraction(net: NetworkClass, traffic_demand):
-    per_edge_flow_fraction = dict()
+    per_edge_flow_fraction = defaultdict(lambda: np.zeros(shape=traffic_demand.shape))
 
     logger.info("Handling all flows")
     for nodes_pair in net.get_all_pairs():
@@ -73,9 +71,6 @@ def get_ecmp_edge_flow_fraction(net: NetworkClass, traffic_demand):
                     logger.debug("Handle edge {} in path {}".format(str(edge), str(path)))
                     if edge not in list(net.edges):
                         edge = (edge[1], edge[0])
-
-                    if edge not in per_edge_flow_fraction.keys():
-                        per_edge_flow_fraction[edge] = np.zeros((net.get_num_nodes, net.get_num_nodes))
                     per_edge_flow_fraction[edge][src][dst] += fraction
 
     return per_edge_flow_fraction
