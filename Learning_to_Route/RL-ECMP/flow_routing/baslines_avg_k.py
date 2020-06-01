@@ -22,7 +22,7 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
         assert avg_traffic_matrix.shape == current_traffic_matrix.shape
 
         logger.debug("Solving LP problem for previous {} avenge".format(k))
-        _, per_edge_flow_fraction_lp = get_optimal_load_balancing(net, avg_traffic_matrix, cutoff_path_len)  # heuristic flows splittings
+        avg_opt, per_edge_flow_fraction_lp = get_optimal_load_balancing(net, avg_traffic_matrix)  # heuristic flows splittings
 
         logger.debug("Handling the flows that exist in real matrix but not in average one")
         completion_flows_matrix = np.zeros(avg_traffic_matrix.shape)

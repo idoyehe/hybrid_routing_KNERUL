@@ -115,10 +115,10 @@ def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: l
         for edge, frac_matrix in oblivious_routing_per_edge.items():
             congestion_per_edge[edge] += np.sum(frac_matrix * current_traffic_matrix)
             congestion_per_edge[edge] /= net.get_edge_key(edge=edge, key=EdgeConsts.CAPACITY_STR)
-            assert congestion_per_edge[edge] >= current_opt
             if congestion_per_edge[edge] > max_congestion:
                 max_congestion = congestion_per_edge[edge]
 
+        assert max_congestion >= current_opt
         congestion_ratios.append(max_congestion / current_opt)
 
     return congestion_ratios

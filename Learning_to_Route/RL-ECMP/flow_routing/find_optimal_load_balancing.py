@@ -43,15 +43,17 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demands):
 
         # Flow conservation at the source
 
-        out_flow_origin_source = [arch_f_vars_dict[out_arch][flow] for out_arch in out_arches_dict[dst]]
-        in_flow_origin_source = [arch_f_vars_dict[in_arch][flow] for in_arch in in_arches_dict[dst]]
-        m.add_constraint(m.sum(out_flow_origin_source) - m.sum(in_flow_origin_source) == 1)
+        out_flow_origin_source = [arch_f_vars_dict[out_arch][flow] for out_arch in out_arches_dict[src]]
+        in_flow_origin_source = [arch_f_vars_dict[in_arch][flow] for in_arch in in_arches_dict[src]]
+        m.add_constraint(m.sum(out_flow_origin_source) == 1)
+        m.add_constraint(m.sum(in_flow_origin_source) == 0)
 
         # Flow conservation at the destination
 
-        out_flow_to_dest = [arch_f_vars_dict[out_arch][flow] for out_arch in out_arches_dict[src]]
-        in_flow_to_dest = [arch_f_vars_dict[in_arch][flow] for in_arch in in_arches_dict[src]]
-        m.add_constraint(m.sum(in_flow_to_dest) - m.sum(out_flow_to_dest) == 1)
+        out_flow_to_dest = [arch_f_vars_dict[out_arch][flow] for out_arch in out_arches_dict[dst]]
+        in_flow_to_dest = [arch_f_vars_dict[in_arch][flow] for in_arch in in_arches_dict[dst]]
+        m.add_constraint((m.sum(in_flow_to_dest) == 1))
+        m.add_constraint(m.sum(out_flow_to_dest) == 0)
 
         for u in reduced_directed.nodes:
             if u in flow:
@@ -73,28 +75,29 @@ def get_optimal_load_balancing(net: NetworkClass, traffic_demands):
             assert traffic_demands[src][dst] > 0
             flow = (src, dst)
 
-            per_edge_flow_fraction[edge][src][dst] = arch_f_vars_dict[arch][flow]
+            per_edge_flow_fraction[edge][src][dst] = arch_f_vars_dict[arch][flow].solution_value
 
     return r.solution_value, per_edge_flow_fraction
 
 
-def get_ecmp_edge_flow_fraction(net: NetworkClass, traffic_demand):
-    per_edge_flow_fraction = defaultdict(lambda: np.zeros(shape=traffic_demand.shape))
+def get_ecmp_edge_flow_fraction(net: NetworkClass, traffic_demands):
+    per_edge_flow_fraction = defaultdict(lambda: np.zeros(shape=traffic_demands.shape))
 
     logger.info("Handling all flows")
-    for nodes_pair in net.get_all_pairs():
-        src, dst = nodes_pair
-        src_dest_flow = traffic_demand[src][dst]
-        if src_dest_flow > 0:
-            logger.debug("Handle flow form {} to {}".format(src, dst))
-            shortest_path_generator = list(net.all_shortest_path(source=src, target=dst, weight=None))
-            fraction = 1 / len(shortest_path_generator)
+    flows = list(filter(lambda pair: traffic_demands[pair[0]][pair[1]] > 0, net.get_all_pairs()))
+    for src, dst in flows:
+        assert src != dst
+        assert traffic_demands[src][dst] > 0
+        flow = (src, dst)
+        logger.debug("Handle flow form {} to {}".format(src, dst))
+        shortest_path_generator = list(net.all_shortest_path(source=src, target=dst, weight=None))
+        fraction: float = 1.0 / float(len(shortest_path_generator))
 
-            for path in shortest_path_generator:
-                for edge in list(list(map(nx.utils.pairwise, [path]))[0]):
-                    logger.debug("Handle edge {} in path {}".format(str(edge), str(path)))
-                    if edge not in list(net.edges):
-                        edge = (edge[1], edge[0])
-                    per_edge_flow_fraction[edge][src][dst] += fraction
+        for path in shortest_path_generator:
+            for edge in list(list(map(nx.utils.pairwise, [path]))[0]):
+                logger.debug("Handle edge {} in path {}".format(str(edge), str(path)))
+                if edge not in list(net.edges):
+                    edge = (edge[1], edge[0])
+                per_edge_flow_fraction[edge][src][dst] += fraction
 
     return per_edge_flow_fraction
