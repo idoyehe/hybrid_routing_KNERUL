@@ -30,7 +30,7 @@ def __gravity_generation(g, pairs, scale=1.0):
     return flows
 
 
-def __bimodal_generation(g, pairs, percent, big=600, small=150, std=20):
+def __bimodal_generation(graph, pairs, percent, big=600, small=150, std=20):
     flows = []
 
     shuffle(pairs)
