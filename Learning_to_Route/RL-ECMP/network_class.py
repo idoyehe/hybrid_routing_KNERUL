@@ -163,7 +163,6 @@ class NetworkClass:
     def reducing_undirected2directed(self):
         if self._g_directed is None:
             self._g_directed = nx.DiGraph()
-            self._g_directed.add_nodes_from(self._graph.nodes)
             current_node_index = self.get_num_nodes
             self._reducing_map_dict = dict()
             for (u, v, u_v_capacity) in self._graph.edges.data(EdgeConsts.CAPACITY_STR):

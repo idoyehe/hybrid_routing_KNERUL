@@ -18,15 +18,15 @@ def _oblivious_routing(net: NetworkClass):
     pe_edges_dict = defaultdict(dict)
     f_arch_dict = defaultdict(dict)
 
-    out_arches = defaultdict(list)
-    in_arches = defaultdict(list)
+    out_arches_dict = defaultdict(list)
+    in_arches_dict = defaultdict(list)
     for _e in net.edges:
-        _e_list_sum = []
+        _e_list_sum = 0
         for _h in net.edges:
             pi_edges_dict[_e][_h] = m.continuous_var(name="PI_{}_{}".format(_e, _h), lb=0)
             cap_h = net.get_edge_key(_h, EdgeConsts.CAPACITY_STR)
-            _e_list_sum.append(cap_h * pi_edges_dict[_e][_h])
-        m.add_constraint(m.sum(_e_list_sum) <= r)
+            _e_list_sum += cap_h * pi_edges_dict[_e][_h]
+        m.add_constraint(_e_list_sum <= r)
 
     for _e in net.edges:
         _capacity_e = net.get_edge_key(_e, EdgeConsts.CAPACITY_STR)
@@ -42,16 +42,16 @@ def _oblivious_routing(net: NetworkClass):
                     pe_edges_dict[_e][(i, j)] = m.continuous_var(name="PE_{}_{}".format(_e, (i, j)), lb=0)
                     f_arch_dict[_arch][(i, j)] = m.continuous_var(name="f_{}_{}".format(_arch, (i, j)), lb=0)
                     f_arch_dict[_reversed_arch][(i, j)] = m.continuous_var(
-                        name="f_{}_{}".format(_reversed_arch, (i, j)), lb=0)
+                        name="f_{}_{}".format(_reversed_arch, (i, j)), lb=0, ub=1.0)
 
                     f_e = f_arch_dict[_arch][(i, j)] + f_arch_dict[_reversed_arch][(i, j)]
                     m.add_constraint(f_e / _capacity_e <= pe_edges_dict[_e][(i, j)])
 
-        in_arches[_arch[1]].append(_arch)
-        out_arches[_arch[0]].append(_arch)
+        in_arches_dict[_arch[1]].append(_arch)
+        out_arches_dict[_arch[0]].append(_arch)
 
-        in_arches[_reversed_arch[1]].append(_reversed_arch)
-        out_arches[_reversed_arch[0]].append(_reversed_arch)
+        in_arches_dict[_reversed_arch[1]].append(_reversed_arch)
+        out_arches_dict[_reversed_arch[0]].append(_reversed_arch)
 
     # flow constrains
     for src, dst in net.get_all_pairs():
@@ -59,23 +59,25 @@ def _oblivious_routing(net: NetworkClass):
         flow = (src, dst)
 
         # Flow conservation at the source
-        out_flow_origin_source = [f_arch_dict[out_arch][flow] for out_arch in out_arches[src]]
-        in_flow_origin_source = [f_arch_dict[in_arch][flow] for in_arch in in_arches[src]]
-        m.add_constraint(m.sum(out_flow_origin_source) == 1)
-        m.add_constraint(m.sum(in_flow_origin_source) == 0)
+
+        out_flow_from_source = [f_arch_dict[out_arch][flow] for out_arch in out_arches_dict[src]]
+        in_flow_to_source = [f_arch_dict[in_arch][flow] for in_arch in in_arches_dict[src]]
+        m.add_constraint(m.sum(out_flow_from_source) == 1)
+        m.add_constraint(m.sum(in_flow_to_source) == 0)
 
         # Flow conservation at the destination
-        out_flow_to_dest = [f_arch_dict[out_arch][flow] for out_arch in out_arches[dst]]
-        in_flow_to_dest = [f_arch_dict[in_arch][flow] for in_arch in in_arches[dst]]
+
+        out_flow_from_dest = [f_arch_dict[out_arch][flow] for out_arch in out_arches_dict[dst]]
+        in_flow_to_dest = [f_arch_dict[in_arch][flow] for in_arch in in_arches_dict[dst]]
         m.add_constraint((m.sum(in_flow_to_dest) == 1))
-        m.add_constraint(m.sum(out_flow_to_dest) == 0)
+        m.add_constraint(m.sum(out_flow_from_dest) == 0)
 
         for u in reduced_directed.nodes:
             if u in flow:
                 continue
             # Flow conservation at transit node
-            out_flow = [f_arch_dict[out_arch][flow] for out_arch in out_arches[u]]
-            in_flow = [f_arch_dict[in_arch][flow] for in_arch in in_arches[u]]
+            out_flow = [f_arch_dict[out_arch][flow] for out_arch in out_arches_dict[u]]
+            in_flow = [f_arch_dict[in_arch][flow] for in_arch in in_arches_dict[u]]
             m.add_constraint(m.sum(out_flow) - m.sum(in_flow) == 0)
 
     for _e in net.edges:
@@ -85,8 +87,8 @@ def _oblivious_routing(net: NetworkClass):
                 j = _arc[0]
                 k = _arc[1]
                 if _edge_of_arch not in list(net.edges):
-                    _edge_of_arch = (_arc[1], _arc[0])
-                    assert _edge_of_arch in net.edges
+                    _edge_of_arch = _edge_of_arch[::-1]
+                    assert _edge_of_arch in list(net.edges)
 
                 m.add_constraint(
                     (pi_edges_dict[_e][_edge_of_arch] + pe_edges_dict[_e][(i, j)] - pe_edges_dict[_e][(i, k)]) >= 0)
@@ -151,4 +153,3 @@ if __name__ == "__main__":
     c_l = _calculate_congestion_per_matrices(net=net, traffic_matrix_list=loaded_dict["tms"],
                                              oblivious_routing_per_edge=oblivious_routing_per_edge)
     print(np.average(c_l))
-
