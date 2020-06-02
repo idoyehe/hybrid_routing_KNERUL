@@ -10,7 +10,7 @@ from network_class import *
 from optimizer import WNumpyOptimizer
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from consts import HistoryConsts, ExtraData
-from flow_routing.find_optimal_load_balancing import get_optimal_load_balancing
+from flow_routing.find_optimal_load_balancing import __get_optimal_load_balancing
 from flow_routing.generating_tms import load_dump_file
 from topologies import topology_zoo_loader
 import random
@@ -98,7 +98,7 @@ class ECMPHistoryEnv(Env):
 
         if self._tms is None:
             tm = one_sample_tm_base(self._network, p, self._tm_type, self._elephant_flows_percentage, self._elephant_flow, self._mice_flow)
-            opt, _ = get_optimal_load_balancing(self._network, tm)
+            opt, _ = __get_optimal_load_balancing(self._network, tm)
         else:
             tm, opt = random.choice(self._tms)
         return tm, opt

@@ -61,7 +61,7 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
                                 tm_type=tm_type,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
-        opt_congestion = get_optimal_load_balancing(net, tm)  # heuristic flows splittings
+        opt_congestion,_ = get_optimal_load_balancing_flows_fractions(net, tm)  # heuristic flows splittings
         tm_list.append((tm, opt_congestion))
         logger.info("Current TM {} with optimal routing {}".format(index, opt_congestion))
 

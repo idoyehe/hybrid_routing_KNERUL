@@ -22,37 +22,34 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
         assert avg_traffic_matrix.shape == current_traffic_matrix.shape
 
         logger.debug("Solving LP problem for previous {} avenge".format(k))
-        avg_opt, per_edge_flow_fraction_lp = get_optimal_load_balancing(net, avg_traffic_matrix)  # heuristic flows splittings
+        # heuristic flows splittings
+        avg_opt, per_edge_flow_fraction_lp = get_optimal_load_balancing_flows_fractions(net, avg_traffic_matrix)
 
         logger.debug("Handling the flows that exist in real matrix but not in average one")
-        completion_flows_matrix = np.zeros(avg_traffic_matrix.shape)
-        flows_to_check = np.dstack(np.where(current_traffic_matrix != 0))[0]
+        ecmp_flows_matrix = np.zeros(avg_traffic_matrix.shape)
+        flows_to_check = np.dstack(np.where((current_traffic_matrix != 0) & (avg_traffic_matrix == 0)))[0]
         for src, dst in flows_to_check:
             assert current_traffic_matrix[src][dst] != 0
-            completion_flows_matrix[src][dst] = current_traffic_matrix[src][dst] if avg_traffic_matrix[src][dst] == 0 else 0
+            assert avg_traffic_matrix[src][dst] == 0
+            ecmp_flows_matrix[src][dst] = float(current_traffic_matrix[src][dst])
 
         # for flows in average is Zero but in real are non zero
-        per_edge_flow_fraction_ecmp = get_ecmp_edge_flow_fraction(net, completion_flows_matrix)
-
-        logger.debug("Combining all flows fractions")
-        per_edge_flow_fraction = dict()
-        for edge, frac_matrix in per_edge_flow_fraction_lp.items():
-            if edge in per_edge_flow_fraction_ecmp.keys():
-                per_edge_flow_fraction[edge] = frac_matrix + per_edge_flow_fraction_ecmp[edge]
-            else:
-                per_edge_flow_fraction[edge] = frac_matrix
+        per_edge_flow_fraction_ecmp = get_ecmp_edge_flow_fraction(net, ecmp_flows_matrix)
+        assert len(per_edge_flow_fraction_lp.keys()) == len(net.edges)
 
         logger.debug('Calculating the congestion per edge and finding max edge congestion')
 
-        congestion_per_edge = defaultdict(int)
-        max_congestion = 0
-        for edge, frac_matrix in per_edge_flow_fraction.items():
-            congestion_per_edge[edge] += np.sum(frac_matrix * current_traffic_matrix)
-            congestion_per_edge[edge] /= net.get_edge_key(edge=edge, key=EdgeConsts.CAPACITY_STR)
-            if congestion_per_edge[edge] > max_congestion:
-                max_congestion = congestion_per_edge[edge]
+        max_congestion = -1
 
-        assert max_congestion >= current_opt
+        for u, v, edge_capacity in net.edges.data(EdgeConsts.CAPACITY_STR):
+            edge = (u, v)
+            fractions_from_lp = per_edge_flow_fraction_lp[edge]
+            fractions_from_ecmp = per_edge_flow_fraction_ecmp[edge]
+            current_edge_congestion = np.sum(
+                (fractions_from_lp + fractions_from_ecmp) * current_traffic_matrix) / edge_capacity
+            max_congestion = max(max_congestion, current_edge_congestion)
+
+        # assert max_congestion >= current_opt
         congestion_ratios.append(max_congestion / current_opt)
 
     return congestion_ratios
