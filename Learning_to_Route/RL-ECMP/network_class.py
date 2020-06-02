@@ -10,6 +10,7 @@ import numpy as np
 import networkx as nx
 from collections import defaultdict
 from logger import logger
+import matplotlib.pyplot as plt
 
 
 class NetworkClass:
@@ -33,6 +34,8 @@ class NetworkClass:
         self._set_adjacency()  # mark all adjacent nodes
         self._g_directed = None
         self._reducing_map_dict = None
+        self._out_arches_dict = None
+        self._in_arches_dict = None
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
@@ -165,6 +168,8 @@ class NetworkClass:
             self._g_directed = nx.DiGraph()
             current_node_index = self.get_num_nodes
             self._reducing_map_dict = dict()
+            self._out_arches_dict = defaultdict(list)
+            self._in_arches_dict = defaultdict(list)
             for (u, v, u_v_capacity) in self._graph.edges.data(EdgeConsts.CAPACITY_STR):
                 x_index = current_node_index
                 y_index = current_node_index + 1
@@ -173,15 +178,32 @@ class NetworkClass:
                 _reduced_edge_data = {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: u_v_capacity}
 
                 self._g_directed.add_edge(u_of_edge=u, v_of_edge=x_index, **_virtual_edges_data)
+                self._out_arches_dict[u].append((u, x_index))
+                self._in_arches_dict[x_index].append((u, x_index))
+
                 self._g_directed.add_edge(u_of_edge=v, v_of_edge=x_index, **_virtual_edges_data)
+                self._out_arches_dict[v].append((v, x_index))
+                self._in_arches_dict[x_index].append((v, x_index))
+
                 self._g_directed.add_edge(u_of_edge=y_index, v_of_edge=u, **_virtual_edges_data)
+                self._out_arches_dict[y_index].append((y_index, u))
+                self._in_arches_dict[u].append((y_index, u))
+
                 self._g_directed.add_edge(u_of_edge=y_index, v_of_edge=v, **_virtual_edges_data)
+                self._out_arches_dict[y_index].append((y_index, v))
+                self._in_arches_dict[v].append((y_index, v))
 
                 self._g_directed.add_edge(u_of_edge=x_index, v_of_edge=y_index, **_reduced_edge_data)
+                self._out_arches_dict[x_index].append((x_index, y_index))
+                self._in_arches_dict[y_index].append((x_index, y_index))
                 self._reducing_map_dict[(u, v)] = (x_index, y_index)
 
             self._g_directed = NetworkClass(self._g_directed)
-        return self._g_directed, self._reducing_map_dict
+        return self._g_directed, self._reducing_map_dict, self._out_arches_dict, self._in_arches_dict
+
+    def print_network(self):
+        nx.draw(self.get_graph)
+        plt.show()
 
 # def get_base_graph():
 #     # init a triangle if we don't get a network graph
