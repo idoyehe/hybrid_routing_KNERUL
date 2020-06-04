@@ -6,13 +6,15 @@ from topologies import topology_zoo_loader
 from logger import logger
 from argparse import ArgumentParser
 from sys import argv
+import gurobipy as gb
+from gurobipy import GRB
 
 
 def _oblivious_routing(net: NetworkClass):
-    m = Model(name="Applegate's and Cohen's Oblivious Routing LP formulations")
+    obliv = gb.Model(name="Applegate's and Cohen's Oblivious Routing LP formulations")
     reduced_directed = net.get_graph.to_directed()
-    r = m.continuous_var(name="r")
-    m.minimize(r)
+    r = obliv.addVar(name="r", lb=0.0, vtype=GRB.CONTINUOUS)
+    obliv.setObjective(r, GRB.MINIMIZE)
 
     pi_edges_dict = defaultdict(dict)
     pe_edges_dict = defaultdict(dict)
@@ -23,10 +25,10 @@ def _oblivious_routing(net: NetworkClass):
     for _e in net.edges:
         _e_list_sum = 0
         for _h in net.edges:
-            pi_edges_dict[_e][_h] = m.continuous_var(name="PI_{}_{}".format(_e, _h), lb=0)
+            pi_edges_dict[_e][_h] = obliv.addVar(name="PI_{}_{}".format(_e, _h), lb=0.0, vtype=GRB.CONTINUOUS)
             cap_h = net.get_edge_key(_h, EdgeConsts.CAPACITY_STR)
             _e_list_sum += cap_h * pi_edges_dict[_e][_h]
-        m.add_constraint(_e_list_sum <= r)
+        obliv.addConstr(_e_list_sum <= r)
 
     for _e in net.edges:
         _capacity_e = net.get_edge_key(_e, EdgeConsts.CAPACITY_STR)
@@ -39,13 +41,16 @@ def _oblivious_routing(net: NetworkClass):
                     f_arch_dict[_arch][(i, j)] = 0
                     f_arch_dict[_reversed_arch][(i, j)] = 0
                 else:
-                    pe_edges_dict[_e][(i, j)] = m.continuous_var(name="PE_{}_{}".format(_e, (i, j)), lb=0)
-                    f_arch_dict[_arch][(i, j)] = m.continuous_var(name="f_{}_{}".format(_arch, (i, j)), lb=0)
-                    f_arch_dict[_reversed_arch][(i, j)] = m.continuous_var(
-                        name="f_{}_{}".format(_reversed_arch, (i, j)), lb=0, ub=1.0)
+                    pe_edges_dict[_e][(i, j)] = obliv.addVar(name="PE_{}_{}".format(_e, (i, j)), lb=0,
+                                                             vtype=GRB.CONTINUOUS)
+
+                    f_arch_dict[_arch][(i, j)] = obliv.addVar(name="f_{}_{}".format(_arch, (i, j)), lb=0,
+                                                              vtype=GRB.CONTINUOUS)
+                    f_arch_dict[_reversed_arch][(i, j)] = obliv.addVar(name="f_{}_{}".format(_reversed_arch, (i, j)),
+                                                                       lb=0, vtype=GRB.CONTINUOUS)
 
                     f_e = f_arch_dict[_arch][(i, j)] + f_arch_dict[_reversed_arch][(i, j)]
-                    m.add_constraint(f_e / _capacity_e <= pe_edges_dict[_e][(i, j)])
+                    obliv.addConstr(f_e <= _capacity_e * pe_edges_dict[_e][(i, j)])
 
         in_arches_dict[_arch[1]].append(_arch)
         out_arches_dict[_arch[0]].append(_arch)
@@ -60,25 +65,23 @@ def _oblivious_routing(net: NetworkClass):
 
         # Flow conservation at the source
 
-        out_flow_from_source = [f_arch_dict[out_arch][flow] for out_arch in out_arches_dict[src]]
-        in_flow_to_source = [f_arch_dict[in_arch][flow] for in_arch in in_arches_dict[src]]
-        m.add_constraint(m.sum(out_flow_from_source) == 1)
-        m.add_constraint(m.sum(in_flow_to_source) == 0)
+        out_flow_from_source = sum([f_arch_dict[out_arch][flow] for out_arch in out_arches_dict[src]])
+        in_flow_to_source = sum([f_arch_dict[in_arch][flow] for in_arch in in_arches_dict[src]])
+        obliv.addConstr(out_flow_from_source - in_flow_to_source == 1)
 
         # Flow conservation at the destination
 
-        out_flow_from_dest = [f_arch_dict[out_arch][flow] for out_arch in out_arches_dict[dst]]
-        in_flow_to_dest = [f_arch_dict[in_arch][flow] for in_arch in in_arches_dict[dst]]
-        m.add_constraint((m.sum(in_flow_to_dest) == 1))
-        m.add_constraint(m.sum(out_flow_from_dest) == 0)
+        out_flow_from_dest = sum([f_arch_dict[out_arch][flow] for out_arch in out_arches_dict[dst]])
+        in_flow_to_dest = sum([f_arch_dict[in_arch][flow] for in_arch in in_arches_dict[dst]])
+        obliv.addConstr(in_flow_to_dest - out_flow_from_dest == 1)
 
         for u in reduced_directed.nodes:
             if u in flow:
                 continue
             # Flow conservation at transit node
-            out_flow = [f_arch_dict[out_arch][flow] for out_arch in out_arches_dict[u]]
-            in_flow = [f_arch_dict[in_arch][flow] for in_arch in in_arches_dict[u]]
-            m.add_constraint(m.sum(out_flow) - m.sum(in_flow) == 0)
+            out_flow = sum([f_arch_dict[out_arch][flow] for out_arch in out_arches_dict[u]])
+            in_flow = sum([f_arch_dict[in_arch][flow] for in_arch in in_arches_dict[u]])
+            obliv.addConstr(out_flow - in_flow == 0)
 
     for _e in net.edges:
         for i in range(net.get_num_nodes):
@@ -89,14 +92,13 @@ def _oblivious_routing(net: NetworkClass):
                 if _edge_of_arch not in list(net.edges):
                     _edge_of_arch = _edge_of_arch[::-1]
                     assert _edge_of_arch in list(net.edges)
-
-                m.add_constraint(
+                obliv.addConstr(
                     (pi_edges_dict[_e][_edge_of_arch] + pe_edges_dict[_e][(i, j)] - pe_edges_dict[_e][(i, k)]) >= 0)
 
-    logger.info("LP Solving {}".format(m.name))
-    m.solve()
+    logger.info("LP Solving {}".format(obliv.ModelName))
+    obliv.optimize()
     if logger.level == logging.DEBUG:
-        m.print_solution()
+        obliv.printStats()
 
     per_edge_flow_fraction = dict()
     for _edge in net.edges:
@@ -105,11 +107,10 @@ def _oblivious_routing(net: NetworkClass):
         _reversed_arch = (_edge[1], _edge[0])
         for src, dst in net.get_all_pairs():
             assert src != dst
-            edge_per_demands[src, dst] += f_arch_dict[_arch][(src, dst)].solution_value + f_arch_dict[_reversed_arch][
-                (src, dst)].solution_value
+            edge_per_demands[src, dst] += f_arch_dict[_arch][(src, dst)].x + f_arch_dict[_reversed_arch][(src, dst)].x
 
         per_edge_flow_fraction[_edge] = edge_per_demands
-    return r.solution_value, per_edge_flow_fraction
+    return r.x, per_edge_flow_fraction
 
 
 def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: list, oblivious_routing_per_edge: dict):

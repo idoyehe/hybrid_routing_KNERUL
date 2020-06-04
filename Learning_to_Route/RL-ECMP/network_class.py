@@ -39,13 +39,13 @@ class NetworkClass:
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
-        self._adj = np.zeros((self._num_nodes, self._num_nodes), dtype=np.float32)
+        self._adj = defaultdict(dict)
         for i in self._graph.nodes:
             for j in self._graph.nodes:
                 if i == j:
                     continue
                 if j in self._graph[i]:
-                    self._adj[i, j] = 1.0
+                    self._adj[i][j] = 1.0
 
     @property
     def get_adjacency(self):
@@ -73,7 +73,7 @@ class NetworkClass:
                 for j in self._graph.nodes:
                     if i == j:
                         continue
-                    if self.get_adjacency[i, j]:  # means edge is exists
+                    if j in self.get_adjacency[i]:  # means edge is exists
                         self._capacities[(i, j)] = self._graph[i][j][EdgeConsts.CAPACITY_STR]
         return self._capacities
 
@@ -171,10 +171,10 @@ class NetworkClass:
             self._out_arches_dict = defaultdict(list)
             self._in_arches_dict = defaultdict(list)
             for (u, v, u_v_capacity) in self._graph.edges.data(EdgeConsts.CAPACITY_STR):
-                x_index = current_node_index
-                y_index = current_node_index + 1
+                x_index = (u, v, "in")
+                y_index = (u, v, "out")
                 current_node_index += 2
-                _virtual_edges_data = {EdgeConsts.WEIGHT_STR: 0, EdgeConsts.CAPACITY_STR: float("inf")}
+                _virtual_edges_data = {EdgeConsts.WEIGHT_STR: 0, EdgeConsts.CAPACITY_STR: u_v_capacity}
                 _reduced_edge_data = {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: u_v_capacity}
 
                 self._g_directed.add_edge(u_of_edge=u, v_of_edge=x_index, **_virtual_edges_data)

@@ -1,4 +1,4 @@
-from flow_routing.find_optimal_load_balancing import *
+from flow_routing.find_optimal_load_balancing_v2 import *
 from network_class import NetworkClass
 from consts import EdgeConsts
 from generating_tms import load_dump_file
@@ -15,15 +15,16 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
     assert k < len(traffic_matrix_list)
     congestion_ratios = list()
     for index, (current_traffic_matrix, current_opt) in enumerate(traffic_matrix_list[k:]):
+        logger.info("Current matrix index is: {}".format(k + index))
+        logger.info("Average matrix calculated based on: [{},{}]".format(index, k + index - 1))
 
-        logger.info("Current matrix index is: {}".format(index))
         avg_traffic_matrix = np.mean(list(map(lambda t: t[0], traffic_matrix_list[index:index + k])), axis=0)
 
         assert avg_traffic_matrix.shape == current_traffic_matrix.shape
 
-        logger.debug("Solving LP problem for previous {} avenge".format(k))
-        # heuristic flows splittings
-        avg_opt, per_edge_flow_fraction_lp = get_optimal_load_balancing_flows_fractions(net, avg_traffic_matrix)
+        logger.debug("Solving LP problem for average matrix")
+        # heuristic flows carries
+        avg_opt, per_edge_flow_fraction_lp = optimal_load_balancing_finder(net, avg_traffic_matrix)
 
         logger.debug("Handling the flows that exist in real matrix but not in average one")
         ecmp_flows_matrix = np.zeros(avg_traffic_matrix.shape)
@@ -35,22 +36,26 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
 
         # for flows in average is Zero but in real are non zero
         per_edge_flow_fraction_ecmp = get_ecmp_edge_flow_fraction(net, ecmp_flows_matrix)
-        assert len(per_edge_flow_fraction_lp.keys()) == len(net.edges)
 
-        logger.debug('Calculating the congestion per edge and finding max edge congestion')
+        logger.debug('Calculating the congestion per edge and finding max link congestion')
 
-        max_congestion = -1
+        max_congested_link = 0
+        for u, v, link_capacity in net.edges.data(EdgeConsts.CAPACITY_STR):
+            link = (u, v)
+            fractions_from_lp = per_edge_flow_fraction_lp[link]
+            new_flows_total_congestion_on_link = per_edge_flow_fraction_ecmp[link]
 
-        for u, v, edge_capacity in net.edges.data(EdgeConsts.CAPACITY_STR):
-            edge = (u, v)
-            fractions_from_lp = per_edge_flow_fraction_lp[edge]
-            fractions_from_ecmp = per_edge_flow_fraction_ecmp[edge]
-            current_edge_congestion = np.sum(
-                (fractions_from_lp + fractions_from_ecmp) * current_traffic_matrix) / edge_capacity
-            max_congestion = max(max_congestion, current_edge_congestion)
+            heuristic_flows_total_congestion = np.sum(np.multiply(fractions_from_lp, current_traffic_matrix))
+            total_link_load = new_flows_total_congestion_on_link + heuristic_flows_total_congestion
+            link_congestion = float(total_link_load) / float(link_capacity)
 
-        # assert max_congestion >= current_opt
-        congestion_ratios.append(max_congestion / current_opt)
+            max_congested_link = max(max_congested_link, link_congestion)
+
+        if not max_congested_link >= current_opt:
+            print("BUG!!")
+            optimal_load_balancing_finder(net,current_traffic_matrix,max_congested_link)
+
+        congestion_ratios.append(max_congested_link / current_opt)
 
     return congestion_ratios
 
@@ -71,6 +76,6 @@ if __name__ == "__main__":
     loaded_dict = load_dump_file(dumped_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     n = args.number_of_matrices
-    shuffle(loaded_dict["tms"])
-    c_l = _calculate_congestion_per_matrices(net=net, k=k, traffic_matrix_list=loaded_dict["tms"][0:n])
+    # shuffle(loaded_dict["tms"])
+    c_l = _calculate_congestion_per_matrices(net=net, k=k, traffic_matrix_list=loaded_dict["tms"])
     print(np.average(c_l))
