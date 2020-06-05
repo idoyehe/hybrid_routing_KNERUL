@@ -7,6 +7,8 @@ from docplex.mp.model import Model
 
 
 def __extract_flows(net: NetworkClass, traffic_demands):
+    for i in range(traffic_demands.shape[0]):
+        assert traffic_demands[i][i] == 0
     return list(filter(lambda pair: traffic_demands[pair[0]][pair[1]] > 0, net.get_all_pairs()))
 
 
@@ -83,13 +85,11 @@ def optimal_load_balancing_finder(net: NetworkClass, traffic_matrix, opt_ratio_v
         from_its_src = opt_lp_problem.sum([arch_vars_per_flow[out_arch][flow] for out_arch in out_arches_dict[src]])
         to_its_src = opt_lp_problem.sum([arch_vars_per_flow[in_arch][flow] for in_arch in in_arches_dict[src]])
         opt_lp_problem.add_constraint((from_its_src - to_its_src) == traffic_matrix[src][dst])
-        # opt_lp_problem.add_constraint(to_its_src == 0)
 
         # Flow conservation at the destination
         from_its_dst = opt_lp_problem.sum([arch_vars_per_flow[out_arch][flow] for out_arch in out_arches_dict[dst]])
         to_its_dst = opt_lp_problem.sum([arch_vars_per_flow[in_arch][flow] for in_arch in in_arches_dict[dst]])
         opt_lp_problem.add_constraint((to_its_dst - from_its_dst) == traffic_matrix[src][dst])
-        # opt_lp_problem.add_constraint(from_its_dst == 0)
 
         for u in net_direct.nodes:
             if u in flow:

@@ -1,5 +1,6 @@
 from Learning_to_Route.common.consts import Consts
 from Learning_to_Route.common.utils import norm_func
+from Learning_to_Route.common.size_consts import SizeConsts
 from random import shuffle
 import numpy as np
 from functools import partial
@@ -30,7 +31,7 @@ def __gravity_generation(g, pairs, scale=1.0):
     return flows
 
 
-def __bimodal_generation(graph, pairs, percent, big=600, small=150, std=20):
+def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
     flows = []
 
     shuffle(pairs)
@@ -44,6 +45,8 @@ def __bimodal_generation(graph, pairs, percent, big=600, small=150, std=20):
             else:
                 fsize = np.random.normal(small, std)
 
+            fsize *= SizeConsts.ONE_Mb
+
         flows.append((pair[0], pair[1], fsize))
 
     return flows
@@ -55,7 +58,7 @@ def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percent
     elif flow_generation_type == Consts.GRAVITY:
         get_flows = __gravity_generation
     else:
-        raise Exception("No exists flow generation type")
+        raise Exception("No exists traffic matrix type")
 
     all_pairs = list(graph.get_all_pairs())
 
@@ -75,12 +78,12 @@ def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, elephant_perc
     num_nodes = graph.get_num_nodes
 
     tm_mat = np.zeros((num_nodes, num_nodes), dtype=np.float32)
-    for f in tm:
-        tm_mat[int(f[0]), int(f[1])] = max(0, f[2])
+    for src, dst, demand in tm:
+        tm_mat[int(src), int(dst)] = max(0., demand)
     return tm_mat
 
 
-def one_sample_tm_base(graph, matrix_sparsity, tm_type, elephant_percentage, network_elephant, network_mice):
+def one_sample_tm_base(graph, matrix_sparsity, tm_type, elephant_percentage=0.2, network_elephant=400, network_mice=150):
     tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, elephant_percentage, big=network_elephant, small=network_mice)
     assert np.all(tm >= 0)
     return tm
