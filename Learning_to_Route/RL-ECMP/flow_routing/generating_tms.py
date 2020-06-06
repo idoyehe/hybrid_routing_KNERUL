@@ -1,8 +1,5 @@
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
-from network_class import NetworkClass, nx
-import numpy as np
-from flow_routing.find_optimal_load_balancing_v2 import optimal_load_balancing_finder as optimal_load_balancing_finderV2
-from flow_routing.find_optimal_load_balancing_v2 import optimal_load_balancing_finder as optimal_load_balancing_finderV3
+from flow_routing.find_optimal_load_balancing import *
 from logger import logger
 from topologies import topology_zoo_loader
 import pickle
@@ -64,11 +61,10 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
                                 tm_type=tm_type,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
-        opt_ratiov2, _ = optimal_load_balancing_finderV2(net, tm)  # heuristic flows splittings
-        opt_ratiov3, _ = optimal_load_balancing_finderV3(net, tm)  # heuristic flows splittings
-        assert opt_ratiov2 == opt_ratiov3
-        tm_list.append((tm, opt_ratiov2))
-        logger.info("Current TM {} with optimal routing {}".format(index, opt_ratiov2))
+        opt_ratio, _ = optimal_load_balancing_finder(net, tm)
+
+        tm_list.append((tm, opt_ratio))
+        logger.info("Current TM {} with optimal routing {}".format(index, opt_ratio))
 
     return tm_list
 

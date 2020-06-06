@@ -8,6 +8,7 @@ decorator==4.4.2
 docloud==1.0.375
 docplex==2.11.176
 future==0.18.2
+gurobipy==9.0.2
 gym==0.17.2
 idna==2.8
 kiwisolver==1.2.0
@@ -17,6 +18,7 @@ numpy==1.18.4
 opencv-python==4.2.0.34
 pandas==1.0.4
 Pillow==7.1.2
+PuLP==2.1
 pyglet==1.5.0
 pyparsing==2.4.7
 python-dateutil==2.8.1

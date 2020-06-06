@@ -1,4 +1,4 @@
-from flow_routing.find_optimal_load_balancing_v2 import *
+from flow_routing.find_optimal_load_balancing import *
 from network_class import NetworkClass
 from consts import EdgeConsts
 from generating_tms import load_dump_file
@@ -53,7 +53,7 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
 
         if not max_congested_link >= current_opt:
             print("BUG!!")
-            optimal_load_balancing_finder(net,current_traffic_matrix,max_congested_link)
+            optimal_load_balancing_finder(net, current_traffic_matrix, max_congested_link)
 
         congestion_ratios.append(max_congested_link / current_opt)
 

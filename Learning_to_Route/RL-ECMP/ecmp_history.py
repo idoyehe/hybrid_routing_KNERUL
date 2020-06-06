@@ -49,7 +49,7 @@ class ECMPHistoryEnv(Env):
             self._tm_sparsity_list = [loaded_dict["tms_sparsity"]]  # percentage of participating pairs, assumed to be a list
 
         self._g_name = self._network.get_name
-        self._num_edges = self._network.get_num_edges
+        self._num_edges = 2 * self._network.get_num_edges
         self._num_nodes = self._network.get_num_nodes
         self._all_pairs = self._network.get_all_pairs()
         self._history_start_id = 0
@@ -97,7 +97,8 @@ class ECMPHistoryEnv(Env):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
 
         if self._tms is None:
-            tm = one_sample_tm_base(self._network, p, self._tm_type, self._elephant_flows_percentage, self._elephant_flow, self._mice_flow)
+            tm = one_sample_tm_base(self._network, p, self._tm_type, self._elephant_flows_percentage, self._elephant_flow,
+                                    self._mice_flow)
             opt, _ = __get_optimal_load_balancing(self._network, tm)
         else:
             tm, opt = random.choice(self._tms)

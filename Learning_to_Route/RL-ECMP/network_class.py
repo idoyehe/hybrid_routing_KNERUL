@@ -34,8 +34,6 @@ class NetworkClass:
         self._set_adjacency()  # mark all adjacent nodes
         self._g_directed = None
         self._reducing_map_dict = None
-        self._out_arches_dict = None
-        self._in_arches_dict = None
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
@@ -95,9 +93,7 @@ class NetworkClass:
 
     @property
     def get_num_edges(self):
-        if self._is_directed:
-            return self._num_edges
-        return 2 * self._num_edges
+        return self._num_edges
 
     @property
     def get_graph(self):
@@ -122,24 +118,45 @@ class NetworkClass:
     def all_simple_paths(self, source, target, cutoff=None):
         return nx.all_simple_paths(self.get_graph, source=source, target=target, cutoff=cutoff)
 
-    def all_shortest_path(self, source, target, weight):
-        """
+    def all_shortest_path(self, source, target, weight=None, method='dijkstra'):
+        """Compute all shortest paths in the graph.
+
         Parameters
         ----------
-        G : NetworkX graph
+        self : NetworkX graph
 
         source : node
-        Starting node for path.
+           Starting node for path.
 
         target : node
-        Ending node for path.
+           Ending node for path.
 
         weight : None or string, optional (default = None)
-        If None, every edge has weight/distance/cost 1.
-        If a string, use this edge attribute as the edge weight.
-        Any edge attribute not present defaults to 1.
+           If None, every edge has weight/distance/cost 1.
+           If a string, use this edge attribute as the edge weight.
+           Any edge attribute not present defaults to 1.
+
+        method : string, optional (default = 'dijkstra')
+           The algorithm to use to compute the path lengths.
+           Supported options: 'dijkstra', 'bellman-ford'.
+           Other inputs produce a ValueError.
+           If `weight` is None, unweighted graph methods are used, and this
+           suggestion is ignored.
+
+        Returns
+        -------
+        paths : generator of lists
+            A generator of all paths between source and target.
+
+        Raises
+        ------
+        ValueError
+            If `method` is not among the supported options.
+
+        NetworkXNoPath
+            If `target` cannot be reached from `source`.
         """
-        return nx.all_shortest_paths(self.get_graph, source=source, target=target, weight=weight)
+        return nx.all_shortest_paths(self.get_graph, source=source, target=target, weight=weight, method=method)
 
     def get_edge_key(self, edge, key):
         return self.get_graph.edges[edge][key]
@@ -150,13 +167,13 @@ class NetworkClass:
         """
         graph_adjacency = self.get_adjacency
         num_edges = np.int32(np.sum(graph_adjacency))
-        ingoing = np.zeros((graph_adjacency.shape[0], num_edges))
-        outgoing = np.zeros((graph_adjacency.shape[0], num_edges))
+        ingoing = np.zeros((len(graph_adjacency), num_edges))
+        outgoing = np.zeros((len(graph_adjacency), num_edges))
         eid = 0
         e_map = {}
-        for i in range(graph_adjacency.shape[0]):
-            for j in range(graph_adjacency.shape[0]):
-                if graph_adjacency[i, j] == 1:
+        for i in range(len(graph_adjacency)):
+            for j in range(len(graph_adjacency)):
+                if graph_adjacency[i][j] == 1:
                     outgoing[i, eid] = 1
                     ingoing[j, eid] = 1
                     e_map[(i, j)] = eid
@@ -168,38 +185,43 @@ class NetworkClass:
             self._g_directed = nx.DiGraph()
             current_node_index = self.get_num_nodes
             self._reducing_map_dict = dict()
-            self._out_arches_dict = defaultdict(list)
-            self._in_arches_dict = defaultdict(list)
             for (u, v, u_v_capacity) in self._graph.edges.data(EdgeConsts.CAPACITY_STR):
-                x_index = (u, v, "in")
-                y_index = (u, v, "out")
+                x_node = (u, v, "in")
+                y_node = (u, v, "out")
                 current_node_index += 2
                 _virtual_edges_data = {EdgeConsts.WEIGHT_STR: 0, EdgeConsts.CAPACITY_STR: u_v_capacity}
                 _reduced_edge_data = {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: u_v_capacity}
 
-                self._g_directed.add_edge(u_of_edge=u, v_of_edge=x_index, **_virtual_edges_data)
-                self._out_arches_dict[u].append((u, x_index))
-                self._in_arches_dict[x_index].append((u, x_index))
+                self._g_directed.add_edge(u_of_edge=u, v_of_edge=x_node, **_virtual_edges_data)
+                self._g_directed.add_edge(u_of_edge=v, v_of_edge=x_node, **_virtual_edges_data)
 
-                self._g_directed.add_edge(u_of_edge=v, v_of_edge=x_index, **_virtual_edges_data)
-                self._out_arches_dict[v].append((v, x_index))
-                self._in_arches_dict[x_index].append((v, x_index))
+                self._g_directed.add_edge(u_of_edge=y_node, v_of_edge=u, **_virtual_edges_data)
+                self._g_directed.add_edge(u_of_edge=y_node, v_of_edge=v, **_virtual_edges_data)
 
-                self._g_directed.add_edge(u_of_edge=y_index, v_of_edge=u, **_virtual_edges_data)
-                self._out_arches_dict[y_index].append((y_index, u))
-                self._in_arches_dict[u].append((y_index, u))
+                self._g_directed.add_edge(u_of_edge=x_node, v_of_edge=y_node, **_reduced_edge_data)
 
-                self._g_directed.add_edge(u_of_edge=y_index, v_of_edge=v, **_virtual_edges_data)
-                self._out_arches_dict[y_index].append((y_index, v))
-                self._in_arches_dict[v].append((y_index, v))
-
-                self._g_directed.add_edge(u_of_edge=x_index, v_of_edge=y_index, **_reduced_edge_data)
-                self._out_arches_dict[x_index].append((x_index, y_index))
-                self._in_arches_dict[y_index].append((x_index, y_index))
-                self._reducing_map_dict[(u, v)] = (x_index, y_index)
+                self._reducing_map_dict[(u, v)] = (x_node, y_node)
 
             self._g_directed = NetworkClass(self._g_directed)
-        return self._g_directed, self._reducing_map_dict, self._out_arches_dict, self._in_arches_dict
+        return self._g_directed, self._reducing_map_dict
+
+    @property
+    def out_edges(self):
+        assert isinstance(self.get_graph, nx.DiGraph)
+        return self.get_graph.out_edges
+
+    def out_edges_by_node(self, node):
+        assert isinstance(self.get_graph, nx.DiGraph)
+        return self.get_graph.out_edges(node)
+
+    @property
+    def in_edges(self):
+        assert isinstance(self.get_graph, nx.DiGraph)
+        return self.get_graph.in_edges
+
+    def in_edges_by_node(self, node):
+        assert isinstance(self.get_graph, nx.DiGraph)
+        return self.get_graph.in_edges(node)
 
     def print_network(self):
         nx.draw(self.get_graph)
