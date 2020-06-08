@@ -1,5 +1,5 @@
 from Learning_to_Route.common.consts import Consts
-from Learning_to_Route.common.utils import norm_func
+from Learning_to_Route.common.utils import *
 from Learning_to_Route.common.size_consts import SizeConsts
 from random import shuffle
 import numpy as np
@@ -14,9 +14,9 @@ def __gravity_generation(g, pairs, scale=1.0):
         nodes.add(p[1])
 
     capacity_map = {}
-    ttl_capacity = 0
+    ttl_capacity: float = 0.0
     for n in nodes:
-        n_cap = 0
+        n_cap: float = 0.0
         neighs = g[n].keys()
         for neigh in neighs:
             n_cap += g[n][neigh][Consts.CAPACITY_STR]
@@ -25,8 +25,8 @@ def __gravity_generation(g, pairs, scale=1.0):
 
     for pair in pairs:
         src, dst = pair
-        flows.append((src, dst,
-                      scale * (capacity_map[src] * capacity_map[dst] / ttl_capacity)))
+        f_size = to_int(capacity_map[src] * capacity_map[dst] / ttl_capacity)
+        flows.append((src, dst, scale * f_size))
 
     return flows
 
@@ -38,16 +38,17 @@ def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
     num_big_pairs_selected = int(np.ceil(len(pairs) * percent))
 
     for i, pair in enumerate(pairs):
-        fsize = -1
-        while fsize < 0:
+        f_size = -1
+        while f_size < 0:
             if i < num_big_pairs_selected:
-                fsize = np.random.normal(big, std)
+                f_size = np.random.normal(big, std)
             else:
-                fsize = np.random.normal(small, std)
+                f_size = np.random.normal(small, std)
 
-            fsize *= SizeConsts.ONE_Mb
+            f_size *= SizeConsts.ONE_Mb
+            f_size = to_int(f_size)
 
-        flows.append((pair[0], pair[1], fsize))
+        flows.append((pair[0], pair[1], f_size))
 
     return flows
 

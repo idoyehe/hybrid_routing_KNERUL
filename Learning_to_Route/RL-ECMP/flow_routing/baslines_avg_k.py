@@ -1,3 +1,4 @@
+from Learning_to_Route.common.utils import to_int
 from flow_routing.find_optimal_load_balancing import *
 from network_class import NetworkClass
 from consts import EdgeConsts
@@ -19,6 +20,9 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
         logger.info("Average matrix calculated based on: [{},{}]".format(index, k + index - 1))
 
         avg_traffic_matrix = np.mean(list(map(lambda t: t[0], traffic_matrix_list[index:index + k])), axis=0)
+        vf = np.vectorize(to_int)
+        vf(avg_traffic_matrix)
+        avg_traffic_matrix = avg_traffic_matrix.astype(np.int32)
 
         assert avg_traffic_matrix.shape == current_traffic_matrix.shape
 

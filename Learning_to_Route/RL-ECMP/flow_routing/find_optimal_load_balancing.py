@@ -1,3 +1,4 @@
+from Learning_to_Route.common.utils import to_int
 from consts import EdgeConsts
 from network_class import NetworkClass, nx
 from collections import defaultdict
@@ -140,7 +141,7 @@ def optimal_load_balancing_finder(net: NetworkClass, traffic_matrix, opt_ratio_v
             src, dst = flow
             assert src != dst
             assert traffic_matrix[flow] > 0
-            arch_vars_per_flow[_arch][flow] = int(np.round(arch_vars_per_flow[_arch][flow].x))
+            arch_vars_per_flow[_arch][flow] = to_int(arch_vars_per_flow[_arch][flow].x)
 
     opt_lp_problem.close()
     __validate_solution_on_direct(net_direct, flows, traffic_matrix, arch_vars_per_flow)
