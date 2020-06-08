@@ -56,8 +56,8 @@ def optimal_load_balancing_finder(net: NetworkClass, traffic_matrix, opt_ratio_v
     arch_all_vars = defaultdict(list)
 
     net_direct, edge2v_edge_dict = net.reducing_undirected2directed()
-    SCALE: float = 0.001 if opt_ratio_value is None else 1.0
-    ERROR_BOUND: float = 0.00001
+    SCALE: float = 0.00001 if opt_ratio_value is None else 1.0
+    ERROR_BOUND: float = 0.0000001
 
     index = 1
     for flow in flows:
