@@ -51,9 +51,7 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
 
             max_congested_link = max(max_congested_link, link_congestion)
 
-        if not max_congested_link >= current_opt:
-            print("BUG!!")
-            optimal_load_balancing_finder(net, current_traffic_matrix, max_congested_link)
+        assert max_congested_link >= current_opt
 
         congestion_ratios.append(max_congested_link / current_opt)
 
@@ -76,6 +74,6 @@ if __name__ == "__main__":
     loaded_dict = load_dump_file(dumped_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     n = args.number_of_matrices
-    # shuffle(loaded_dict["tms"])
-    c_l = _calculate_congestion_per_matrices(net=net, k=k, traffic_matrix_list=loaded_dict["tms"])
+    shuffle(loaded_dict["tms"])
+    c_l = _calculate_congestion_per_matrices(net=net, k=k, traffic_matrix_list=loaded_dict["tms"][0:n])
     print(np.average(c_l))
