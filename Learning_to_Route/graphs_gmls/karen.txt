@@ -20,7 +20,6 @@ graph [
   DateMonth "12"
   LastAccess "3/08/10"
   Access 0
-  multigraph 1
   Layer "IP"
   Creator "Topology Zoo Toolset"
   Developed 1
@@ -281,15 +280,6 @@ graph [
   ]
   edge [
     source 1
-    target 6
-    LinkSpeed "10"
-    LinkSpeedUnits "G"
-    LinkLabel "10Gb/s (planning)"
-    LinkStatus "Planning"
-    LinkSpeedRaw 10000000000.0
-  ]
-  edge [
-    source 1
     target 7
     LinkSpeed "10"
     LinkLabel "10Gb/s"
@@ -399,14 +389,6 @@ graph [
     LinkLabel "1Gb/s"
     LinkSpeedUnits "G"
     LinkSpeedRaw 1000000000.0
-  ]
-  edge [
-    source 15
-    target 24
-    LinkSpeed "10"
-    LinkLabel "10Gb/s"
-    LinkSpeedUnits "G"
-    LinkSpeedRaw 10000000000.0
   ]
   edge [
     source 15

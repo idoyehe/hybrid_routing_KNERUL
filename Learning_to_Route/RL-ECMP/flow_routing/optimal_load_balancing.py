@@ -115,7 +115,7 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_rati
         opt_lp_problem.update()
 
     try:
-        logger.info("LP Submit to Sole {}".format(opt_lp_problem.ModelName))
+        logger.info("LP Submit to Solve {}".format(opt_lp_problem.ModelName))
         opt_lp_problem.optimize()
         assert opt_lp_problem.Status == GRB.OPTIMAL
 

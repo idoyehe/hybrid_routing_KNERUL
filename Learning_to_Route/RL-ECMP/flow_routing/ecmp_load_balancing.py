@@ -7,7 +7,7 @@ from itertools import tee
 import numpy as np
 
 
-def get_ecmp_edge_flow_fraction(net: NetworkClass, traffic_matrix, weight=None):
+def ecmp_arch_congestion(net: NetworkClass, traffic_matrix, weight=None):
     per_edge_flow_fraction = defaultdict(int)
     if weight is not None:
         logger.info("ECMP by weight label is: {}".format(weight))
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     net = NetworkClass(get_base_graph())
 
-    per_edge_ecmp_flow_fraction = get_ecmp_edge_flow_fraction(net, get_flows_matrix())
+    per_edge_ecmp_flow_fraction = ecmp_arch_congestion(net, get_flows_matrix())
     assert per_edge_ecmp_flow_fraction[(0, 1)] == 50
     assert per_edge_ecmp_flow_fraction[(0, 2)] == 100
     assert per_edge_ecmp_flow_fraction[(1, 2)] == 70

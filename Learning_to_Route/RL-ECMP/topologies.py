@@ -121,18 +121,11 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
         gml_file.close()
 
     g = nx.parse_gml(gml, label="id")
-    need_to_remove = list()
     for edge in g.edges:
-        if "LinkStatus" in g.edges[edge]:
-            need_to_remove.append(edge)
-            continue
         if CAPACITY_LABEL_DEFAULT in g.edges[edge]:
             g.edges[edge][EdgeConsts.CAPACITY_STR] = int(g.edges[edge][CAPACITY_LABEL_DEFAULT]) / SizeConsts.ONE_Mb
         else:
             g.edges[edge][EdgeConsts.CAPACITY_STR] = default_capacity
-
-    for edge in need_to_remove:
-        g.remove_edge(*edge)
 
     g.graph["Name"] = g.graph["Network"]
     g = nx.Graph(g)

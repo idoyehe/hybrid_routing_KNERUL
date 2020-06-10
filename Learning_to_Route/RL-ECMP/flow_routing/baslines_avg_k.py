@@ -1,5 +1,5 @@
-from Learning_to_Route.common.utils import to_int
-from flow_routing.find_optimal_load_balancing import *
+from flow_routing.optimal_load_balancing import *
+from flow_routing.ecmp_load_balancing import ecmp_arch_congestion
 from network_class import NetworkClass
 from consts import EdgeConsts
 from generating_tms import load_dump_file
@@ -16,19 +16,15 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
     assert k < len(traffic_matrix_list)
     congestion_ratios = list()
     for index, (current_traffic_matrix, current_opt) in enumerate(traffic_matrix_list[k:]):
-        logger.info("Current matrix index is: {}".format(k + index))
-        logger.info("Average matrix calculated based on: [{},{}]".format(index, k + index - 1))
+        logger.info("Current matrix index: {}\nAveraged matrix calculated based: {}-{}".format(k + index, index, k + index - 1))
 
         avg_traffic_matrix = np.mean(list(map(lambda t: t[0], traffic_matrix_list[index:index + k])), axis=0)
-        vf = np.vectorize(to_int)
-        vf(avg_traffic_matrix)
-        avg_traffic_matrix = avg_traffic_matrix.astype(np.int32)
 
         assert avg_traffic_matrix.shape == current_traffic_matrix.shape
 
-        logger.debug("Solving LP problem for average matrix")
+        logger.debug("Creating LP for averaged matrix")
         # heuristic flows carries
-        avg_opt, per_edge_flow_fraction_lp = optimal_load_balancing_finder(net, avg_traffic_matrix)
+        avg_opt, per_arch_flow_fraction_lp = optimal_load_balancing_LP_solver(net, avg_traffic_matrix)
 
         logger.debug("Handling the flows that exist in real matrix but not in average one")
         ecmp_flows_matrix = np.zeros(avg_traffic_matrix.shape)
@@ -39,20 +35,19 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
             ecmp_flows_matrix[src][dst] = float(current_traffic_matrix[src][dst])
 
         # for flows in average is Zero but in real are non zero
-        per_edge_flow_fraction_ecmp = get_ecmp_edge_flow_fraction(net, ecmp_flows_matrix)
+        ecmp_arch_congestion_result = ecmp_arch_congestion(net, ecmp_flows_matrix)
 
-        logger.debug('Calculating the congestion per edge and finding max link congestion')
+        logger.debug('Calculating the congestion per arch and finding max link congestion')
 
         max_congested_link = 0
-        for u, v, link_capacity in net.edges.data(EdgeConsts.CAPACITY_STR):
-            link = (u, v)
-            fractions_from_lp = per_edge_flow_fraction_lp[link]
-            new_flows_total_congestion_on_link = per_edge_flow_fraction_ecmp[link]
+        for u, v, link_capacity in net.get_g_directed.edges.data(EdgeConsts.CAPACITY_STR):
+            arch = (u, v)
+            fractions_from_lp = per_arch_flow_fraction_lp[arch]
+            new_flows_total_congestion_on_link = ecmp_arch_congestion_result[arch]
 
             heuristic_flows_total_congestion = np.sum(np.multiply(fractions_from_lp, current_traffic_matrix))
             total_link_load = new_flows_total_congestion_on_link + heuristic_flows_total_congestion
-            link_congestion = float(total_link_load) / float(link_capacity)
-
+            link_congestion = total_link_load / link_capacity
             max_congested_link = max(max_congested_link, link_congestion)
 
         assert max_congested_link >= current_opt
