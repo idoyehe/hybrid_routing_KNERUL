@@ -16,7 +16,8 @@ import matplotlib.pyplot as plt
 class NetworkClass:
 
     def __init__(self, topo, min_weight=1e-12, max_weight=50):
-        logger.info("Creating ECMP network")
+        logger.info("Creating Network Class")
+
         self._graph = topo.copy()
         self._is_directed = nx.is_directed(self.get_graph)
 
