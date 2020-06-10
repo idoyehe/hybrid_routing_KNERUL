@@ -56,6 +56,10 @@ class NetworkClass:
         return self._g_directed
 
     @property
+    def g_is_directed(self):
+        return self._is_directed
+
+    @property
     def get_adjacency(self):
         return self._adj
 

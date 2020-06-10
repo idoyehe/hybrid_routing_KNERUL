@@ -1,5 +1,5 @@
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
-from flow_routing.find_optimal_load_balancing_reduced import *
+from flow_routing.optimal_load_balancing import *
 from logger import logger
 from topologies import topology_zoo_loader
 import pickle
@@ -61,7 +61,7 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
                                 tm_type=tm_type,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
-        opt_ratio, _ = optimal_load_balancing_finder(net, tm)
+        opt_ratio, _ = optimal_load_balancing_LP_solver(net, tm)
 
         tm_list.append((tm, opt_ratio))
         logger.info("Current TM {} with optimal routing {}".format(index, opt_ratio))
