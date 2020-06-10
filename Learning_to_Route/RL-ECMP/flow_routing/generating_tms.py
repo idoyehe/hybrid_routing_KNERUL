@@ -1,5 +1,5 @@
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
-from flow_routing.find_optimal_load_balancing import *
+from flow_routing.find_optimal_load_balancing_reduced import *
 from logger import logger
 from topologies import topology_zoo_loader
 import pickle
