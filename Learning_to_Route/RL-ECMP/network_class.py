@@ -32,8 +32,11 @@ class NetworkClass:
         self._num_edges = len(self._graph.edges())
         self._actual_weight = np.zeros(self._graph.number_of_edges())
         self._set_adjacency()  # mark all adjacent nodes
-        self._g_directed = None
+        self._g_directed_reduced = None
         self._reducing_map_dict = None
+
+        if not self._is_directed:
+            self._g_directed = NetworkClass(self.get_graph.to_directed())
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
@@ -44,6 +47,10 @@ class NetworkClass:
                     continue
                 if j in self._graph[i]:
                     self._adj[i][j] = 1.0
+
+    @property
+    def get_g_directed(self):
+        return self._g_directed
 
     @property
     def get_adjacency(self):
@@ -181,29 +188,28 @@ class NetworkClass:
         return num_edges, ingoing, outgoing, e_map
 
     def reducing_undirected2directed(self):
-        if self._g_directed is None:
-            self._g_directed = nx.DiGraph()
-            current_node_index = self.get_num_nodes
+        if self._g_directed_reduced is None:
+            self._g_directed_reduced = nx.DiGraph()
             self._reducing_map_dict = dict()
             for (u, v, u_v_capacity) in self._graph.edges.data(EdgeConsts.CAPACITY_STR):
                 x_node = (u, v, "in")
                 y_node = (u, v, "out")
-                current_node_index += 2
                 _virtual_edges_data = {EdgeConsts.WEIGHT_STR: 0, EdgeConsts.CAPACITY_STR: u_v_capacity}
                 _reduced_edge_data = {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: u_v_capacity}
 
-                self._g_directed.add_edge(u_of_edge=u, v_of_edge=x_node, **_virtual_edges_data)
-                self._g_directed.add_edge(u_of_edge=v, v_of_edge=x_node, **_virtual_edges_data)
+                self._g_directed_reduced.add_edge(u_of_edge=u, v_of_edge=x_node, **_virtual_edges_data)
+                self._g_directed_reduced.add_edge(u_of_edge=v, v_of_edge=x_node, **_virtual_edges_data)
 
-                self._g_directed.add_edge(u_of_edge=y_node, v_of_edge=u, **_virtual_edges_data)
-                self._g_directed.add_edge(u_of_edge=y_node, v_of_edge=v, **_virtual_edges_data)
+                self._g_directed_reduced.add_edge(u_of_edge=y_node, v_of_edge=u, **_virtual_edges_data)
+                self._g_directed_reduced.add_edge(u_of_edge=y_node, v_of_edge=v, **_virtual_edges_data)
 
-                self._g_directed.add_edge(u_of_edge=x_node, v_of_edge=y_node, **_reduced_edge_data)
+                self._g_directed_reduced.add_edge(u_of_edge=x_node, v_of_edge=y_node, **_reduced_edge_data)
 
                 self._reducing_map_dict[(u, v)] = (x_node, y_node)
 
-            self._g_directed = NetworkClass(self._g_directed)
-        return self._g_directed, self._reducing_map_dict
+            self._g_directed_reduced = NetworkClass(self._g_directed_reduced)
+
+        return self._g_directed_reduced, self._reducing_map_dict
 
     @property
     def out_edges(self):
@@ -227,21 +233,22 @@ class NetworkClass:
         nx.draw(self.get_graph)
         plt.show()
 
-# def get_base_graph():
-#     # init a triangle if we don't get a network graph
-#     g = nx.Graph()
-#     g.add_nodes_from([0, 1, 2])
-#     g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-#                       (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
-#                       (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
-#
-#     return g
-#
-#
-# ecmpNetwork = ECMPNetwork(get_base_graph())
-# ecmpNetwork.reducing_undirected2directed()
-# adj = ecmpNetwork.get_adjacency
-# pairs = ecmpNetwork.get_all_pairs()
-# capcities = ecmpNetwork.get_capacities()
-# node_capcities = ecmpNetwork.get_node_capacities()
-# pass
+
+if __name__ == "__main__":
+    def get_base_graph():
+        # init a triangle if we don't get a network graph
+        g = nx.Graph()
+        g.add_nodes_from([0, 1, 2])
+        g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+                          (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 10}),
+                          (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 15})])
+
+        return g
+
+
+    net = NetworkClass(get_base_graph())
+    net.reducing_undirected2directed()
+    adj = net.get_adjacency
+    pairs = net.get_all_pairs()
+    capacities = net.get_edges_capacities()
+    node_capacities = net.get_node_capacities()

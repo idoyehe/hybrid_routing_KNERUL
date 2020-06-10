@@ -2,6 +2,7 @@ import networkx as nx
 from consts import EdgeConsts
 import matplotlib.pyplot as plt
 import urllib.request
+from Learning_to_Route.common.size_consts import SizeConsts
 
 
 def _star():
@@ -109,7 +110,7 @@ def _triangle():
     return g
 
 
-def topology_zoo_loader(url: str, default_capacity: int = 100):
+def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / SizeConsts.ONE_Mb):
     CAPACITY_LABEL_DEFAULT: str = "LinkSpeedRaw"
     if url.startswith("http"):
         gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
@@ -126,7 +127,7 @@ def topology_zoo_loader(url: str, default_capacity: int = 100):
             need_to_remove.append(edge)
             continue
         if CAPACITY_LABEL_DEFAULT in g.edges[edge]:
-            g.edges[edge][EdgeConsts.CAPACITY_STR] = int(g.edges[edge][CAPACITY_LABEL_DEFAULT])
+            g.edges[edge][EdgeConsts.CAPACITY_STR] = int(g.edges[edge][CAPACITY_LABEL_DEFAULT]) / SizeConsts.ONE_Mb
         else:
             g.edges[edge][EdgeConsts.CAPACITY_STR] = default_capacity
 
