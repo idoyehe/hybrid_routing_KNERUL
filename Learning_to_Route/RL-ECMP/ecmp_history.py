@@ -6,13 +6,12 @@ refactoring on 26/04/2020
 @by: Ido Yehezkel
 """
 from gym import Env, spaces, envs, register
-from network_class import *
+from common.network_class import *
 from optimizer import WNumpyOptimizer
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from consts import HistoryConsts, ExtraData
-from flow_routing.find_optimal_load_balancing import __get_optimal_load_balancing
-from flow_routing.generating_tms import load_dump_file
-from topologies import topology_zoo_loader
+from static_routing.generating_tms import load_dump_file
+from common.topologies import topology_zoo_loader
 import random
 
 

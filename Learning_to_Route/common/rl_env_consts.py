@@ -41,13 +41,7 @@ class WeightStrategy:
     MIXED_CYCLIC_RANDOM_INT_WEIGHT = "static_random"
     MIXED_STATIC_THEN_LOCAL = "static_ls"
 
-class EdgeConsts:
-    WEIGHT_STR = 'weight'
-    CAPACITY_STR = 'capacity'
-    TTL_FLOW_STR = 'ttl_flow'
-    
-    MAX_WEIGHT = 50
-    MIN_WEIGHT = 1
+
 
 class GraphConsts:
     SRC_META_POS = 0
@@ -61,10 +55,7 @@ class RewardType:
     REWARD_MAX_UTIL = "max_util"
     REWARD_AVG_UTIL = "avg_util"
 
-class TMType:
-    # TMs types
-    BIMODAL = "bimodal"
-    GRAVITY = "gravity"
+
 
 class ActionType:
     ACTION_OBLIVIOUS_PATH = "oblivious"

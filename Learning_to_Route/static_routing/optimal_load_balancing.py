@@ -1,8 +1,8 @@
-from consts import EdgeConsts
+from common.consts import EdgeConsts
 from Learning_to_Route.common.utils import extract_flows, error_bound
-from network_class import NetworkClass, nx
+from common.network_class import NetworkClass, nx
 from collections import defaultdict
-from logger import *
+from common.logger import *
 import numpy as np
 import gurobipy as gb
 from gurobipy import GRB
@@ -18,7 +18,7 @@ def __validate_solution(net_directed: NetworkClass, flows: list, traffic_matrix,
                 from_its_source = 0
                 for out_arches_from_src in net_directed.out_edges_by_node(v):
                     from_its_source += arch_g_vars_dict[out_arches_from_src][flow]
-                assert error_bound(from_its_source , traffic_matrix[flow])
+                assert error_bound(from_its_source, traffic_matrix[flow])
                 to_its_src = 0
                 for in_arches_to_src in net_directed.in_edges_by_node(v):
                     to_its_src += arch_g_vars_dict[in_arches_to_src][flow]
@@ -54,7 +54,6 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_rati
     arch_all_vars = defaultdict(list)
 
     net_direct = net.get_g_directed
-    ERROR_BOUND: float = 1e-10
 
     index = 1
     for flow in flows:
@@ -155,26 +154,3 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_rati
 
     assert error_bound(max_congested_link, opt_ratio)
     return max_congested_link, link_carries_per_flow
-
-
-if __name__ == "__main__":
-    def get_base_graph():
-        # init a triangle if we don't get a network graph
-        g = nx.Graph()
-        g.add_nodes_from([0, 1, 2])
-        g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 100}),
-                          (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 100}),
-                          (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 150})])
-
-        return g
-
-
-    def get_flows_matrix():
-        return np.array([[0, 50, 100], [0, 0, 70], [0, 0, 0]])
-
-
-    net = NetworkClass(get_base_graph())
-
-    optimal_load_balancing, per_edge_flow_fraction = optimal_load_balancing_LP_solver(net, get_flows_matrix(), 0.75)
-    print(optimal_load_balancing)
-    print(per_edge_flow_fraction)

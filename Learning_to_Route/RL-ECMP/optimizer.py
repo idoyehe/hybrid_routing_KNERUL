@@ -7,8 +7,8 @@ refactoring on 24/04/2020
 """
 
 from consts import HistoryConsts
-from network_class import *
-from logger import logger
+from common.network_class import *
+from common.logger import logger
 
 
 class WNumpyOptimizer:

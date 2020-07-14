@@ -37,10 +37,6 @@ class Consts:
     REWARD_THUROP = 1
     REWARD_MAX_UTIL = 2
 
-    # TMs types
-    BIMODAL = "bimodal"
-    GRAVITY = "gravity"
-
     THURP = 0
     NORMALIZED_THURP = 1
 
@@ -64,3 +60,17 @@ class Consts:
     TM_AMNT = 15
 
     Q_VALUE = 5
+
+
+class EdgeConsts:
+    WEIGHT_STR = 'weight'
+    CAPACITY_STR = 'capacity'
+    TTL_FLOW_STR = 'ttl_flow'
+
+    MAX_WEIGHT = 50
+    MIN_WEIGHT = 1
+
+class TMType:
+    # TMs types
+    BIMODAL = "bimodal"
+    GRAVITY = "gravity"

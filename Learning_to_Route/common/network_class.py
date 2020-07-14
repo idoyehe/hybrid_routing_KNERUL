@@ -5,11 +5,11 @@ Created on 10 Mar 2017
 refactoring on 24/04/2020
 @by: Ido Yehezkel
 """
-from consts import EdgeConsts
+from common.consts import EdgeConsts
 import numpy as np
 import networkx as nx
 from collections import defaultdict
-from logger import logger
+from common.logger import logger
 import matplotlib.pyplot as plt
 
 

@@ -1,9 +1,9 @@
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
-from flow_routing.optimal_load_balancing import *
-from logger import logger
-from topologies import topology_zoo_loader
+from static_routing.optimal_load_balancing import *
+from common.logger import logger
+from common.topologies import topology_zoo_loader
 import pickle
-from consts import TMType
+from common.consts import TMType
 import os
 from argparse import ArgumentParser
 from sys import argv
