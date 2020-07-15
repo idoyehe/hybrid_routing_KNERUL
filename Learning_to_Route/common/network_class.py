@@ -43,13 +43,13 @@ class NetworkClass:
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
-        self._adj = defaultdict(dict)
+        self._adj = np.zeros((self._num_nodes, self._num_nodes), dtype=np.float32)
         for i in self._graph.nodes:
             for j in self._graph.nodes:
                 if i == j:
                     continue
                 if j in self._graph[i]:
-                    self._adj[i][j] = 1.0
+                    self._adj[i, j] = 1.0
 
     @property
     def get_g_directed(self):
@@ -80,12 +80,12 @@ class NetworkClass:
     def get_edges_capacities(self):
         if self._capacities is None:  # for happens only once
             logger.debug("Set per edge capacity")
-            self._capacities = dict()
+            self._capacities = np.zeros((self._num_nodes, self._num_nodes), dtype=np.float32)
             for i in self._graph.nodes:
                 for j in self._graph.nodes:
                     if i == j:
                         continue
-                    if j in self.get_adjacency[i]:  # means edge is exists
+                    if self.get_adjacency[i,j] > 0:  # means edge is exists
                         self._capacities[(i, j)] = self._graph[i][j][EdgeConsts.CAPACITY_STR]
         return self._capacities
 

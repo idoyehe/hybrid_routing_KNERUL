@@ -6,7 +6,7 @@ refactoring on 24/04/2020
 @by: Ido Yehezkel
 """
 
-from consts import HistoryConsts
+from common.rl_env_consts import HistoryConsts
 from common.network_class import *
 from common.logger import logger
 
@@ -55,7 +55,7 @@ class WNumpyOptimizer:
         all_shortest_paths_costs = dict(nx.shortest_path_length(directed_graph, weight=EdgeConsts.WEIGHT_STR))
         # calculating shortest paths form each node to each node, dictionary way
 
-        result = np.zeros_like(list(self._edges_capacities.values()), dtype=np.float32)
+        result = np.zeros_like(weights_vector, dtype=np.float32)
         for dst in range(len(traffic_matrix)):
             # logger.info("Handle destination: {}".format(dst))
             dst_demand = np.expand_dims(traffic_matrix[:, dst], 1)  # getting all flows demands to dest from al sources
@@ -64,26 +64,17 @@ class WNumpyOptimizer:
 
             if total_demands == 0.0:
                 continue
-
-            cost_to_dest = [all_shortest_paths_costs[j][dst] for j in range(self._num_nodes)]  # getting all costs to dest from al sources
+            # getting all costs to dest from al sources
+            cost_to_dest = [all_shortest_paths_costs[j][dst] for j in range(self._num_nodes)]
             edge_cost = self.__get_edge_cost(cost_to_dest, each_edge_weight)
             soft_min_cost_vector = self._soft_min(edge_cost)
 
             cong = self._get_flow_input_vector(soft_min_cost_vector, dst_demand, total_demands, self._eye_masks[dst], dst)
             result += np.reshape(cong, [-1])  # , q_val
-
-        congestion_dict = defaultdict(int)
-        for _edge, eid in self._e_map.items():
-            if _edge[0] > _edge[1]:
-                _edge = (_edge[1], _edge[0])
-            assert _edge[0] < _edge[1]
-            congestion_dict[_edge] += result[eid]
-
-        for _edge, cong in congestion_dict.items():
-            congestion_dict[_edge] /= self._edges_capacities[_edge]
-
-        cost = max(congestion_dict.values())
-        return cost, dict(congestion_dict)
+        for edge, index in self._e_map.items():
+            congestion = result[index] / self._edges_capacities[edge]
+        cost = np.max(congestion)
+        return cost, result
 
     def __get_edge_cost(self, cost_to_dest, each_edge_weight):
         cost_to_dst1 = cost_to_dest * self._graph_adjacency_matrix + each_edge_weight

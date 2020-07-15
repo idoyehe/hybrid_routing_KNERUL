@@ -9,8 +9,8 @@ from gym import Env, spaces, envs, register
 from common.network_class import *
 from optimizer import WNumpyOptimizer
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
-from consts import HistoryConsts, ExtraData
-from static_routing.generating_tms import load_dump_file
+from common.rl_env_consts import HistoryConsts, ExtraData
+from static_routing.generating_tms_dumps import load_dump_file
 from common.topologies import topology_zoo_loader
 import random
 
@@ -270,7 +270,7 @@ if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
              kwargs={
                  'max_steps': 50,
                  'history_length': 10,
-                 'path_dumped': "C:\\Users\\idoye\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\RL-ECMP\\flow_routing\\TMs_DB\\IBM_tms_18X18_length_10000_gravity_sparsity_0.3",
+                 'path_dumped': "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\TRIANGLE_tms_3X3_length_200_gravity_sparsity_0.3",
                  'train_histories_length': 7,
                  'test_histories_length': 1}
              )
