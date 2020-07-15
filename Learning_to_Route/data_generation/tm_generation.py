@@ -1,4 +1,4 @@
-from Learning_to_Route.common.consts import Consts
+from Learning_to_Route.common.consts import TMType, Consts
 from Learning_to_Route.common.utils import *
 from Learning_to_Route.common.size_consts import SizeConsts
 from random import shuffle
@@ -53,9 +53,9 @@ def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
 
 
 def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage=0.2, big=400, small=150):
-    if flow_generation_type == Consts.BIMODAL:
+    if flow_generation_type == TMType.BIMODAL:
         get_flows = partial(__bimodal_generation, percent=elephant_percentage, big=big, small=small)
-    elif flow_generation_type == Consts.GRAVITY:
+    elif flow_generation_type == TMType.GRAVITY:
         get_flows = __gravity_generation
     else:
         raise Exception("No exists traffic matrix type")

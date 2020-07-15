@@ -40,7 +40,7 @@ def _dump_tms_and_opt(net: NetworkClass, url: str, matrix_sparsity: float, tm_ty
         "tms_sparsity": matrix_sparsity,
         "tms_type": tm_type, }
 
-    file_name: str = os.getcwd() + "\\TMs_DB\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name,
+    file_name: str = os.getcwd() + ".. \\TMs_DB\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name,
                                                                                             net.get_num_nodes,
                                                                                             net.get_num_nodes,
                                                                                             total_matrices, tm_type,
@@ -56,7 +56,7 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
     logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices))
     tm_list = list()
     for index in range(total_matrices):
-        tm = one_sample_tm_base(graph=net,
+        tm = one_sample_tm_base(graph=net.get_g_directed,
                                 matrix_sparsity=matrix_sparsity,
                                 tm_type=tm_type,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
