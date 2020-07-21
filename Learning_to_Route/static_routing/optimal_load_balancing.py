@@ -54,8 +54,8 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_rati
     arch_all_vars = defaultdict(list)
 
     net_direct = net.get_g_directed
+    all_vars_sum = 0
 
-    index = 1
     for flow in flows:
         src, dst = flow
         assert src != dst
@@ -63,13 +63,14 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_rati
         for _arch in net_direct.edges:
             g_var_name = "arch{};flow{}->{};".format(str(_arch), src, dst)
             g_var = opt_lp_problem.addVar(lb=0.0, name=g_var_name, vtype=GRB.CONTINUOUS)
-            opt_lp_problem.setObjectiveN(g_var, index)
-            index += 1
+            all_vars_sum += g_var
 
             arch_vars_per_flow[_arch][flow] = g_var
             arch_all_vars[_arch].append(g_var)
 
     opt_lp_problem.update()
+
+    opt_lp_problem.setObjectiveN(all_vars_sum, 1)
 
     if opt_ratio_value is None:
         opt_ratio = opt_lp_problem.addVar(lb=0.0, name="opt_ratio", vtype=GRB.CONTINUOUS)
