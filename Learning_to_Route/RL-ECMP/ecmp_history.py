@@ -11,6 +11,7 @@ from optimizer import WNumpyOptimizer
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from common.rl_env_consts import HistoryConsts, ExtraData
 from static_routing.generating_tms_dumps import load_dump_file
+from static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
 from common.topologies import topology_zoo_loader
 import random
 
@@ -47,8 +48,9 @@ class ECMPHistoryEnv(Env):
             self._tm_type = loaded_dict["tms_type"]
             self._tm_sparsity_list = [loaded_dict["tms_sparsity"]]  # percentage of participating pairs, assumed to be a list
 
+        self._network = self._network.get_g_directed
         self._g_name = self._network.get_name
-        self._num_edges = 2 * self._network.get_num_edges
+        self._num_edges = self._network.get_num_edges
         self._num_nodes = self._network.get_num_nodes
         self._all_pairs = self._network.get_all_pairs()
         self._history_start_id = 0
@@ -98,7 +100,7 @@ class ECMPHistoryEnv(Env):
         if self._tms is None:
             tm = one_sample_tm_base(self._network, p, self._tm_type, self._elephant_flows_percentage, self._elephant_flow,
                                     self._mice_flow)
-            opt, _ = __get_optimal_load_balancing(self._network, tm)
+            opt, _ = optimal_load_balancing_LP_solver(self._network, tm)
         else:
             tm, opt = random.choice(self._tms)
         return tm, opt

@@ -41,13 +41,11 @@ def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
         f_size = -1
         while f_size < 0:
             if i < num_big_pairs_selected:
-                f_size = np.random.normal(big, std)
+                f_size_mb = np.random.normal(big, std)
             else:
-                f_size = np.random.normal(small, std)
+                f_size_mb = np.random.normal(small, std)
 
-            f_size *= SizeConsts.ONE_Mb
-
-        flows.append((pair[0], pair[1], f_size))
+        flows.append((pair[0], pair[1], f_size_mb))
 
     return flows
 
