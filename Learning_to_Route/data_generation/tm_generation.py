@@ -38,8 +38,8 @@ def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
     num_big_pairs_selected = int(np.ceil(len(pairs) * percent))
 
     for i, pair in enumerate(pairs):
-        f_size = -1
-        while f_size < 0:
+        f_size_mb = -1
+        while f_size_mb < 0:
             if i < num_big_pairs_selected:
                 f_size_mb = np.random.normal(big, std)
             else:
