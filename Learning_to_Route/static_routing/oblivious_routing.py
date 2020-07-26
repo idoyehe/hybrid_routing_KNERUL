@@ -1,9 +1,9 @@
 from Learning_to_Route.common.utils import error_bound
 from common.network_class import NetworkClass
-from consts import EdgeConsts
+from common.consts import EdgeConsts
 from common.logger import *
 from collections import defaultdict
-from static_routing.generating_tms import load_dump_file
+from static_routing.generating_tms_dumps import load_dump_file
 from common.topologies import topology_zoo_loader
 from argparse import ArgumentParser
 from sys import argv
@@ -57,7 +57,7 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
     if oblivious_ratio is None:
         obliv_ratio = obliv_lp_problem.addVar(name="obliv_ratio", lb=0.0, vtype=GRB.CONTINUOUS)
         obliv_lp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
-        obliv_lp_problem.setObjectiveN(obliv_ratio, index, 5)
+        obliv_lp_problem.setObjectiveN(obliv_ratio, index, 1)
         index += 1
         obliv_lp_problem.update()
 
@@ -70,15 +70,21 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
     pe_edges_dict = defaultdict(dict)
     f_arch_dict = defaultdict(dict)
 
+    pi_vars_sum = 0
+    pe_vars_sum = 0
+    f_vars_sum = 0
+
     for _arch in net_directed.edges:
-        _arch_sum = 0
+        _h_sum = 0
         for _h in net_directed.edges:
             pi_edges_dict[_arch][_h] = obliv_lp_problem.addVar(name="PI_{}_({})".format(_arch, _h), lb=0.0, vtype=GRB.CONTINUOUS)
-            obliv_lp_problem.setObjectiveN(pi_edges_dict[_arch][_h], index, 3)
-            index += 1
+            pi_vars_sum += pi_edges_dict[_arch][_h]
             cap_h = net_directed.get_edge_key(_h, EdgeConsts.CAPACITY_STR)
-            _arch_sum += cap_h * pi_edges_dict[_arch][_h]
-        obliv_lp_problem.addConstr(_arch_sum, GRB.LESS_EQUAL, obliv_ratio, "SUM(cap(h)*pi_e_(h)<=r;{})".format(_arch))
+            _h_sum += cap_h * pi_edges_dict[_arch][_h]
+        obliv_lp_problem.addConstr(_h_sum, GRB.LESS_EQUAL, obliv_ratio, "SUM(cap(h)*pi_e_(h)<=r;{})".format(_arch))
+
+    obliv_lp_problem.setObjectiveN(pi_vars_sum, index)
+    index += 1
 
     for _arch in net_directed.edges:
         _capacity_arch = net_directed.get_edge_key(_arch, EdgeConsts.CAPACITY_STR)
@@ -90,19 +96,20 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
                 else:
                     p_e_i_j = pe_edges_dict[_arch][(i, j)] = \
                         obliv_lp_problem.addVar(name="P_{}_({})".format(_arch, (i, j)), lb=0.0, vtype=GRB.CONTINUOUS)
-                    obliv_lp_problem.setObjectiveN(p_e_i_j, index, 2)
-
+                    pe_vars_sum += p_e_i_j
 
                     f_i_j_e = f_arch_dict[_arch][(i, j)] = \
                         obliv_lp_problem.addVar(name="f_{}_({})".format((i, j), _arch), lb=0.0, vtype=GRB.CONTINUOUS)
-
-                    obliv_lp_problem.setObjectiveN(f_i_j_e, index, 4)
-                    index += 1
+                    f_vars_sum += f_i_j_e
 
                     obliv_lp_problem.addConstr(f_i_j_e, GRB.LESS_EQUAL, _capacity_arch * p_e_i_j,
                                                "f_ij({})/cap(e)<=p_{}(i,j)".format(_arch, _arch))
 
     obliv_lp_problem.update()
+    obliv_lp_problem.setObjectiveN(pe_vars_sum, index)
+    index += 1
+    obliv_lp_problem.setObjectiveN(f_vars_sum, index)
+    index += 1
 
     # flow constrains
     for src, dst in net_directed.get_all_pairs():
@@ -113,13 +120,11 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
         out_flow_from_source = sum(f_arch_dict[out_arch][flow] for out_arch in net_directed.out_edges_by_node(src))
         in_flow_to_source = sum(f_arch_dict[in_arch][flow] for in_arch in net_directed.in_edges_by_node(src))
         obliv_lp_problem.addConstr(out_flow_from_source - in_flow_to_source, GRB.EQUAL, 1.0, "{}->{};srcConst".format(src, dst))
-        # obliv_lp_problem.addConstr(in_flow_to_source, GRB.EQUAL, 0.0)
 
         # Flow conservation at the destination
         out_flow_from_dest = sum(f_arch_dict[out_arch][flow] for out_arch in net_directed.out_edges_by_node(dst))
         in_flow_to_dest = sum(f_arch_dict[in_arch][flow] for in_arch in net_directed.in_edges_by_node(dst))
         obliv_lp_problem.addConstr((in_flow_to_dest - out_flow_from_dest), GRB.EQUAL, 1.0, "{}->{};dstConst".format(src, dst))
-        # obliv_lp_problem.addConstr(out_flow_from_dest, GRB.EQUAL, 0.0)
 
         for u in net_directed.nodes:
             if u in flow:
@@ -208,23 +213,3 @@ if __name__ == "__main__":
     c_l = _calculate_congestion_per_matrices(net=net, traffic_matrix_list=loaded_dict["tms"],
                                              oblivious_routing_per_edge=oblivious_routing_per_edge)
     print(np.average(c_l))
-
-# if __name__ == "__main__":
-#     def get_base_graph():
-#         # init a triangle if we don't get a network graph
-#         g = nx.Graph()
-#         g.add_nodes_from([0, 1, 2])
-#         g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 100}),
-#                           (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 100}),
-#                           (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 150})])
-#
-#         return g
-#
-#
-#     # net = NetworkClass(get_base_graph())
-#     net = NetworkClass(topology_zoo_loader("http://www.topology-zoo.org/files/Ibm.gml", default_capacity=45))
-#     oblivious_ratio, oblivious_routing_per_edge = _oblivious_routing(net)
-#
-#
-#
-#     print(oblivious_ratio)
