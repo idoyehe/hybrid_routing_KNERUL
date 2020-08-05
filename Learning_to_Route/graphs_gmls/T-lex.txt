@@ -10,7 +10,6 @@ graph [
   DateType "Current"
   Type "REN"
   Backbone 1
-  multigraph 1
   Commercial 0
   label "TLex"
   ToolsetVersion "0.3.34dev-20120328"
