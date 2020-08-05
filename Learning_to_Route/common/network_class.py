@@ -8,7 +8,6 @@ refactoring on 24/04/2020
 from common.consts import EdgeConsts
 import numpy as np
 import networkx as nx
-from collections import defaultdict
 from common.logger import logger
 import matplotlib.pyplot as plt
 
@@ -72,18 +71,20 @@ class NetworkClass:
 
     @property
     def get_name(self):
-        if "name" in self.get_graph.graph:
-            return self.get_graph.graph["name"]
+        if "Name" in self.get_graph.graph:
+            return self.get_graph.graph["Name"]
         return ""
 
     def get_edges_capacities(self):
         if self._capacities is None:  # for happens only once
             logger.debug("Set per edge capacity")
-            self._capacities = {}
-            for edge in self.edges:
-                edge_capacity = self.get_edge_key(edge, EdgeConsts.CAPACITY_STR)
-                if edge_capacity > 0:  # means edge is exists
-                    self._capacities[edge] = edge_capacity
+            self._capacities = np.zeros((self._num_nodes, self._num_nodes), dtype=np.float32)
+            for i in self._graph.nodes:
+                for j in self._graph.nodes:
+                    if i == j:
+                        continue
+                    if self.get_adjacency[i, j] > 0:  # means edge is exists
+                        self._capacities[(i, j)] = self._graph[i][j][EdgeConsts.CAPACITY_STR]
         return self._capacities
 
     @property
@@ -210,8 +211,6 @@ class NetworkClass:
 
     def out_edges_by_node(self, node, data=False):
         assert isinstance(self.get_graph, nx.DiGraph)
-        if isinstance(self.get_graph, nx.MultiDiGraph):
-            return self.get_graph.out_edges(node, keys=True, data=data)
         return self.get_graph.out_edges(node, data=data)
 
     @property
@@ -221,8 +220,6 @@ class NetworkClass:
 
     def in_edges_by_node(self, node, data=False):
         assert isinstance(self.get_graph, nx.DiGraph)
-        if isinstance(self.get_graph, nx.MultiDiGraph):
-            return self.get_graph.in_edges(node, keys=True, data=data)
         return self.get_graph.in_edges(node, data=data)
 
     def print_network(self):
@@ -246,4 +243,3 @@ if __name__ == "__main__":
     net.reducing_undirected2directed()
     adj = net.get_adjacency
     pairs = net.get_all_pairs()
-    capacities = net.get_edges_capacities()
