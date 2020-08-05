@@ -24,7 +24,8 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def _dump_tms_and_opt(net: NetworkClass, url: str, matrix_sparsity: float, tm_type, elephant_percentage: float,
+def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matrix_sparsity: float, tm_type,
+                      elephant_percentage: float,
                       network_elephant, network_mice, total_matrices: int):
     tms = _generate_traffic_matrix_baseline(net=net,
                                             matrix_sparsity=matrix_sparsity, tm_type=tm_type,
@@ -32,11 +33,10 @@ def _dump_tms_and_opt(net: NetworkClass, url: str, matrix_sparsity: float, tm_ty
                                             network_mice=network_mice,
                                             total_matrices=total_matrices)
 
-    capacity = max(net.get_edges_capacities().values())
     dict2dump = {
         "tms": tms,
         "url": url,
-        "capacity": capacity,
+        "capacity": default_capacity,
         "tms_sparsity": matrix_sparsity,
         "tms_type": tm_type, }
     file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name,
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     args = _getOptions()
     net = NetworkClass(topology_zoo_loader(args.topology_url, default_capacity=args.default_capacity))
 
-    filename: str = _dump_tms_and_opt(net=net, url=args.topology_url,
+    filename: str = _dump_tms_and_opt(net=net, default_capacity=args.default_capacity, url=args.topology_url,
                                       matrix_sparsity=args.sparsity,
                                       tm_type=args.tm_type,
                                       elephant_percentage=args.elephant_percentage,
