@@ -73,20 +73,18 @@ class NetworkClass:
 
     @property
     def get_name(self):
-        if "Name" in self.get_graph.graph:
-            return self.get_graph.graph["Name"]
+        if "name" in self.get_graph.graph:
+            return self.get_graph.graph["name"]
         return ""
 
     def get_edges_capacities(self):
         if self._capacities is None:  # for happens only once
             logger.debug("Set per edge capacity")
-            self._capacities = np.zeros((self._num_nodes, self._num_nodes), dtype=np.float32)
-            for i in self._graph.nodes:
-                for j in self._graph.nodes:
-                    if i == j:
-                        continue
-                    if self.get_adjacency[i, j] > 0:  # means edge is exists
-                        self._capacities[(i, j)] = self._graph[i][j][EdgeConsts.CAPACITY_STR]
+            self._capacities = {}
+            for edge in self.edges:
+                edge_capacity = self.get_edge_key(edge, EdgeConsts.CAPACITY_STR)
+                if edge_capacity > 0:  # means edge is exists
+                    self._capacities[edge] = edge_capacity
         return self._capacities
 
     def get_node_capacities(self):

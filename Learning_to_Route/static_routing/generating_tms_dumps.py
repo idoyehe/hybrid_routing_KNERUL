@@ -32,7 +32,7 @@ def _dump_tms_and_opt(net: NetworkClass, url: str, matrix_sparsity: float, tm_ty
                                             network_mice=network_mice,
                                             total_matrices=total_matrices)
 
-    capacity = np.max(net.get_edges_capacities())
+    capacity = max(net.get_edges_capacities().values())
     dict2dump = {
         "tms": tms,
         "url": url,
