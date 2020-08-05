@@ -9,6 +9,7 @@ import numpy as np
 
 def ecmp_arch_congestion(net: NetworkClass, traffic_matrix, weight=None):
     per_edge_flow_fraction = defaultdict(int)
+    assert net.g_is_directed
     if weight is not None:
         logger.info("ECMP by weight label is: {}".format(weight))
     else:
@@ -27,8 +28,15 @@ def ecmp_arch_congestion(net: NetworkClass, traffic_matrix, weight=None):
 
         for _path in shortest_path_generator:
             for _arch in list(list(map(nx.utils.pairwise, [_path]))[0]):
-                logger.debug("Handle edge {} in path {}".format(str(_arch), str(_path)))
-                per_edge_flow_fraction[_arch] += flow_fraction
+                if isinstance(net.get_graph, nx.MultiDiGraph):
+                    duplicate_archs = list(filter(lambda e: e[0] == _arch[0] and e[1] == _arch[1], net.edges))
+                    number_of_duplicate_archs = len(duplicate_archs)
+                    for _arch in duplicate_archs:
+                        logger.debug("Handle edge {} in path {}".format(str(_arch), str(_path)))
+                        per_edge_flow_fraction[_arch] += flow_fraction / number_of_duplicate_archs
+                else:
+                    logger.debug("Handle edge {} in path {}".format(str(_arch), str(_path)))
+                    per_edge_flow_fraction[_arch] += flow_fraction
 
     return per_edge_flow_fraction
 
