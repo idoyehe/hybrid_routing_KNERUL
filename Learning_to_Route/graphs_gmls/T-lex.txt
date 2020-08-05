@@ -7,6 +7,7 @@ graph [
   Access 0
   Source "http://www.t-lex.net/"
   Version "1.0"
+  multigraph 1
   DateType "Current"
   Type "REN"
   Backbone 1

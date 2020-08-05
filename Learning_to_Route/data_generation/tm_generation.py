@@ -1,6 +1,5 @@
 from Learning_to_Route.common.consts import TMType, Consts
 from Learning_to_Route.common.utils import *
-from Learning_to_Route.common.size_consts import SizeConsts
 from random import shuffle
 import numpy as np
 from functools import partial
@@ -8,22 +7,22 @@ from functools import partial
 
 def __gravity_generation(g, pairs, scale=1.0):
     flows = []
-    nodes = set()
+    included_nodes = set()
     for p in pairs:
-        nodes.add(p[0])
-        nodes.add(p[1])
+        included_nodes.add(p[0])
+        included_nodes.add(p[1])
 
     capacity_map = {}
-    ttl_capacity: float = 0.0
-    for node in nodes:
-        node_out_cap: float = sum(out_edge[-1][Consts.CAPACITY_STR] for out_edge in g.out_edges_by_node(node, data=True))
+    total_capacity: float = 0.0
+    for node in included_nodes:
+        node_out_cap = sum(out_edge[2][Consts.CAPACITY_STR] for out_edge in g.out_edges_by_node(node, data=True))
         capacity_map[node] = node_out_cap
-        ttl_capacity += node_out_cap
+        total_capacity += node_out_cap
 
     for pair in pairs:
         src, dst = pair
-        flow_size = to_int(capacity_map[src] * capacity_map[dst] / ttl_capacity)
-        flows.append((src, dst, scale * flow_size))
+        f_size = to_int(capacity_map[src] * capacity_map[dst] / total_capacity)
+        flows.append((src, dst, scale * f_size))
 
     return flows
 
