@@ -15,18 +15,15 @@ def __gravity_generation(g, pairs, scale=1.0):
 
     capacity_map = {}
     ttl_capacity: float = 0.0
-    for n in nodes:
-        n_cap: float = 0.0
-        neighs = g[n].keys()
-        for neigh in neighs:
-            n_cap += g[n][neigh][Consts.CAPACITY_STR]
-        capacity_map[n] = n_cap
-        ttl_capacity += n_cap
+    for node in nodes:
+        node_out_cap: float = sum(out_edge[-1][Consts.CAPACITY_STR] for out_edge in g.out_edges_by_node(node, data=True))
+        capacity_map[node] = node_out_cap
+        ttl_capacity += node_out_cap
 
     for pair in pairs:
         src, dst = pair
-        f_size = to_int(capacity_map[src] * capacity_map[dst] / ttl_capacity)
-        flows.append((src, dst, scale * f_size))
+        flow_size = to_int(capacity_map[src] * capacity_map[dst] / ttl_capacity)
+        flows.append((src, dst, scale * flow_size))
 
     return flows
 

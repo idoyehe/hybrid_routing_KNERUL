@@ -147,8 +147,8 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_rati
 
     max_congested_link = 0
 
-    for u, v, link_capacity in net_direct.edges.data(EdgeConsts.CAPACITY_STR):
-        link = (u, v)
+    for link in net_direct.edges:
+        link_capacity = net_direct.get_edge_key(link, EdgeConsts.CAPACITY_STR)
         fractions_from_lp = link_carries_per_flow[link]
         total_link_load = np.sum(np.multiply(fractions_from_lp, traffic_matrix))
         max_congested_link = max(max_congested_link, total_link_load / link_capacity)

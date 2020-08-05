@@ -24,13 +24,13 @@ class NetworkClass:
         self._min_weight = min_weight  # min_weight
         self._max_weight = max_weight
 
-        self._all_edges = self._graph.edges()
+        self._all_edges = self._graph.edges
 
         self._capacities = None  # this is a vector of capacities
         self._c_nodes = None  # this is a vector of outgoing capacities for each node
         self._all_pairs = None
-        self._num_nodes = len(self._graph.nodes())
-        self._num_edges = len(self._graph.edges())
+        self._num_nodes = len(self._graph.nodes)
+        self._num_edges = len(self._all_edges)
         self._actual_weight = np.zeros(self._graph.number_of_edges())
         self._set_adjacency()  # mark all adjacent nodes
         self._g_directed_reduced = None
@@ -85,7 +85,7 @@ class NetworkClass:
                 for j in self._graph.nodes:
                     if i == j:
                         continue
-                    if self.get_adjacency[i,j] > 0:  # means edge is exists
+                    if self.get_adjacency[i, j] > 0:  # means edge is exists
                         self._capacities[(i, j)] = self._graph[i][j][EdgeConsts.CAPACITY_STR]
         return self._capacities
 
@@ -223,18 +223,20 @@ class NetworkClass:
         assert isinstance(self.get_graph, nx.DiGraph)
         return self.get_graph.out_edges
 
-    def out_edges_by_node(self, node):
+    def out_edges_by_node(self, node, data=False):
         assert isinstance(self.get_graph, nx.DiGraph)
-        return self.get_graph.out_edges(node)
+        multiDiGraph_flag = isinstance(self.get_graph, nx.MultiDiGraph)
+        return self.get_graph.out_edges(node, keys=multiDiGraph_flag, data=data)
 
     @property
     def in_edges(self):
         assert isinstance(self.get_graph, nx.DiGraph)
         return self.get_graph.in_edges
 
-    def in_edges_by_node(self, node):
+    def in_edges_by_node(self, node, data=False):
         assert isinstance(self.get_graph, nx.DiGraph)
-        return self.get_graph.in_edges(node)
+        multiDiGraph_flag = isinstance(self.get_graph, nx.MultiDiGraph)
+        return self.get_graph.in_edges(node, keys=multiDiGraph_flag, data=data)
 
     def print_network(self):
         nx.draw(self.get_graph)

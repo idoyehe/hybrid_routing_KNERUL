@@ -151,8 +151,11 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
         else:
             g.edges[edge][EdgeConsts.CAPACITY_STR] = default_capacity
 
-    g.graph["Name"] = g.graph["Network"]
-    g = nx.Graph(g)
+    g.name = g.graph["Network"]
+    if isinstance(g,nx.MultiGraph):
+        g = nx.MultiGraph(g)
+    else:
+        g = nx.Graph(g)
     return g
 
 
