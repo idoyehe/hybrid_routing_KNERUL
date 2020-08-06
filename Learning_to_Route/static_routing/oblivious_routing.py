@@ -212,4 +212,5 @@ if __name__ == "__main__":
     print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
     c_l = _calculate_congestion_per_matrices(net=net, traffic_matrix_list=loaded_dict["tms"],
                                              oblivious_routing_per_edge=oblivious_routing_per_edge)
-    print(np.average(c_l))
+    print("Average Result: {}".format(np.average(c_l)))
+    print("STD Result: {}".format(np.std(c_l)))

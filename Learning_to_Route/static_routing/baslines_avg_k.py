@@ -76,4 +76,5 @@ if __name__ == "__main__":
     assert n <= len(loaded_dict["tms"])
     shuffle(loaded_dict["tms"])
     c_l = _calculate_congestion_per_matrices(net=net, k=k, traffic_matrix_list=loaded_dict["tms"][0:n])
-    print(np.average(c_l))
+    print("Average Result: {}".format(np.average(c_l)))
+    print("STD Result: {}".format(np.std(c_l)))
