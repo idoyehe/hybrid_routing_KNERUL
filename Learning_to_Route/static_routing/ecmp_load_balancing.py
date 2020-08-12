@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     net = NetworkClass(get_base_graph())
 
-    per_edge_ecmp_flow_fraction = ecmp_arch_congestion(net, get_flows_matrix())
+    per_edge_ecmp_flow_fraction = ecmp_arch_congestion(net.get_g_directed, get_flows_matrix())
     assert per_edge_ecmp_flow_fraction[(0, 1)] == 50
     assert per_edge_ecmp_flow_fraction[(0, 2)] == 100
     assert per_edge_ecmp_flow_fraction[(1, 2)] == 70

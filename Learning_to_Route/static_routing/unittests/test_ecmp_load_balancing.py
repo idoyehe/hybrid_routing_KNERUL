@@ -11,7 +11,7 @@ def test_star_topology():
     for dst in star_topo.nodes():
         tm[0, dst] = 10
     tm[0, 0] = 0
-    routing = ecmp_arch_congestion(star_topo, tm)
+    routing = ecmp_arch_congestion(star_topo.get_g_directed, tm)
     for edge, edge_routing in routing.items():
         assert edge_routing == 10
 
@@ -21,7 +21,7 @@ def test_ring_topology():
     tm = np.zeros(shape=(ring_topo.get_num_nodes, ring_topo.get_num_nodes))
     for node in ring_topo.nodes():
         tm[node, (node + 1) % ring_topo.get_num_nodes] = 10
-    routing = ecmp_arch_congestion(ring_topo, tm)
+    routing = ecmp_arch_congestion(ring_topo.get_g_directed, tm)
     for edge, edge_routing in routing.items():
         assert edge_routing == 10
 
@@ -32,7 +32,7 @@ def test_fcn_topology():
     for src, dst in fcn_topo.get_all_pairs():
         tm[src, dst] = 10
 
-    routing = ecmp_arch_congestion(fcn_topo, tm)
+    routing = ecmp_arch_congestion(fcn_topo.get_g_directed, tm)
     for edge, edge_routing in routing.items():
         assert edge_routing == 10
 
@@ -44,7 +44,7 @@ def test_tree_topology():
         tm[0, dst] = 10
     tm[0, 0] = 0
 
-    routing = ecmp_arch_congestion(tree_topo, tm)
+    routing = ecmp_arch_congestion(tree_topo.get_g_directed, tm)
     assert np.sum(routing[(0, 1)]) == 20
     assert np.sum(routing[(0, 2)]) == 30
 
@@ -56,7 +56,7 @@ def test_line_topology():
         tm[0, dst] = 10
     tm[0, 0] = 0
 
-    routing = ecmp_arch_congestion(line_topo, tm)
+    routing = ecmp_arch_congestion(line_topo.get_g_directed, tm)
     assert np.sum(routing[(0, 1)]) == (line_topo.get_num_nodes - 1) * 10
     assert np.sum(routing[(1, 2)]) == (line_topo.get_num_nodes - 2) * 10
     assert np.sum(routing[(2, 3)]) == (line_topo.get_num_nodes - 3) * 10

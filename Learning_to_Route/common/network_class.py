@@ -37,7 +37,7 @@ class NetworkClass:
         if not self._is_directed:
             self._g_directed = NetworkClass(self.get_graph.to_directed())
         else:
-            self._g_directed = self._graph
+            self._g_directed = self
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
