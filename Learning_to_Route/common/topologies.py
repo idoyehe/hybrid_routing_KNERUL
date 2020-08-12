@@ -127,9 +127,9 @@ def _triangle():
     # init a triangle if we don't get a network graph
     g = nx.Graph()
     g.add_nodes_from([0, 1, 2])
-    g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1}),
-                      (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1}),
-                      (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: 1})])
+    g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: DEFAULT_CAPACITY}),
+                      (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: DEFAULT_CAPACITY}),
+                      (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: DEFAULT_CAPACITY +5})])
     g.graph["Name"] = "Triangle_3_Nodes"
     return g
 
