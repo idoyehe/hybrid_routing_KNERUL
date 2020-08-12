@@ -17,21 +17,6 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-#
-# # for i in range(0, 6):
-# # with model.graph.as_default():
-# #     saver = tf.compat.v1.train.Saver()
-# #     saver.save(training_sess, "./pcc_model_%d.ckpt" % i)
-# model.learn(total_timesteps=(100 * 8192))
-#
-# env.testing(True)
-# obs = env.reset()
-# for _ in range(10 * 8192):
-#     action, _states = model.predict(obs)
-#     obs, reward, done, info = env.step(action)
-#
-# env.reset()
-
 
 if __name__ == "__main__":
     args = _getOptions()

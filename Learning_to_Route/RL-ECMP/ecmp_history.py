@@ -272,7 +272,7 @@ if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
              kwargs={
                  'max_steps': 50,
                  'history_length': 10,
-                 'path_dumped': "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
+                 'path_dumped': "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
                  'train_histories_length': 7,
                  'test_histories_length': 1}
              )
