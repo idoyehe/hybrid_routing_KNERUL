@@ -129,7 +129,7 @@ def _triangle():
     g.add_nodes_from([0, 1, 2])
     g.add_edges_from([(0, 1, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: DEFAULT_CAPACITY}),
                       (0, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: DEFAULT_CAPACITY}),
-                      (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: DEFAULT_CAPACITY +5})])
+                      (1, 2, {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: DEFAULT_CAPACITY + 5})])
     g.graph["Name"] = "Triangle_3_Nodes"
     return g
 
@@ -140,6 +140,11 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
         gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
     else:
         local_path = url
+        from platform import system
+        if system() == "Linux":
+            local_path = "/home/idoye/PycharmProjects/Research_Implementing" + local_path.replace("\\", "/").split("/Research_Implementing")[1]
+
+
         gml_file = open(local_path, "r")
         gml = "".join(gml_file.readlines())
         gml_file.close()
@@ -150,7 +155,7 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
     for raw_edge in raw_g.edges:
         edge = (raw_edge[0], raw_edge[1])
         if edge not in parsed_g.edges:
-            parsed_g.add_edge(u_of_edge=edge[0],v_of_edge=edge[1])
+            parsed_g.add_edge(u_of_edge=edge[0], v_of_edge=edge[1])
             parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] = 0
         if CAPACITY_LABEL_DEFAULT in raw_g.edges[raw_edge]:
             raw_capacity = int(raw_g.edges[raw_edge][CAPACITY_LABEL_DEFAULT]) / SizeConsts.ONE_Mb
