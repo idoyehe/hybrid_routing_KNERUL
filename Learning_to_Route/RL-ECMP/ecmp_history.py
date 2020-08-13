@@ -229,7 +229,6 @@ class ECMPHistoryEnv(Env):
         norm_factor = -1
 
         env_data = {}
-
         # how do we compare against the optimal congestion if we assume we know the future
         env_data[ExtraData.REWARD_OVER_FUTURE] = cost / self._opt_res[self._current_history_index][
             self._history_start_id + self._history_len]
@@ -240,11 +239,13 @@ class ECMPHistoryEnv(Env):
 
         self._history_start_id += 1
         observation = self._get_observation()
-        reward = env_data[ExtraData.REWARD_OVER_FUTURE] * norm_factor
+        congestion_ratio = env_data[ExtraData.REWARD_OVER_FUTURE]
+        assert congestion_ratio >= 1.0
+        reward = congestion_ratio * norm_factor
         done = self._is_terminal
         info = env_data
 
-        print("Congestion Ratio :{}".format(cost))
+        print("Congestion Ratio :{}".format(congestion_ratio))
         return observation, reward, done, info
 
     def reset(self):
@@ -275,6 +276,6 @@ if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
                  'max_steps': 50,
                  'history_length': 10,
                  'path_dumped': "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
-                 'train_histories_length': 175,
+                 'train_histories_length': 7,
                  'test_histories_length': 0}
              )
