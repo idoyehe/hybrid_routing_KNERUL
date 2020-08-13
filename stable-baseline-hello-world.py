@@ -1,19 +1,24 @@
-import gym
-from stable_baselines3 import PPO
 import torch
+
 assert torch.cuda.is_available()
 
-env = gym.make('CartPole-v1')
+from stable_baselines3 import PPO
+from stable_baselines3.ppo import MlpPolicy
+from stable_baselines3.common.cmd_util import make_vec_env
 
-model = PPO('MlpPolicy', env, verbose=1)
-model.learn(total_timesteps=10000)
+# Parallel environments
+env = make_vec_env('CartPole-v1', n_envs=4)
+
+model = PPO(MlpPolicy, env, verbose=1)
+model.learn(total_timesteps=25000)
+model.save("ppo_cartpole")
+
+del model  # remove to demonstrate saving and loading
+
+model = PPO.load("ppo_cartpole")
 
 obs = env.reset()
-for i in range(1000):
-    action, _states = model.predict(obs, deterministic=True)
-    obs, reward, done, info = env.step(action)
+while True:
+    action, _states = model.predict(obs)
+    obs, rewards, dones, info = env.step(action)
     env.render()
-    if done:
-      obs = env.reset()
-
-env.close()

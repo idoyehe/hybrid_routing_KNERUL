@@ -30,7 +30,7 @@ if __name__ == "__main__":
     env = make_vec_env(ecmp_history.ECMP_ENV_GYM_ID, n_envs=1)
     policy_kwargs = dict(net_arch=args.mlp_architecture)
 
-    model = PPO(MlpPolicy, env, verbose=1, gamma=gamma, n_steps=350, policy_kwargs=policy_kwargs)
+    model = PPO(MlpPolicy, env, verbose=1, gamma=gamma, n_steps=1500, policy_kwargs=policy_kwargs)
 
-    model.learn(total_timesteps=(350 * 1500))
+    model.learn(total_timesteps=(10500))
     # model.save(path=save_path)

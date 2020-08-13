@@ -46,7 +46,8 @@ class ECMPHistoryEnv(Env):
                 topology_zoo_loader(url=loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
             self._tms = loaded_dict["tms"]
             self._tm_type = loaded_dict["tms_type"]
-            self._tm_sparsity_list = [loaded_dict["tms_sparsity"]]  # percentage of participating pairs, assumed to be a list
+            self._tm_sparsity_list = [
+                loaded_dict["tms_sparsity"]]  # percentage of participating pairs, assumed to be a list
 
         self._network = self._network.get_g_directed
         self._g_name = self._network.get_name
@@ -98,7 +99,8 @@ class ECMPHistoryEnv(Env):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
 
         if self._tms is None:
-            tm = one_sample_tm_base(self._network, p, self._tm_type, self._elephant_flows_percentage, self._elephant_flow,
+            tm = one_sample_tm_base(self._network, p, self._tm_type, self._elephant_flows_percentage,
+                                    self._elephant_flow,
                                     self._mice_flow)
             opt, _ = optimal_load_balancing_LP_solver(self._network, tm)
         else:
@@ -227,22 +229,22 @@ class ECMPHistoryEnv(Env):
         norm_factor = -1
 
         env_data = {}
-        norm_reward = norm_factor * cost
 
         # how do we compare against the optimal congestion if we assume we know the future
-        env_data[ExtraData.REWARD_OVER_FUTURE] = norm_reward / self._opt_res[self._current_history_index][
+        env_data[ExtraData.REWARD_OVER_FUTURE] = cost / self._opt_res[self._current_history_index][
             self._history_start_id + self._history_len]
-        env_data[ExtraData.REWARD_OVER_PREV] = norm_reward / self._opt_res[self._current_history_index][
+        env_data[ExtraData.REWARD_OVER_PREV] = cost / self._opt_res[self._current_history_index][
             self._history_start_id - 1 + self._history_len]
-        env_data[ExtraData.REWARD_OVER_RANDOM] = norm_reward / self._random_res[self._current_history_index][
+        env_data[ExtraData.REWARD_OVER_RANDOM] = cost / self._random_res[self._current_history_index][
             self._history_start_id + self._history_len]
 
         self._history_start_id += 1
         observation = self._get_observation()
-        reward = env_data[ExtraData.REWARD_OVER_FUTURE]
+        reward = env_data[ExtraData.REWARD_OVER_FUTURE] * norm_factor
         done = self._is_terminal
         info = env_data
 
+        print("Congestion Ratio :{}".format(cost))
         return observation, reward, done, info
 
     def reset(self):
@@ -273,6 +275,6 @@ if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
                  'max_steps': 50,
                  'history_length': 10,
                  'path_dumped': "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
-                 'train_histories_length': 7,
-                 'test_histories_length': 1}
+                 'train_histories_length': 175,
+                 'test_histories_length': 0}
              )
