@@ -169,6 +169,7 @@ class NetworkClass:
         num_edges = np.int32(np.sum(graph_adjacency))
         ingoing = np.zeros((len(graph_adjacency), num_edges))
         outgoing = np.zeros((len(graph_adjacency), num_edges))
+        edge_capacities = np.zeros(num_edges)
         eid = 0
         e_map = {}
         for i in range(len(graph_adjacency)):
@@ -176,9 +177,9 @@ class NetworkClass:
                 if graph_adjacency[i][j] == 1:
                     outgoing[i, eid] = 1
                     ingoing[j, eid] = 1
-                    e_map[(i, j)] = eid
+                    edge_capacities[eid] = self.get_edge_key((i, j), EdgeConsts.CAPACITY_STR)
                     eid += 1
-        return num_edges, ingoing, outgoing, e_map
+        return num_edges, ingoing, outgoing, edge_capacities
 
     def reducing_undirected2directed(self):
         if self._g_directed_reduced is None:
