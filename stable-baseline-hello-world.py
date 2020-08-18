@@ -16,6 +16,7 @@ model.save("ppo_cartpole")
 del model  # remove to demonstrate saving and loading
 
 model = PPO.load("ppo_cartpole")
+model.save(path="ppo_cartpole_agent")
 
 obs = env.reset()
 while True:

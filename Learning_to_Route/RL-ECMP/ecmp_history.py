@@ -5,6 +5,7 @@ Created on 26 Jun 2017
 refactoring on 26/04/2020
 @by: Ido Yehezkel
 """
+from Learning_to_Route.common.utils import error_bound
 from gym import Env, spaces, envs, register
 from common.network_class import *
 from optimizer import WNumpyOptimizer
@@ -210,6 +211,9 @@ class ECMPHistoryEnv(Env):
     def observation_space(self):
         return self._observation_space
 
+    def testing(self, _testing):
+        self._testing = _testing
+
     @property
     def action_space(self):
         return self._action_space
@@ -229,9 +233,10 @@ class ECMPHistoryEnv(Env):
         norm_factor = -1
 
         env_data = {}
-        # how do we compare against the optimal congestion if we assume we know the future
-        env_data[ExtraData.REWARD_OVER_FUTURE] = cost / self._opt_res[self._current_history_index][
+        optimal_congestion = self._opt_res[self._current_history_index][
             self._history_start_id + self._history_len]
+        # how do we compare against the optimal congestion if we assume we know the future
+        env_data[ExtraData.REWARD_OVER_FUTURE] = cost / optimal_congestion
         env_data[ExtraData.REWARD_OVER_PREV] = cost / self._opt_res[self._current_history_index][
             self._history_start_id - 1 + self._history_len]
         env_data[ExtraData.REWARD_OVER_RANDOM] = cost / self._random_res[self._current_history_index][
@@ -240,12 +245,18 @@ class ECMPHistoryEnv(Env):
         self._history_start_id += 1
         observation = self._get_observation()
         congestion_ratio = env_data[ExtraData.REWARD_OVER_FUTURE]
-        assert congestion_ratio >= 1.0
+
+        print("cost  Congestion :{}".format(cost))
+        print("optimal  Congestion :{}".format(optimal_congestion))
+        print("Congestion Ratio :{}".format(congestion_ratio))
+
+        if not congestion_ratio >= 1.0:
+            assert error_bound(cost, optimal_congestion, 5e-4)
+            congestion_ratio = 1.0
+
         reward = congestion_ratio * norm_factor
         done = self._is_terminal
         info = env_data
-
-        print("Congestion Ratio :{}".format(congestion_ratio))
         return observation, reward, done, info
 
     def reset(self):
@@ -277,5 +288,5 @@ if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
                  'history_length': 10,
                  'path_dumped': "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
                  'train_histories_length': 7,
-                 'test_histories_length': 0}
+                 'test_histories_length': 3}
              )

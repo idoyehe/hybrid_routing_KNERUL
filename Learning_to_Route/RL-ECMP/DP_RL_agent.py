@@ -25,7 +25,7 @@ if __name__ == "__main__":
     gamma = args.gamma
     print("gamma = {}".format(gamma))
 
-    save_path = args.save_path
+    save_path = "{}_agent".format(args.save_path)
     n_envs = args.number_of_envs
 
     env = make_vec_env(ecmp_history.ECMP_ENV_GYM_ID, n_envs=n_envs)
@@ -34,5 +34,5 @@ if __name__ == "__main__":
     model = PPO(MlpPolicy, env, verbose=1, gamma=gamma, n_steps=50*7, policy_kwargs=policy_kwargs)
 
     model.learn(total_timesteps=(50*7*1500))
-    pass
-    # model.save(path=save_path)
+    model.save(path=save_path)
+    env.close()
