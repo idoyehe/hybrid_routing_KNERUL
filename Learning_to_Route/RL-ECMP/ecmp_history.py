@@ -85,6 +85,7 @@ class ECMPHistoryEnv(Env):
 
         self._all_rewards = []
         self._init_random_baseline()
+        self.diagnostics = []
 
     def get_num_steps(self):
         return self._num_steps
@@ -246,8 +247,8 @@ class ECMPHistoryEnv(Env):
         observation = self._get_observation()
         congestion_ratio = env_data[ExtraData.REWARD_OVER_FUTURE]
 
-        print("cost  Congestion :{}".format(cost))
-        print("optimal  Congestion :{}".format(optimal_congestion))
+        # print("cost  Congestion :{}".format(cost))
+        # print("optimal  Congestion :{}".format(optimal_congestion))
         print("Congestion Ratio :{}".format(congestion_ratio))
 
         if not congestion_ratio >= 1.0:
@@ -257,6 +258,7 @@ class ECMPHistoryEnv(Env):
         reward = congestion_ratio * norm_factor
         done = self._is_terminal
         info = env_data
+        self.diagnostics.append(info)
         return observation, reward, done, info
 
     def reset(self):

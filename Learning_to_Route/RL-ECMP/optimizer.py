@@ -12,8 +12,6 @@ from common.logger import logger
 
 
 class WNumpyOptimizer:
-    """TODO understand"""
-
     def __init__(self, net: NetworkClass, max_iterations=500):
         """
         constructor
@@ -33,7 +31,8 @@ class WNumpyOptimizer:
         logger.debug("Building ingoing and outgoing edges map")
         _, self._ingoing_edges, self._outgoing_edges, self._edges_capacities = self._network.build_edges_map()
 
-        self._mask = np.ones((self._num_nodes, self._num_nodes), dtype=np.float32) - np.eye(self._num_nodes, dtype=np.float32)
+        self._mask = np.ones((self._num_nodes, self._num_nodes), dtype=np.float32) - np.eye(self._num_nodes,
+                                                                                            dtype=np.float32)
         self._eye_masks = [np.expand_dims(self._mask[:, i], 1) for i in range(self._num_nodes)]
         self._zero_diagonal = np.ones_like(self._graph_adjacency_matrix, dtype=np.float32) - np.eye(self._num_nodes,
                                                                                                     dtype=np.float32)
@@ -52,20 +51,7 @@ class WNumpyOptimizer:
         tmp[tmp == 0] = HistoryConsts.INFTY
         return tmp * self._zero_diagonal
 
-    def _bellman_ford(self, w, p_prev, tmp):
-        p_prev = np.reshape(p_prev, [-1])
-        prev_prev = np.zeros_like(p_prev)
-        cur_iter = 0
-        while np.abs(np.sum(p_prev - prev_prev)) > HistoryConsts.EPSILON:
-            tmp_ = p_prev
-            p_prev = np.minimum(p_prev, np.amin(p_prev + tmp, axis=1))
-            prev_prev = tmp_
-            if cur_iter == self._max_iters:
-                break
-            cur_iter += 1
-        return p_prev  # TODO: dst val is infty here
-
-    def _get_s(self, q_val, dst_demand, mask, dst=None):
+    def _run_destination_demands(self, q_val, dst_demand, mask, dst=None):
         '''
         input:
             v: the node with demands
@@ -78,7 +64,8 @@ class WNumpyOptimizer:
 
         # loop magic goes here, basically converts the for loop into matrix operations
         def get_new_val(prev_iteration, current_demands):
-            current_demand_each_node = self._ingoing_edges @ (np.transpose(q_val * self._outgoing_edges) @ current_demands)
+            current_demand_each_node = self._ingoing_edges @ (
+                        np.transpose(q_val * self._outgoing_edges) @ current_demands)
             return prev_iteration + current_demand_each_node
 
         prev_iteration = dst_demand
@@ -119,7 +106,7 @@ class WNumpyOptimizer:
             cost_adj = [cost_all_adj[i][node_dst] for i in range(self._num_nodes)]
             edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
             q_val = self._soft_min(edge_cost)
-            cong = self._get_s(q_val, dst_demand, self._eye_masks[node_dst])  # TODO: examine
+            cong = self._run_destination_demands(q_val, dst_demand, self._eye_masks[node_dst])
             cong = np.reshape(cong, [-1])
 
             result += cong

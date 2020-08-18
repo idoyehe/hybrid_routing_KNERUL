@@ -5,6 +5,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.cmd_util import make_vec_env
 from argparse import ArgumentParser
 from sys import argv
+import pickle
 
 
 def _getOptions(args=argv[1:]):
@@ -26,13 +27,21 @@ if __name__ == "__main__":
     print("gamma = {}".format(gamma))
 
     save_path = "{}_agent".format(args.save_path)
+    dump_file_name = "{}_agent_diagnostics".format(args.save_path)
     n_envs = args.number_of_envs
 
     env = make_vec_env(ecmp_history.ECMP_ENV_GYM_ID, n_envs=n_envs)
     policy_kwargs = dict(net_arch=args.mlp_architecture)
 
-    model = PPO(MlpPolicy, env, verbose=1, gamma=gamma, n_steps=50*7, policy_kwargs=policy_kwargs)
+    model = PPO(MlpPolicy, env, verbose=1, gamma=gamma, n_steps=50 * 7, policy_kwargs=policy_kwargs)
 
-    model.learn(total_timesteps=(50*7*1500))
+    model.learn(total_timesteps=(50 * 7 * 1500))
+    all_envs_diagnostics = []
+    for env_data in env.envs:
+        all_envs_diagnostics.append(env_data.env.diagnostics)
     model.save(path=save_path)
     env.close()
+
+    dump_file = open(dump_file_name, 'wb')
+    pickle.dump({"agent_diagnostics": all_envs_diagnostics}, dump_file)
+    dump_file.close()
