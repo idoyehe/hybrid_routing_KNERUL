@@ -34,7 +34,7 @@ class ECMPHistoryEnv(Env):
                  mice_flow=None,
                  testing=False):
 
-        self._num_steps = max_steps
+        self._episode_len = max_steps
 
         if path_dumped is None:
             self._network = NetworkClass(ecmp_topo)
@@ -57,7 +57,7 @@ class ECMPHistoryEnv(Env):
         self._all_pairs = self._network.get_all_pairs()
         self._history_start_id = 0
         self._current_history_index = -1
-        self._epochs = 0
+        self.current_sequence = 0
         self._optimizer = WNumpyOptimizer(self._network)
 
         self._history_len = history_length  # number of each state history
@@ -88,14 +88,14 @@ class ECMPHistoryEnv(Env):
         self.diagnostics = []
 
     def get_num_steps(self):
-        return self._num_steps
+        return self._episode_len
 
     def _set_observation_space(self):
         self._observation_space = spaces.Box(low=0.0, high=np.inf,
                                              shape=(self._history_len, self._num_nodes, self._num_nodes))
 
     def _set_action_space(self):
-        self._action_space = spaces.Box(low=1.0, high=50.0, shape=(self._num_edges,))
+        self._action_space = spaces.Box(low=1, high=np.inf, shape=(self._num_edges,))
 
     def _sample_tm(self, p):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
@@ -119,7 +119,7 @@ class ECMPHistoryEnv(Env):
             for p in self._tm_sparsity_list:
                 train_episode = list()
                 train_episode_optimal = list()
-                for _ in range(self._history_len + self._num_steps):
+                for _ in range(self._history_len + self._episode_len):
                     tm, opt = self._sample_tm(p)
                     train_episode.append(tm)
                     train_episode_optimal.append(opt)
@@ -130,7 +130,7 @@ class ECMPHistoryEnv(Env):
             test_episode = list()
             test_episode_optimal = list()
             for p in self._tm_sparsity_list:
-                for _ in range(self._history_len + self._num_steps):
+                for _ in range(self._history_len + self._episode_len):
                     tm, opt = self._sample_tm(p)
                     test_episode.append(tm)
                     test_episode_optimal.append(opt)
@@ -170,7 +170,7 @@ class ECMPHistoryEnv(Env):
 
     def test(self, testing):
         self._observations = self._test_observations if testing else self._train_observations
-        self._num_hisotories = self._actual_num_test_histories if testing else self._actual_num_train_histories
+        self._num_sequences = self._actual_num_test_histories if testing else self._actual_num_train_histories
         self._opt_res = self._opt_test_observations if testing else self._opt_train_observations
         self._random_res = self._random_test_res if testing else self._random_train_res
 
@@ -229,7 +229,7 @@ class ECMPHistoryEnv(Env):
         self._w = self._process_action(action)
 
         cost = self._get_reward()
-        self._is_terminal = self._history_start_id + 1 == self._num_steps
+        self._is_terminal = self._history_start_id + 1 == self._episode_len
 
         norm_factor = -1
 
@@ -264,11 +264,10 @@ class ECMPHistoryEnv(Env):
     def reset(self):
         self._history_start_id = 0
 
-        if (self._current_history_index + 1) == self._num_hisotories:
-            self._epochs += 1
-            print("Epoch: #{}".format(self._epochs))
+        if (self._current_history_index + 1) == self._num_sequences:
+            self.current_sequence += 1
 
-        self._current_history_index = (self._current_history_index + 1) % self._num_hisotories
+        self._current_history_index = (self._current_history_index + 1) % self._num_sequences
         return self._get_observation()
 
     def render(self, mode='human'):
@@ -290,5 +289,5 @@ if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
                  'history_length': 10,
                  'path_dumped': "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
                  'train_histories_length': 7,
-                 'test_histories_length': 3}
+                 'test_histories_length': 0}
              )

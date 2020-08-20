@@ -1,5 +1,4 @@
 import torch
-
 assert torch.cuda.is_available()
 
 from stable_baselines3 import PPO
