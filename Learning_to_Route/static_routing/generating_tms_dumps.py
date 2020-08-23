@@ -44,6 +44,11 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
                                                                                                 net.get_num_nodes,
                                                                                                 total_matrices, tm_type,
                                                                                                 matrix_sparsity)
+
+    from platform import system
+    if system() == "Linux":
+        file_name = file_name.replace("\\", "/")
+
     if tm_type == TMType.BIMODAL:
         file_name += "_elephant_percentage_{}".format(elephant_percentage)
 
