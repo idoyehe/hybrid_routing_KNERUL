@@ -95,7 +95,7 @@ class ECMPHistoryEnv(Env):
                                              shape=(self._history_len, self._num_nodes, self._num_nodes))
 
     def _set_action_space(self):
-        self._action_space = spaces.Box(low=1, high=np.inf, shape=(self._num_edges,))
+        self._action_space = spaces.Box(low=0, high=np.inf, shape=(self._num_edges,))
 
     def _sample_tm(self, p):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
@@ -140,7 +140,7 @@ class ECMPHistoryEnv(Env):
         self._actual_num_train_histories = len(self._train_observations)
         self._actual_num_test_histories = len(self._test_observations)
 
-        self._validate_data()
+        # self._validate_data()
 
         self.test(self._testing)
 
@@ -249,13 +249,14 @@ class ECMPHistoryEnv(Env):
 
         # print("cost  Congestion :{}".format(cost))
         # print("optimal  Congestion :{}".format(optimal_congestion))
-        print("Congestion Ratio :{}".format(congestion_ratio))
+        # print("Congestion Ratio :{}".format(congestion_ratio))
 
         if not congestion_ratio >= 1.0:
             assert error_bound(cost, optimal_congestion, 5e-4)
             congestion_ratio = 1.0
 
         reward = congestion_ratio * norm_factor
+
         done = self._is_terminal
         info = env_data
         self.diagnostics.append(info)
@@ -285,9 +286,10 @@ if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
     register(id=ECMP_ENV_GYM_ID,
              entry_point='ecmp_history:ECMPHistoryEnv',
              kwargs={
-                 'max_steps': 50,
-                 'history_length': 10,
+                 'max_steps': 1,
+                 'history_length': 1,
                  'path_dumped': "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
-                 'train_histories_length': 7,
-                 'test_histories_length': 0}
+                 'train_histories_length': 5000,
+                 'test_histories_length': 0,
+                 'history_action_type': HistoryConsts.ACTION_W_EPSILON}
              )

@@ -33,11 +33,18 @@ if __name__ == "__main__":
     n_envs = args.number_of_envs
 
     env = make_vec_env(ecmp_history.ECMP_ENV_GYM_ID, n_envs=n_envs)
-    policy_kwargs = dict(net_arch=args.mlp_architecture)
+    policy_kwargs = [{"pi": args.mlp_architecture, "vf": args.mlp_architecture}]
 
-    model = PPO(MlpPolicy, env, verbose=1, gamma=gamma, n_steps=50 * 7, policy_kwargs=policy_kwargs)
 
-    model.learn(total_timesteps=(50 * 7 * 1500 * 500))
+    class CustomMLPPolicy(MlpPolicy):
+        def __init__(self, *args, **kwargs):
+            global policy_kwargs
+            super(CustomMLPPolicy, self).__init__(*args, **kwargs, net_arch=policy_kwargs)
+
+
+    model = PPO(CustomMLPPolicy, env, verbose=2, gamma=gamma, n_steps=100)
+
+    model.learn(total_timesteps=(5000 * 1000))
     all_envs_diagnostics = []
     for env_data in env.envs:
         all_envs_diagnostics.append(env_data.env.diagnostics)
