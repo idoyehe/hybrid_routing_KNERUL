@@ -8,7 +8,7 @@ Created on 6 Feb 2017
 class HistoryConsts:
     SOFTMIN_ALPHA = -2.0
     SOFTMAX_ALPHA = 1.0
-    EPSILON = 1.0e-2
+    EPSILON = 1.0e-10
     PERC_DEMAND = 0.9999
     INFTY = 1.0e4
     ZERO = 0.0

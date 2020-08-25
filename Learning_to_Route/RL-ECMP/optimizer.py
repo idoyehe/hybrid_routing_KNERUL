@@ -180,10 +180,12 @@ if __name__ == "__main__":
     from static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
 
     ecmpNetwork = NetworkClass(BASIC_TOPOLOGIES["TRIANGLE"])
-    tm = tm_generation.one_sample_tm_base(ecmpNetwork.get_g_directed, 1, TMType.GRAVITY, 0, 0, 0)
+    tm = np.array([[0, 10, 0], [0, 0, 0], [0, 0, 0]])
 
     opt = WNumpyOptimizer(ecmpNetwork)
     opt_congestion, opt_routing_scheme = optimal_load_balancing_LP_solver(net=ecmpNetwork, traffic_matrix=tm)
     print("Optimal Congestion: {}".format(opt_congestion))
-    cost, congestion_dict = opt.step([1, 0.1, 100, 100, 1, 1], tm)
+    cost, congestion_dict = opt.step([100, 100, 0.00000001, 100, 0.00000001, 0.00000001], tm)
     print("Optimizer Congestion: {}".format(cost))
+    print("Congestion Ratio :{}".format(cost / opt_congestion))
+

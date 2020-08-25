@@ -31,9 +31,9 @@ graph [
   edge [
     source 1
     target 2
-    LinkSpeed "15"
-    LinkLabel "15Mb/s"
+    LinkSpeed "10"
+    LinkLabel "10Mb/s"
     LinkSpeedUnits "M"
-    LinkSpeedRaw 15000000.0
+    LinkSpeedRaw 10000000.0
   ]
 ]
