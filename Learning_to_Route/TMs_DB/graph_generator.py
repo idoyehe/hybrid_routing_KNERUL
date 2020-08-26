@@ -17,15 +17,30 @@ def plot_graph(avg_cong_ratio, title: str = "", y_max=1.9, hlines: list = None):
     plt.show()
 
 
-if __name__ == "__main__":
-    plot_graph(avg_cong_ratio=[1.79, 1.73, 1.7, 1.64, 1.196], title="Gravity 0.3",
-               hlines=[(1.74, "Prev", 'r'), (1.49, "Avg K", 'k'), (1.16, "Oblivious", 'indigo')])
-    plot_graph(avg_cong_ratio=[1.59, 1.47, 1.4, 1.35, 1.2], title="Gravity 0.6")
-    plot_graph(avg_cong_ratio=[0.45, 0.41, 0.39, 0.36, 0.093], y_max=0.6,title="Standard Deviation Gravity 0.3")
-    plot_graph(avg_cong_ratio=[1.26, 1.18, 1.14, 1.1, 1.2], title="Gravity 0.9")
+def learning_convergance(filepath:str):
+    f = open(filepath, "rb")
+    lines = f.readlines()
+    lines = list(filter(lambda l: "ep_rew_mean" in str(l), lines))
+    lines = list(map(lambda l: -1 *float(str(l).split("|")[2].split()[0]), lines))
+    fig = plt.figure(figsize=(12,12))
+    plt.plot(lines)
+    plt.yticks(np.arange(1, 6.5, step=0.1))
+    f.close()
+    # plt.show()
+    plt.savefig("/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/{}.jpeg".format(filepath.split("/")[-1].split(".")[0]))
 
-    plot_graph(avg_cong_ratio=[1.2, 1.09, 1.07, 1.06, 1.09], y_max=1.4, title="Bimodal 1.0 Elephant 20%")
-    plot_graph(avg_cong_ratio=[1.19, 1.09, 1.07, 1.06, 1.1], y_max=1.4, title="Bimodal 1.0 Elephant 40%",
-               hlines=[(1.225, "Prev", 'r'), (1.18, "Avg K", 'k'), (1.125, "Oblivious", 'indigo')])
-    plot_graph(avg_cong_ratio=[0.134, 0.078, 0.078, 0.068, 0.066], y_max=0.15,title="Standard Deviation Bimodal 1.0 Elephant 40%")
-    plot_graph(avg_cong_ratio=[1.17, 1.09, 1.07, 1.06, 1.13], y_max=1.4, title="Bimodal 1.0 Elephant 60%")
+
+
+if __name__ == "__main__":
+    # plot_graph(avg_cong_ratio=[1.79, 1.73, 1.7, 1.64, 1.196], title="Gravity 0.3",
+    #            hlines=[(1.74, "Prev", 'r'), (1.49, "Avg K", 'k'), (1.16, "Oblivious", 'indigo')])
+    # plot_graph(avg_cong_ratio=[1.59, 1.47, 1.4, 1.35, 1.2], title="Gravity 0.6")
+    # plot_graph(avg_cong_ratio=[0.45, 0.41, 0.39, 0.36, 0.093], y_max=0.6,title="Standard Deviation Gravity 0.3")
+    # plot_graph(avg_cong_ratio=[1.26, 1.18, 1.14, 1.1, 1.2], title="Gravity 0.9")
+    #
+    # plot_graph(avg_cong_ratio=[1.2, 1.09, 1.07, 1.06, 1.09], y_max=1.4, title="Bimodal 1.0 Elephant 20%")
+    # plot_graph(avg_cong_ratio=[1.19, 1.09, 1.07, 1.06, 1.1], y_max=1.4, title="Bimodal 1.0 Elephant 40%",
+    #            hlines=[(1.225, "Prev", 'r'), (1.18, "Avg K", 'k'), (1.125, "Oblivious", 'indigo')])
+    # plot_graph(avg_cong_ratio=[0.134, 0.078, 0.078, 0.068, 0.066], y_max=0.15,title="Standard Deviation Bimodal 1.0 Elephant 40%")
+    # plot_graph(avg_cong_ratio=[1.17, 1.09, 1.07, 1.06, 1.13], y_max=1.4, title="Bimodal 1.0 Elephant 60%")
+    learning_convergance("/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/ConsoleOut5000.txt")
