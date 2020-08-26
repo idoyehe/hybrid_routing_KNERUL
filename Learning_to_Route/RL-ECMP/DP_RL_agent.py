@@ -42,9 +42,9 @@ if __name__ == "__main__":
             super(CustomMLPPolicy, self).__init__(*args, **kwargs, net_arch=policy_kwargs)
 
 
-    model = PPO(CustomMLPPolicy, env, verbose=2, gamma=gamma, n_steps=100)
+    model = PPO(CustomMLPPolicy, env, verbose=1, gamma=gamma, n_steps=50*7)
 
-    model.learn(total_timesteps=(5000 * 1000))
+    model.learn(total_timesteps=(10500 * 5000))
     all_envs_diagnostics = []
     for env_data in env.envs:
         all_envs_diagnostics.append(env_data.env.diagnostics)

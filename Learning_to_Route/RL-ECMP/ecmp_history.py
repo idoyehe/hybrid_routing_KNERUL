@@ -57,7 +57,6 @@ class ECMPHistoryEnv(Env):
         self._all_pairs = self._network.get_all_pairs()
         self._history_start_id = 0
         self._current_history_index = -1
-        self.current_sequence = 0
         self._optimizer = WNumpyOptimizer(self._network)
 
         self._history_len = history_length  # number of each state history
@@ -140,7 +139,7 @@ class ECMPHistoryEnv(Env):
         self._actual_num_train_histories = len(self._train_observations)
         self._actual_num_test_histories = len(self._test_observations)
 
-        # self._validate_data()
+        self._validate_data()
 
         self.test(self._testing)
 
@@ -265,9 +264,6 @@ class ECMPHistoryEnv(Env):
     def reset(self):
         self._history_start_id = 0
 
-        if (self._current_history_index + 1) == self._num_sequences:
-            self.current_sequence += 1
-
         self._current_history_index = (self._current_history_index + 1) % self._num_sequences
         return self._get_observation()
 
@@ -288,8 +284,9 @@ if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
              kwargs={
                  'max_steps': 1,
                  'history_length': 1,
-                 'path_dumped': "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
-                 'train_histories_length': 5000,
+                 'path_dumped': "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/" +
+                                "T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
+                 'train_histories_length': 10500,
                  'test_histories_length': 0,
                  'history_action_type': HistoryConsts.ACTION_W_EPSILON}
              )
