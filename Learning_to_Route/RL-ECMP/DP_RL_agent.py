@@ -22,10 +22,10 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-n_envs", "--number_of_envs", type=int, help="Number of vectorized environments", default=1)
     parser.add_argument("-n_steps", "--number_of_steps", type=int, help="Number of steps per ppo agent", default=100)
     parser.add_argument("-tts", "--total_timesteps", type=str, help="Agent Total timesteps", default="1000")
-    parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default="1")
-    parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default="1")
+    parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
+    parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=1)
     parser.add_argument("-n_matrices", "--number_of_matrices", type=int, help="Number of matrices to load",
-                        default="350")
+                        default=350)
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
     options.mlp_architecture = [int(layer_width) for layer_width in options.mlp_architecture.split(",")]
