@@ -6,7 +6,7 @@ refactoring on 26/04/2020
 @by: Ido Yehezkel
 """
 from Learning_to_Route.common.utils import error_bound
-from gym import Env, spaces, envs, register
+from gym import Env, spaces
 from common.network_class import *
 from optimizer import WNumpyOptimizer
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
@@ -274,19 +274,3 @@ class ECMPHistoryEnv(Env):
         tm = self._observations[self._current_history_index][self._history_start_id + self._history_len]
         cost, congestion_dict = self._optimizer.step(self._w, tm)
         return cost
-
-
-ECMP_ENV_GYM_ID: str = 'ecmp-history-v0'
-
-if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
-    register(id=ECMP_ENV_GYM_ID,
-             entry_point='ecmp_history:ECMPHistoryEnv',
-             kwargs={
-                 'max_steps': 1,
-                 'history_length': 1,
-                 'path_dumped': "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/" +
-                                "T-lex_tms_12X12_length_20000_gravity_sparsity_0.3",
-                 'train_histories_length': 10500,
-                 'test_histories_length': 0,
-                 'history_action_type': HistoryConsts.ACTION_W_EPSILON}
-             )
