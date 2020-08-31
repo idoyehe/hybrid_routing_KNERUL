@@ -225,14 +225,15 @@ class ECMPHistoryEnv(Env):
         return self._current_history
 
     def step(self, action):
-        self._w = self._process_action(action)
+        links_weights = self._process_action(action)
 
-        cost = self._get_reward()
+        cost = self._get_reward(links_weights)
         self._is_terminal = self._history_start_id + 1 == self._episode_len
 
         norm_factor = -1
 
         env_data = {}
+        env_data["links_weights"] = list(links_weights)
         optimal_congestion = self._opt_res[self._current_history_index][
             self._history_start_id + self._history_len]
         # how do we compare against the optimal congestion if we assume we know the future
@@ -270,7 +271,7 @@ class ECMPHistoryEnv(Env):
     def render(self, mode='human'):
         pass
 
-    def _get_reward(self):
+    def _get_reward(self, links_weights):
         tm = self._observations[self._current_history_index][self._history_start_id + self._history_len]
-        cost, congestion_dict = self._optimizer.step(self._w, tm)
+        cost, congestion_dict = self._optimizer.step(links_weights, tm)
         return cost
