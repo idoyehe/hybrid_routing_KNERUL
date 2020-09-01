@@ -1,0 +1,4 @@
+Architecture is: [128, 64, 64]
+gamma = 0
+INFO:Creating Network Class
+INFO:Creating Network Class

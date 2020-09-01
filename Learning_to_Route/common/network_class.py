@@ -33,6 +33,7 @@ class NetworkClass:
         self._set_adjacency()  # mark all adjacent nodes
         self._g_directed_reduced = None
         self._reducing_map_dict = None
+        self._edges_id_map = None
 
         if not self._is_directed:
             self._g_directed = NetworkClass(self.get_graph.to_directed())
@@ -77,14 +78,7 @@ class NetworkClass:
 
     def get_edges_capacities(self):
         if self._capacities is None:  # for happens only once
-            logger.debug("Set per edge capacity")
-            self._capacities = np.zeros((self._num_nodes, self._num_nodes), dtype=np.float32)
-            for i in self._graph.nodes:
-                for j in self._graph.nodes:
-                    if i == j:
-                        continue
-                    if self.get_adjacency[i, j] > 0:  # means edge is exists
-                        self._capacities[(i, j)] = self._graph[i][j][EdgeConsts.CAPACITY_STR]
+            self.build_edges_map()
         return self._capacities
 
     @property
@@ -165,21 +159,28 @@ class NetworkClass:
         """
         @return: num of edges, map for each node its ingoing and outgoing edges
         """
+
         graph_adjacency = self.get_adjacency
         num_edges = np.int32(np.sum(graph_adjacency))
         ingoing = np.zeros((len(graph_adjacency), num_edges))
         outgoing = np.zeros((len(graph_adjacency), num_edges))
-        edge_capacities = np.zeros(num_edges)
+        self._capacities = np.zeros(num_edges)
+        self._edges_id_map = dict()
         eid = 0
-        e_map = {}
         for i in range(len(graph_adjacency)):
             for j in range(len(graph_adjacency)):
                 if graph_adjacency[i][j] == 1:
                     outgoing[i, eid] = 1
                     ingoing[j, eid] = 1
-                    edge_capacities[eid] = self.get_edge_key((i, j), EdgeConsts.CAPACITY_STR)
+                    self._capacities[eid] = self.get_edge_key((i, j), EdgeConsts.CAPACITY_STR)
+                    self._edges_id_map[(i, j)] = eid
                     eid += 1
-        return num_edges, ingoing, outgoing, edge_capacities
+        return self._num_edges, ingoing, outgoing, self._capacities
+
+    def get_edges_id(self):
+        if self._edges_id_map is None:
+            self.build_edges_map()
+        return self._edges_id_map
 
     def reducing_undirected2directed(self):
         if self._g_directed_reduced is None:
