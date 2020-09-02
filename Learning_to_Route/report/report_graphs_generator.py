@@ -25,14 +25,15 @@ def plot_baselines_graphs(title: str, avg_cong_ratio, error_bounds: list, hlines
 
 def plot_learning_convergence(filepath: str, right_limit: int, left_limit: int, y_ticks: np.array, title: str,
                               hlines: list = None):
+    assert right_limit > left_limit
     f = open(filepath, "r")
     data = f.readlines()
     f.close()
 
     fig = plt.figure(num=None, figsize=(12, 10), dpi=80, facecolor='w', edgecolor='k')
 
-    data = list(map(lambda l: float(str(l)), data))[right_limit:left_limit]
-    x = np.linspace(right_limit, left_limit, left_limit - right_limit)
+    data = list(map(lambda l: float(str(l)), data))[left_limit:right_limit]
+    x = np.linspace(left_limit, right_limit, right_limit - left_limit)
 
     spline = make_interp_spline(x, data)
     data_new = spline(x)
@@ -46,7 +47,8 @@ def plot_learning_convergence(filepath: str, right_limit: int, left_limit: int, 
     plt.ylabel("Congestion Ratio")
     plt.title(title)
     plt.legend()
-    plt.savefig("{}.{}".format(filepath.split(".txt")[0] + "_plot", "jpeg"), bbox_inches='tight')
+    plt.grid()
+    plt.savefig("{}_{}-{}.{}".format(filepath.split(".txt")[0] + "_plot", left_limit, right_limit, "jpeg"), bbox_inches='tight')
     plt.show()
 
 
@@ -74,6 +76,36 @@ def static_routing_graphs():
 
 
 def rl_routing_graphs():
+    plot_learning_convergence(
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\ConsoleOut_gravity_350.txt",
+        left_limit=0,
+        right_limit=3000,
+        y_ticks=np.arange(1, 7, step=0.1),
+        title="Gravity 0.3 Sparsity, 350 matrices",
+        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'), (1.17, "Convergence", 'k'), ])
+
+    plot_learning_convergence(
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\ConsoleOut_gravity_350.txt",
+        left_limit=500,
+        right_limit=3500,
+        y_ticks=np.arange(1, 2, step=0.05),
+        title="Gravity 0.3 Sparsity, 350 matrices",
+        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'), (1.17, "Convergence", 'k'), ])
+
+    # plot_learning_convergence(
+    #     "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\ConsoleOut_gravity_10500.txt", 0,
+    #     4000,
+    #     np.arange(1, 7, step=0.1),
+    #     title="Gravity 0.3 Sparsity, 350 matrices",
+    #     hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'k'), (1.196, "Oblivious", 'indigo'), (1.33, "Convergence", 'g'), ])
+    #
+    # plot_learning_convergence(
+    #     "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\ConsoleOut_gravity_10500.txt", 500,
+    #     3500,
+    #     np.arange(1, 2, step=0.05),
+    #     title="Gravity 0.3 Sparsity, 350 matrices",
+    #     hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'k'), (1.196, "Oblivious", 'indigo'), (1.33, "Convergence", 'g'), ])
+
     pass
 
     # plot_learning_convergence(
@@ -82,7 +114,7 @@ def rl_routing_graphs():
     #     np.arange(1, 11, step=0.2),
     #     title="Bimodal 1.0 Elephant 40%, 350 matrices",
     #     hlines=[(1.2, "Prev", 'r'), (1.09, "Avg K", 'k'), (1.1, "Oblivious", 'indigo'), (1.02, "Convergence", 'g'), ])
-    #
+
     # plot_learning_convergence(
     #     "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\ConsoleOut_bimodal_350.txt", 500,
     #     3500,
@@ -104,33 +136,6 @@ def rl_routing_graphs():
     #     title="Bimodal 1.0 Elephant 40%, 10500 matrices",
     #     hlines=[(1.2, "Prev", 'r'), (1.09, "Avg K", 'k'), (1.1, "Oblivious", 'indigo'), (1.04, "Convergence", 'g'), ])
     #
-    # plot_learning_convergence(
-    #     "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\ConsoleOut_gravity_350.txt", 0,
-    #     4000,
-    #     np.arange(1, 7, step=0.1),
-    #     title="Gravity 0.3 Sparsity, 350 matrices",
-    #     hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'k'), (1.196, "Oblivious", 'indigo'), (1.08, "Convergence", 'g'), ])
-    #
-    # plot_learning_convergence(
-    #     "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\ConsoleOut_gravity_350.txt", 500,
-    #     3500,
-    #     np.arange(1, 2, step=0.05),
-    #     title="Gravity 0.3 Sparsity, 350 matrices",
-    #     hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'k'), (1.196, "Oblivious", 'indigo'), (1.08, "Convergence", 'g'), ])
-    #
-    # plot_learning_convergence(
-    #     "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\ConsoleOut_gravity_10500.txt", 0,
-    #     4000,
-    #     np.arange(1, 7, step=0.1),
-    #     title="Gravity 0.3 Sparsity, 350 matrices",
-    #     hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'k'), (1.196, "Oblivious", 'indigo'), (1.33, "Convergence", 'g'), ])
-    #
-    # plot_learning_convergence(
-    #     "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\TMs_DB\\ConsoleOut_gravity_10500.txt", 500,
-    #     3500,
-    #     np.arange(1, 2, step=0.05),
-    #     title="Gravity 0.3 Sparsity, 350 matrices",
-    #     hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'k'), (1.196, "Oblivious", 'indigo'), (1.33, "Convergence", 'g'), ])
 
 
 if __name__ == "__main__":
