@@ -112,7 +112,7 @@ def rl_routing_graphs():
         "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_0.9_10500.txt",
         left_limit=0,
         right_limit=6000,
-        y_ticks=np.arange(1, 7, step=0.1),
+        y_ticks=np.arange(1, 8, step=0.1),
         title="Gravity Sparsity 90%, 10,500 Matrices",
         hlines=[(1.256, "Prev", 'r'), (1.109, "Avg K", 'g'), ( 1.2, "Oblivious", 'indigo'), (1.06, "Convergence", 'k'), ])
 
