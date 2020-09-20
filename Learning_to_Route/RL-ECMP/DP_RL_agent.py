@@ -27,6 +27,9 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=10)
     parser.add_argument("-n_matrices", "--number_of_matrices", type=int, help="Number of matrices to load",
                         default=350)
+    parser.add_argument("-s_diag", "--save_diagnostics", type=bool, help="Dump env diagnostics", default=False)
+    parser.add_argument("-s_weights", "--save_links_weights", type=bool, help="Dump links weights", default=False)
+
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
     options.mlp_architecture = [int(layer_width) for layer_width in options.mlp_architecture.split(",")]
@@ -46,9 +49,11 @@ if __name__ == "__main__":
     episode_length = args.episode_length
     history_length = args.history_length
     number_of_matrices = args.number_of_matrices
+    save_diagnostics = args.save_diagnostics
+    save_links_weights = args.save_links_weights
 
-    save_path = "{}_agent_{}".format(args.save_path,number_of_matrices)
-    dump_file_name = "{}_agent_diagnostics_{}".format(args.save_path,number_of_matrices)
+    save_path = "{}_agent_{}".format(args.save_path, number_of_matrices)
+    dump_file_name = "{}_agent_diagnostics_{}".format(args.save_path, number_of_matrices)
 
     if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
         register(id=ECMP_ENV_GYM_ID,
@@ -75,20 +80,19 @@ if __name__ == "__main__":
     model = PPO(CustomMLPPolicy, env, verbose=1, gamma=gamma, n_steps=n_steps)
 
     model.learn(total_timesteps=total_timesteps)
-    all_envs_diagnostics = []
-    for env_data in env.envs:
-        all_envs_diagnostics.append(env_data.env.diagnostics)
+
+    env_diagnostics = env.envs[0].env.diagnostics
+    if save_diagnostics:
+        dump_file = open(dump_file_name, 'wb')
+        pickle.dump({"env_diagnostics": env_diagnostics}, dump_file)
+        dump_file.close()
+
     model.save(path=save_path)
     env.close()
 
-    dump_file = open(dump_file_name, 'wb')
-    pickle.dump({"agent_diagnostics": all_envs_diagnostics}, dump_file)
-    dump_file.close()
-
-    link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.save_path,number_of_matrices)
-    link_weights_file = open(link_weights_file_name, 'wb')
-    for step_data in all_envs_diagnostics[0]:
-        np.save(link_weights_file, step_data["links_weights"])
-
-
-    link_weights_file.close()
+    if save_links_weights:
+        link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.save_path, number_of_matrices)
+        link_weights_file = open(link_weights_file_name, 'wb')
+        link_weights_matrix = np.array([step_data["links_weights"] for step_data in env_diagnostics]).transpose()
+        np.save(link_weights_file, link_weights_matrix)
+        link_weights_file.close()

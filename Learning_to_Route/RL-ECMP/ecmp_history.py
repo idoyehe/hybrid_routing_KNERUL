@@ -83,7 +83,7 @@ class ECMPHistoryEnv(Env):
         self._init_all_observations()
 
         self._all_rewards = []
-        self._init_random_baseline()
+        # self._init_random_baseline()
         self.diagnostics = []
 
     def get_num_steps(self):
@@ -233,26 +233,28 @@ class ECMPHistoryEnv(Env):
         norm_factor = -1
 
         env_data = {}
-        env_data["links_weights"] = list(links_weights)
-        optimal_congestion = self._opt_res[self._current_history_index][
-            self._history_start_id + self._history_len]
+        env_data["links_weights"] = links_weights
+        optimal_congestion = self._opt_res[self._current_history_index][self._history_start_id + self._history_len]
+
         # how do we compare against the optimal congestion if we assume we know the future
-        env_data[ExtraData.REWARD_OVER_FUTURE] = cost / optimal_congestion
-        env_data[ExtraData.REWARD_OVER_PREV] = cost / self._opt_res[self._current_history_index][
-            self._history_start_id - 1 + self._history_len]
-        env_data[ExtraData.REWARD_OVER_RANDOM] = cost / self._random_res[self._current_history_index][
-            self._history_start_id + self._history_len]
+        congestion_ratio = cost / optimal_congestion
+        env_data[ExtraData.REWARD_OVER_FUTURE] = congestion_ratio
+
+        # env_data[ExtraData.REWARD_OVER_PREV] = cost / self._opt_res[self._current_history_index][
+        #     self._history_start_id - 1 + self._history_len]
+        # env_data[ExtraData.REWARD_OVER_RANDOM] = cost / self._random_res[self._current_history_index][
+        #     self._history_start_id + self._history_len]
 
         self._history_start_id += 1
         observation = self._get_observation()
-        congestion_ratio = env_data[ExtraData.REWARD_OVER_FUTURE]
 
-        # print("cost  Congestion :{}".format(cost))
-        # print("optimal  Congestion :{}".format(optimal_congestion))
-        # print("Congestion Ratio :{}".format(congestion_ratio))
+        logger.debug("cost  Congestion :{}".format(cost))
+        logger.debug("optimal  Congestion :{}".format(optimal_congestion))
+        logger.debug("Congestion Ratio :{}".format(congestion_ratio))
 
         if not congestion_ratio >= 1.0:
             assert error_bound(cost, optimal_congestion, 5e-4)
+            logger.info("BUG!! congestion_ratio {}".format(congestion_ratio))
             congestion_ratio = 1.0
 
         reward = congestion_ratio * norm_factor

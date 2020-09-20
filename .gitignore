@@ -2,3 +2,4 @@
 .idea
 *.pyc
 *~*
+/Learning_to_Route/RL-ECMP/ConsoleOut.txt
