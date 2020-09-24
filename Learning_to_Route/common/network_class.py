@@ -173,7 +173,7 @@ class NetworkClass:
                     outgoing[i, eid] = 1
                     ingoing[j, eid] = 1
                     self._capacities[eid] = self.get_edge_key((i, j), EdgeConsts.CAPACITY_STR)
-                    self._edges_id_map[(i, j)] = eid
+                    self._edges_id_map[eid] = (i, j)
                     eid += 1
         return self._num_edges, ingoing, outgoing, self._capacities
 
