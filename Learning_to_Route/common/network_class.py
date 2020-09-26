@@ -33,7 +33,8 @@ class NetworkClass:
         self._set_adjacency()  # mark all adjacent nodes
         self._g_directed_reduced = None
         self._reducing_map_dict = None
-        self._edges_id_map = None
+        self._id2edge_map = None
+        self._edge2id_map = None
 
         if not self._is_directed:
             self._g_directed = NetworkClass(self.get_graph.to_directed())
@@ -165,7 +166,8 @@ class NetworkClass:
         ingoing = np.zeros((len(graph_adjacency), num_edges))
         outgoing = np.zeros((len(graph_adjacency), num_edges))
         self._capacities = np.zeros(num_edges)
-        self._edges_id_map = dict()
+        self._id2edge_map = dict()
+        self._edge2id_map = dict()
         eid = 0
         for i in range(len(graph_adjacency)):
             for j in range(len(graph_adjacency)):
@@ -173,14 +175,20 @@ class NetworkClass:
                     outgoing[i, eid] = 1
                     ingoing[j, eid] = 1
                     self._capacities[eid] = self.get_edge_key((i, j), EdgeConsts.CAPACITY_STR)
-                    self._edges_id_map[eid] = (i, j)
+                    self._id2edge_map[eid] = (i, j)
+                    self._edge2id_map[(i, j)] = eid
                     eid += 1
         return self._num_edges, ingoing, outgoing, self._capacities
 
-    def get_edges_id(self):
-        if self._edges_id_map is None:
+    def get_id2edge(self):
+        if self._id2edge_map is None:
             self.build_edges_map()
-        return self._edges_id_map
+        return self._id2edge_map
+
+    def get_edge2id(self):
+        if self._edge2id_map is None:
+            self.build_edges_map()
+        return self._edge2id_map
 
     def reducing_undirected2directed(self):
         if self._g_directed_reduced is None:

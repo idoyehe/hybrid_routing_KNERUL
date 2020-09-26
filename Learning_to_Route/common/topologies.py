@@ -142,26 +142,31 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
         local_path = url
         from platform import system
         if system() == "Linux":
-            local_path = "/home/idoye/PycharmProjects/Research_Implementing" + local_path.replace("\\", "/").split("/Research_Implementing")[1]
-
+            local_path = "/home/idoye/PycharmProjects/Research_Implementing" + \
+                         local_path.replace("\\", "/").split("/Research_Implementing")[1]
 
         gml_file = open(local_path, "r")
         gml = "".join(gml_file.readlines())
         gml_file.close()
 
     raw_g = nx.parse_gml(gml, label="id")
-    parsed_g = nx.Graph()
-    parsed_g.add_nodes_from(raw_g.nodes)
-    for raw_edge in raw_g.edges:
-        edge = (raw_edge[0], raw_edge[1])
-        if edge not in parsed_g.edges:
-            parsed_g.add_edge(u_of_edge=edge[0], v_of_edge=edge[1])
-            parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] = 0
-        if CAPACITY_LABEL_DEFAULT in raw_g.edges[raw_edge]:
-            raw_capacity = int(raw_g.edges[raw_edge][CAPACITY_LABEL_DEFAULT]) / SizeConsts.ONE_Mb
-            parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] += raw_capacity
-        else:
-            parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] += default_capacity
+    if "link_weights_graph" in raw_g.graph:
+        parsed_g = nx.DiGraph()
+        parsed_g.add_nodes_from(raw_g.nodes)
+        parsed_g.add_edges_from(raw_g.edges.data())
+    else:
+        parsed_g = nx.Graph()
+        parsed_g.add_nodes_from(raw_g.nodes)
+        for raw_edge in raw_g.edges:
+            edge = (raw_edge[0], raw_edge[1])
+            if edge not in parsed_g.edges:
+                parsed_g.add_edge(u_of_edge=edge[0], v_of_edge=edge[1])
+                parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] = 0
+            if CAPACITY_LABEL_DEFAULT in raw_g.edges[raw_edge]:
+                raw_capacity = int(raw_g.edges[raw_edge][CAPACITY_LABEL_DEFAULT]) / SizeConsts.ONE_Mb
+                parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] += raw_capacity
+            else:
+                parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] += default_capacity
 
     parsed_g.graph["Name"] = raw_g.graph["Network"]
     return parsed_g

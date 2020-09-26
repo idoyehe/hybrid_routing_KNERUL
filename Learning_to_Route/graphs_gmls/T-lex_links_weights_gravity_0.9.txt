@@ -1,4 +1,5 @@
 graph [
+  Network "T-lex_links_weights_gravity_0.9"
   directed 1
   Name "T-lex"
   node [

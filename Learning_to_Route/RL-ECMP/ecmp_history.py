@@ -9,10 +9,8 @@ from Learning_to_Route.common.utils import error_bound
 from gym import Env, spaces
 from common.network_class import *
 from optimizer import WNumpyOptimizer
-from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from common.rl_env_consts import HistoryConsts, ExtraData
 from static_routing.generating_tms_dumps import load_dump_file
-from static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
 from common.topologies import topology_zoo_loader
 import random
 
@@ -21,34 +19,21 @@ class ECMPHistoryEnv(Env):
 
     def __init__(self,
                  max_steps,
-                 ecmp_topo=None,
                  path_dumped=None,
                  history_length=None,
                  history_action_type=None,
                  train_histories_length=None,
                  test_histories_length=None,
-                 tm_type=None,
-                 tm_sparsity=None,
-                 elephant_flows_percentage=None,
-                 elephant_flow=None,
-                 mice_flow=None,
                  testing=False):
 
         self._episode_len = max_steps
 
-        if path_dumped is None:
-            self._network = NetworkClass(ecmp_topo)
-            self._tms = None
-            self._tm_type = tm_type
-            self._tm_sparsity_list = tm_sparsity  # percentage of participating pairs, assumed to be a list
-        else:
-            loaded_dict = load_dump_file(file_name=path_dumped)
-            self._network = NetworkClass(
-                topology_zoo_loader(url=loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
-            self._tms = loaded_dict["tms"]
-            self._tm_type = loaded_dict["tms_type"]
-            self._tm_sparsity_list = [
-                loaded_dict["tms_sparsity"]]  # percentage of participating pairs, assumed to be a list
+        loaded_dict = load_dump_file(file_name=path_dumped)
+        self._network = NetworkClass(
+            topology_zoo_loader(url=loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+        self._tms = loaded_dict["tms"]
+        self._tm_type = loaded_dict["tms_type"]
+        self._tm_sparsity_list = loaded_dict["tms_sparsity"]  # percentage of participating pairs, assumed to be a list
 
         self._network = self._network.get_g_directed
         self._g_name = self._network.get_name
@@ -63,9 +48,6 @@ class ECMPHistoryEnv(Env):
         self._history_action_type = history_action_type
         self._num_train_histories = train_histories_length  # number of different train seniors per sparsity
         self._num_test_histories = test_histories_length  # number of different test seniors per sparsity
-        self._mice_flow = mice_flow
-        self._elephant_flow = elephant_flow
-        self._elephant_flows_percentage = elephant_flows_percentage
 
         # init random placeholders, so we could refer to those in test function
         self._random_train = {}
@@ -83,7 +65,6 @@ class ECMPHistoryEnv(Env):
         self._init_all_observations()
 
         self._all_rewards = []
-        # self._init_random_baseline()
         self.diagnostics = []
 
     def get_num_steps(self):
@@ -96,16 +77,9 @@ class ECMPHistoryEnv(Env):
     def _set_action_space(self):
         self._action_space = spaces.Box(low=0, high=np.inf, shape=(self._num_edges,))
 
-    def _sample_tm(self, p):
+    def _sample_tm(self):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
-
-        if self._tms is None:
-            tm = one_sample_tm_base(self._network, p, self._tm_type, self._elephant_flows_percentage,
-                                    self._elephant_flow,
-                                    self._mice_flow)
-            opt, _ = optimal_load_balancing_LP_solver(self._network, tm)
-        else:
-            tm, opt = random.choice(self._tms)
+        tm, opt = random.choice(self._tms)
         return tm, opt
 
     def _init_all_observations(self):
@@ -115,26 +89,24 @@ class ECMPHistoryEnv(Env):
         self._opt_test_observations = []
 
         for _ in range(self._num_train_histories):
-            for p in self._tm_sparsity_list:
-                train_episode = list()
-                train_episode_optimal = list()
-                for _ in range(self._history_len + self._episode_len):
-                    tm, opt = self._sample_tm(p)
-                    train_episode.append(tm)
-                    train_episode_optimal.append(opt)
-                self._train_observations.append(train_episode)
-                self._opt_train_observations.append(train_episode_optimal)
+            train_episode = list()
+            train_episode_optimal = list()
+            for _ in range(self._history_len + self._episode_len):
+                tm, opt = self._sample_tm()
+                train_episode.append(tm)
+                train_episode_optimal.append(opt)
+            self._train_observations.append(train_episode)
+            self._opt_train_observations.append(train_episode_optimal)
 
         for _ in range(self._num_test_histories):
             test_episode = list()
             test_episode_optimal = list()
-            for p in self._tm_sparsity_list:
-                for _ in range(self._history_len + self._episode_len):
-                    tm, opt = self._sample_tm(p)
-                    test_episode.append(tm)
-                    test_episode_optimal.append(opt)
-                self._test_observations.append(test_episode)
-                self._opt_test_observations.append(test_episode_optimal)
+            for _ in range(self._history_len + self._episode_len):
+                tm, opt = self._sample_tm()
+                test_episode.append(tm)
+                test_episode_optimal.append(opt)
+            self._test_observations.append(test_episode)
+            self._opt_test_observations.append(test_episode_optimal)
 
         self._actual_num_train_histories = len(self._train_observations)
         self._actual_num_test_histories = len(self._test_observations)
@@ -171,7 +143,6 @@ class ECMPHistoryEnv(Env):
         self._observations = self._test_observations if testing else self._train_observations
         self._num_sequences = self._actual_num_test_histories if testing else self._actual_num_train_histories
         self._opt_res = self._opt_test_observations if testing else self._opt_train_observations
-        self._random_res = self._random_test_res if testing else self._random_train_res
 
     def _process_action(self, action):
         if self._history_action_type == HistoryConsts.ACTION_W_EPSILON:
@@ -179,33 +150,6 @@ class ECMPHistoryEnv(Env):
         elif self._history_action_type == HistoryConsts.ACTION_W_INFTY:
             action[action <= 0] = HistoryConsts.INFTY
         return action
-
-    def _init_random_baseline(self):
-        def populate(observations, res_dict, train_res, std_res):
-            action_size = self._action_space.shape[0]
-            for train_index, tm_list in enumerate(observations):
-                res_dict[train_index] = {}
-                res_avg_tm = []
-                res_std_tm = []
-                for tm_index, tm in enumerate(tm_list):
-                    res_dict[train_index][tm_index] = []
-                    for _ in range(5):
-                        action = np.random.rand(action_size)
-                        action = self._process_action(action)
-                        cost, _ = self._optimizer.step(action, tm)
-                        reward = -1 * cost
-                        res_dict[train_index][tm_index].append(reward)
-
-                    res_avg_tm.append(np.average(res_dict[train_index][tm_index]))
-                    res_std_tm.append(np.std(res_dict[train_index][tm_index]))
-                train_res.append(res_avg_tm)
-                std_res.append(res_std_tm)
-
-        populate(self._train_observations, self._random_train,
-                 self._random_train_res, self._random_train_std)
-
-        populate(self._test_observations, self._random_test,
-                 self._random_test_res, self._random_test_std)
 
     @property
     def observation_space(self):
@@ -239,11 +183,6 @@ class ECMPHistoryEnv(Env):
         # how do we compare against the optimal congestion if we assume we know the future
         congestion_ratio = cost / optimal_congestion
         env_data[ExtraData.REWARD_OVER_FUTURE] = congestion_ratio
-
-        # env_data[ExtraData.REWARD_OVER_PREV] = cost / self._opt_res[self._current_history_index][
-        #     self._history_start_id - 1 + self._history_len]
-        # env_data[ExtraData.REWARD_OVER_RANDOM] = cost / self._random_res[self._current_history_index][
-        #     self._history_start_id + self._history_len]
 
         self._history_start_id += 1
         observation = self._get_observation()

@@ -61,6 +61,6 @@ if __name__ == "__main__":
     print("Loading from file path: {}".format(file_path))
     link_weights_matrix = load_numpy_object_from_file(file_path)
     print("Done! loading from file")
-    links_weights_data_dict = plot_link_weights(link_weights_matrix, net.get_edges_id(), number_of_links, start_time)
+    links_weights_data_dict = plot_link_weights(link_weights_matrix, net.get_id2edge(), number_of_links, start_time)
     net = modify_network(net, links_weights_data_dict)
     nx.write_gml(net.get_g_directed.get_graph, export_path)
