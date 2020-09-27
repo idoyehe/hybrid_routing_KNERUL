@@ -2,7 +2,6 @@ import numpy as np
 from argparse import ArgumentParser
 from sys import argv
 import matplotlib.pyplot as plt
-from common.logger import logger
 from common.topologies import topology_zoo_loader
 from common.network_class import NetworkClass, nx
 
@@ -40,6 +39,7 @@ def plot_link_weights(link_weights_matrix, link_map, number_of_links: int, start
         plt.ylabel("Link Weight")
         plt.plot(np.arange(start_time, start_time + len(link_weights_data), step=1), link_weights_data)
         plt.show()
+        plt.close()
     return links_weights_data_dict
 
 

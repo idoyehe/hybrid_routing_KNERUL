@@ -1,0 +1,804 @@
+graph [
+  directed 1
+  Name "GRnet"
+  node [
+    id 0
+    label "0"
+  ]
+  node [
+    id 1
+    label "1"
+  ]
+  node [
+    id 2
+    label "2"
+  ]
+  node [
+    id 3
+    label "3"
+  ]
+  node [
+    id 4
+    label "4"
+  ]
+  node [
+    id 5
+    label "5"
+  ]
+  node [
+    id 6
+    label "6"
+  ]
+  node [
+    id 7
+    label "7"
+  ]
+  node [
+    id 8
+    label "8"
+  ]
+  node [
+    id 9
+    label "9"
+  ]
+  node [
+    id 10
+    label "10"
+  ]
+  node [
+    id 11
+    label "11"
+  ]
+  node [
+    id 12
+    label "12"
+  ]
+  node [
+    id 13
+    label "13"
+  ]
+  node [
+    id 14
+    label "14"
+  ]
+  node [
+    id 15
+    label "15"
+  ]
+  node [
+    id 16
+    label "16"
+  ]
+  node [
+    id 17
+    label "17"
+  ]
+  node [
+    id 18
+    label "18"
+  ]
+  node [
+    id 19
+    label "19"
+  ]
+  node [
+    id 20
+    label "20"
+  ]
+  node [
+    id 21
+    label "21"
+  ]
+  node [
+    id 22
+    label "22"
+  ]
+  node [
+    id 23
+    label "23"
+  ]
+  node [
+    id 24
+    label "24"
+  ]
+  node [
+    id 25
+    label "25"
+  ]
+  node [
+    id 26
+    label "26"
+  ]
+  node [
+    id 27
+    label "27"
+  ]
+  node [
+    id 28
+    label "28"
+  ]
+  node [
+    id 29
+    label "29"
+  ]
+  node [
+    id 30
+    label "30"
+  ]
+  node [
+    id 31
+    label "31"
+  ]
+  node [
+    id 32
+    label "32"
+  ]
+  node [
+    id 33
+    label "33"
+  ]
+  node [
+    id 34
+    label "34"
+  ]
+  node [
+    id 35
+    label "35"
+  ]
+  edge [
+    source 0
+    target 2
+    capacity 1000.0
+    mean "2.2561433"
+    std "0.6766297"
+    var "0.45782775"
+  ]
+  edge [
+    source 1
+    target 2
+    capacity 1000.0
+    mean "3.613171"
+    std "0.6652057"
+    var "0.44249862"
+  ]
+  edge [
+    source 2
+    target 0
+    capacity 1000.0
+    mean "1.6096575"
+    std "0.6141016"
+    var "0.37712073"
+  ]
+  edge [
+    source 2
+    target 1
+    capacity 1000.0
+    mean "1.4413698"
+    std "0.7188529"
+    var "0.51674944"
+  ]
+  edge [
+    source 2
+    target 3
+    capacity 1000.0
+    mean "4.9180593"
+    std "0.96975815"
+    var "0.9404308"
+  ]
+  edge [
+    source 2
+    target 19
+    capacity 2500.0
+    mean "3.9468846"
+    std "0.4968767"
+    var "0.24688645"
+  ]
+  edge [
+    source 2
+    target 29
+    capacity 2500.0
+    mean "2.4885564"
+    std "0.60124576"
+    var "0.36149648"
+  ]
+  edge [
+    source 3
+    target 2
+    capacity 1000.0
+    mean "1.749828"
+    std "1.174386"
+    var "1.3791826"
+  ]
+  edge [
+    source 4
+    target 26
+    capacity 1000.0
+    mean "1.2142278"
+    std "0.9042865"
+    var "0.81773406"
+  ]
+  edge [
+    source 4
+    target 5
+    capacity 1000.0
+    mean "4.6658406"
+    std "0.8351524"
+    var "0.69747955"
+  ]
+  edge [
+    source 5
+    target 4
+    capacity 1000.0
+    mean "0.47443962"
+    std "0.5732521"
+    var "0.32861793"
+  ]
+  edge [
+    source 5
+    target 8
+    capacity 1000.0
+    mean "4.8967853"
+    std "0.5215775"
+    var "0.27204308"
+  ]
+  edge [
+    source 6
+    target 27
+    capacity 1000.0
+    mean "5.619122"
+    std "1.191099"
+    var "1.4187169"
+  ]
+  edge [
+    source 6
+    target 7
+    capacity 1000.0
+    mean "0.7882119"
+    std "0.7406914"
+    var "0.5486238"
+  ]
+  edge [
+    source 7
+    target 6
+    capacity 1000.0
+    mean "1.5168205"
+    std "0.96091986"
+    var "0.923367"
+  ]
+  edge [
+    source 8
+    target 5
+    capacity 1000.0
+    mean "7.6504507"
+    std "0.50681126"
+    var "0.25685763"
+  ]
+  edge [
+    source 8
+    target 9
+    capacity 1000.0
+    mean "2.7275546"
+    std "0.47634554"
+    var "0.22690506"
+  ]
+  edge [
+    source 8
+    target 33
+    capacity 1000.0
+    mean "2.4798725"
+    std "0.27807644"
+    var "0.0773265"
+  ]
+  edge [
+    source 8
+    target 19
+    capacity 2500.0
+    mean "2.1148582"
+    std "0.35123056"
+    var "0.123362914"
+  ]
+  edge [
+    source 8
+    target 14
+    capacity 2500.0
+    mean "3.1337056"
+    std "0.43574974"
+    var "0.18987784"
+  ]
+  edge [
+    source 9
+    target 8
+    capacity 1000.0
+    mean "3.1721234"
+    std "0.66134435"
+    var "0.43737632"
+  ]
+  edge [
+    source 9
+    target 21
+    capacity 1000.0
+    mean "6.754571"
+    std "0.6731515"
+    var "0.4531329"
+  ]
+  edge [
+    source 10
+    target 23
+    capacity 1000.0
+    mean "1.7032038"
+    std "1.171486"
+    var "1.3723795"
+  ]
+  edge [
+    source 11
+    target 19
+    capacity 2500.0
+    mean "3.6772082"
+    std "0.9220976"
+    var "0.850264"
+  ]
+  edge [
+    source 12
+    target 19
+    capacity 2500.0
+    mean "9.9999994e-11"
+    std "6.938894e-18"
+    var "4.814825e-35"
+  ]
+  edge [
+    source 13
+    target 19
+    capacity 10000.0
+    mean "9.874899e-07"
+    std "0.00033889533"
+    var "1.1485004e-07"
+  ]
+  edge [
+    source 13
+    target 14
+    capacity 1000.0
+    mean "6.8453174"
+    std "0.57614326"
+    var "0.33194104"
+  ]
+  edge [
+    source 14
+    target 8
+    capacity 2500.0
+    mean "3.3820164"
+    std "0.33576378"
+    var "0.11273731"
+  ]
+  edge [
+    source 14
+    target 13
+    capacity 1000.0
+    mean "4.2318587"
+    std "0.9532439"
+    var "0.908674"
+  ]
+  edge [
+    source 14
+    target 15
+    capacity 1000.0
+    mean "2.7645898"
+    std "0.53719825"
+    var "0.28858194"
+  ]
+  edge [
+    source 14
+    target 19
+    capacity 10000.0
+    mean "2.3770355e-05"
+    std "0.002617811"
+    var "6.8529353e-06"
+  ]
+  edge [
+    source 14
+    target 20
+    capacity 1000.0
+    mean "3.0621529"
+    std "0.51858234"
+    var "0.26892766"
+  ]
+  edge [
+    source 15
+    target 14
+    capacity 1000.0
+    mean "1.4912294"
+    std "0.9168831"
+    var "0.84067464"
+  ]
+  edge [
+    source 16
+    target 17
+    capacity 1000.0
+    mean "2.7299454e-06"
+    std "0.0009832854"
+    var "9.6685e-07"
+  ]
+  edge [
+    source 17
+    target 16
+    capacity 1000.0
+    mean "1.8973873"
+    std "0.95706534"
+    var "0.9159741"
+  ]
+  edge [
+    source 17
+    target 23
+    capacity 1000.0
+    mean "0.5342746"
+    std "0.53580195"
+    var "0.28708375"
+  ]
+  edge [
+    source 18
+    target 19
+    capacity 1000.0
+    mean "5.3367634"
+    std "0.7813819"
+    var "0.6105577"
+  ]
+  edge [
+    source 19
+    target 2
+    capacity 2500.0
+    mean "3.3526392"
+    std "0.62962395"
+    var "0.39642632"
+  ]
+  edge [
+    source 19
+    target 8
+    capacity 2500.0
+    mean "5.2056336"
+    std "0.23216806"
+    var "0.053902008"
+  ]
+  edge [
+    source 19
+    target 11
+    capacity 2500.0
+    mean "7.138679"
+    std "0.9704477"
+    var "0.94176877"
+  ]
+  edge [
+    source 19
+    target 12
+    capacity 2500.0
+    mean "2.2039747"
+    std "0.31735447"
+    var "0.10071386"
+  ]
+  edge [
+    source 19
+    target 13
+    capacity 10000.0
+    mean "1.6208893"
+    std "0.39831972"
+    var "0.1586586"
+  ]
+  edge [
+    source 19
+    target 14
+    capacity 10000.0
+    mean "3.1722798"
+    std "0.32622194"
+    var "0.10642075"
+  ]
+  edge [
+    source 19
+    target 18
+    capacity 1000.0
+    mean "5.1380153"
+    std "1.0539169"
+    var "1.1107408"
+  ]
+  edge [
+    source 19
+    target 23
+    capacity 10000.0
+    mean "2.2428172"
+    std "0.8770268"
+    var "0.769176"
+  ]
+  edge [
+    source 19
+    target 25
+    capacity 1000.0
+    mean "6.9255276"
+    std "0.6419144"
+    var "0.41205415"
+  ]
+  edge [
+    source 19
+    target 29
+    capacity 10000.0
+    mean "0.0028534061"
+    std "0.033232685"
+    var "0.0011044114"
+  ]
+  edge [
+    source 20
+    target 14
+    capacity 1000.0
+    mean "4.2887673"
+    std "0.47265798"
+    var "0.22340555"
+  ]
+  edge [
+    source 20
+    target 21
+    capacity 1000.0
+    mean "4.37944"
+    std "0.5945072"
+    var "0.35343885"
+  ]
+  edge [
+    source 21
+    target 9
+    capacity 1000.0
+    mean "4.4581943"
+    std "1.0012177"
+    var "1.002437"
+  ]
+  edge [
+    source 21
+    target 20
+    capacity 1000.0
+    mean "2.3676438"
+    std "0.547535"
+    var "0.29979455"
+  ]
+  edge [
+    source 22
+    target 25
+    capacity 1000.0
+    mean "1.4778643"
+    std "0.92901784"
+    var "0.8630742"
+  ]
+  edge [
+    source 23
+    target 10
+    capacity 1000.0
+    mean "5.167887"
+    std "0.54603857"
+    var "0.29815814"
+  ]
+  edge [
+    source 23
+    target 17
+    capacity 1000.0
+    mean "5.283675"
+    std "0.70269823"
+    var "0.49378484"
+  ]
+  edge [
+    source 23
+    target 19
+    capacity 10000.0
+    mean "2.7137623"
+    std "0.43728969"
+    var "0.19122228"
+  ]
+  edge [
+    source 23
+    target 24
+    capacity 1000.0
+    mean "0.009329439"
+    std "0.07221962"
+    var "0.0052156737"
+  ]
+  edge [
+    source 23
+    target 27
+    capacity 2500.0
+    mean "2.978968"
+    std "0.85781735"
+    var "0.73585063"
+  ]
+  edge [
+    source 24
+    target 23
+    capacity 1000.0
+    mean "4.7133484"
+    std "0.5794247"
+    var "0.33573294"
+  ]
+  edge [
+    source 25
+    target 19
+    capacity 1000.0
+    mean "1.3592606"
+    std "0.87189555"
+    var "0.7602018"
+  ]
+  edge [
+    source 25
+    target 22
+    capacity 1000.0
+    mean "4.7922305e-05"
+    std "0.0053883647"
+    var "2.9034476e-05"
+  ]
+  edge [
+    source 26
+    target 4
+    capacity 1000.0
+    mean "1.6382902"
+    std "0.96040565"
+    var "0.922379"
+  ]
+  edge [
+    source 27
+    target 6
+    capacity 1000.0
+    mean "4.002376"
+    std "0.55033517"
+    var "0.30286878"
+  ]
+  edge [
+    source 27
+    target 23
+    capacity 2500.0
+    mean "3.335423"
+    std "0.7098951"
+    var "0.503951"
+  ]
+  edge [
+    source 27
+    target 29
+    capacity 2500.0
+    mean "2.0726502"
+    std "0.55125993"
+    var "0.30388752"
+  ]
+  edge [
+    source 28
+    target 29
+    capacity 1000.0
+    mean "0.39390898"
+    std "0.5988943"
+    var "0.35867435"
+  ]
+  edge [
+    source 29
+    target 2
+    capacity 2500.0
+    mean "4.8505216"
+    std "0.4825883"
+    var "0.23289147"
+  ]
+  edge [
+    source 29
+    target 19
+    capacity 10000.0
+    mean "4.0380425"
+    std "0.49210396"
+    var "0.24216633"
+  ]
+  edge [
+    source 29
+    target 27
+    capacity 2500.0
+    mean "5.3555527"
+    std "0.519965"
+    var "0.27036357"
+  ]
+  edge [
+    source 29
+    target 28
+    capacity 1000.0
+    mean "4.1443586"
+    std "0.41054597"
+    var "0.16854799"
+  ]
+  edge [
+    source 29
+    target 33
+    capacity 2500.0
+    mean "3.280242"
+    std "0.38136914"
+    var "0.14544243"
+  ]
+  edge [
+    source 29
+    target 30
+    capacity 1000.0
+    mean "5.5226097"
+    std "0.5492951"
+    var "0.30172512"
+  ]
+  edge [
+    source 30
+    target 29
+    capacity 1000.0
+    mean "2.1735258"
+    std "1.0793358"
+    var "1.1649659"
+  ]
+  edge [
+    source 30
+    target 31
+    capacity 1000.0
+    mean "0.011740156"
+    std "0.08137061"
+    var "0.006621176"
+  ]
+  edge [
+    source 31
+    target 30
+    capacity 1000.0
+    mean "2.8358662"
+    std "0.96645373"
+    var "0.93403286"
+  ]
+  edge [
+    source 32
+    target 33
+    capacity 1000.0
+    mean "0.0036973802"
+    std "0.04458747"
+    var "0.0019880424"
+  ]
+  edge [
+    source 33
+    target 8
+    capacity 1000.0
+    mean "6.0204325"
+    std "0.35376963"
+    var "0.12515295"
+  ]
+  edge [
+    source 33
+    target 29
+    capacity 2500.0
+    mean "0.020037092"
+    std "0.10264357"
+    var "0.010535702"
+  ]
+  edge [
+    source 33
+    target 32
+    capacity 1000.0
+    mean "2.8955429"
+    std "0.6276632"
+    var "0.39396107"
+  ]
+  edge [
+    source 33
+    target 34
+    capacity 1000.0
+    mean "2.2600148"
+    std "1.1092894"
+    var "1.2305229"
+  ]
+  edge [
+    source 34
+    target 33
+    capacity 1000.0
+    mean "4.08194"
+    std "0.79058415"
+    var "0.6250233"
+  ]
+  edge [
+    source 34
+    target 35
+    capacity 1000.0
+    mean "9.171917e-05"
+    std "0.006199841"
+    var "3.8438026e-05"
+  ]
+  edge [
+    source 35
+    target 34
+    capacity 1000.0
+    mean "5.063588"
+    std "1.2811842"
+    var "1.641433"
+  ]
+]
