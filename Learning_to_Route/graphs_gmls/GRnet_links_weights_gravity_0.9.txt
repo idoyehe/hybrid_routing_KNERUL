@@ -1,6 +1,7 @@
 graph [
   directed 1
-  Name "GRnet"
+  link_weights_graph 1
+  Name "GRnet_links_weights_gravity_0.9"
   node [
     id 0
     label "0"
