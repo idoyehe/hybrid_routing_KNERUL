@@ -50,9 +50,9 @@ class ECMPHistorySimplifiedEnv(ECMPHistoryEnv):
 
     def _process_action(self, action):
         action = super(ECMPHistorySimplifiedEnv, self)._process_action(action)
-        weights = np.zeros(shape=(self._num_edges,))
+        dynamic_weights = np.zeros(shape=(self._num_edges,))
         for action_index, weights_index in self._dynamic_link_weights_map.items():
-            weights[weights_index] = action[action_index]
-        assert self._static_weights.shape == weights.shape
-        weights += self._static_weights
-        return weights
+            dynamic_weights[weights_index] = action[action_index]
+        assert self._static_weights.shape == dynamic_weights.shape
+        action = dynamic_weights + self._static_weights
+        return action
