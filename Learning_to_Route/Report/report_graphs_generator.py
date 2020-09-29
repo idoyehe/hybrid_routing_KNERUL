@@ -48,7 +48,8 @@ def plot_learning_convergence(filepath: str, right_limit: int, left_limit: int, 
     plt.title(title)
     plt.legend()
     plt.grid()
-    plt.savefig("{}_{}-{}.{}".format(filepath.split(".txt")[0] + "_plot", left_limit, right_limit, "jpeg"), bbox_inches='tight')
+    plt.savefig("{}_{}-{}.{}".format(filepath.split(".txt")[0] + "_plot", left_limit, right_limit, "jpeg"),
+                bbox_inches='tight')
     plt.show()
 
 
@@ -63,10 +64,12 @@ def static_routing_graphs():
     plot_baselines_graphs(title="Gravity Sparsity 90%", avg_cong_ratio=[1.256, 1.175, 1.145, 1.109, 1.2],
                           error_bounds=[0.226, 0.129, 0.0995, 0.0745, 0.0633])
 
-    plot_baselines_graphs(title="Bimodal Sparsity 100% Elephant 20%", avg_cong_ratio=[1.2, 1.097, 1.07484, 1.0609, 1.0902],
+    plot_baselines_graphs(title="Bimodal Sparsity 100% Elephant 20%",
+                          avg_cong_ratio=[1.2, 1.097, 1.07484, 1.0609, 1.0902],
                           error_bounds=[0.14017, 0.0976, 0.084, 0.074144, 0.0685])
 
-    plot_baselines_graphs(title="Bimodal Sparsity 100% Elephant 40%", avg_cong_ratio=[1.1984, 1.09750, 1.0752, 1.0603, 1.1],
+    plot_baselines_graphs(title="Bimodal Sparsity 100% Elephant 40%",
+                          avg_cong_ratio=[1.1984, 1.09750, 1.0752, 1.0603, 1.1],
                           error_bounds=[0.1340, 0.0925, 0.07849, 0.0681, 0.06598],
                           hlines=[(1.75, "Prev", 'r'), (1.48, "Avg K", 'k'), (1.17, "Oblivious", 'indigo')])
 
@@ -82,7 +85,8 @@ def rl_routing_graphs():
         right_limit=3000,
         y_ticks=np.arange(1, 7, step=0.1),
         title="Gravity Sparsity 30%, 350 Matrices",
-        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'), (1.17, "Convergence", 'k'), ])
+        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'),
+                (1.17, "Convergence", 'k'), ])
 
     plot_learning_convergence(
         "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_350.txt",
@@ -90,7 +94,8 @@ def rl_routing_graphs():
         right_limit=3500,
         y_ticks=np.arange(1, 2, step=0.05),
         title="Gravity Sparsity 30%, 350 Matrices",
-        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'), (1.17, "Convergence", 'k'), ])
+        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'),
+                (1.17, "Convergence", 'k'), ])
 
     plot_learning_convergence(
         "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_10500.txt",
@@ -98,7 +103,8 @@ def rl_routing_graphs():
         right_limit=6000,
         y_ticks=np.arange(1, 7, step=0.1),
         title="Gravity Sparsity 30%, 10,500 Matrices",
-        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'), (1.31, "Convergence", 'k'), ])
+        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'),
+                (1.31, "Convergence", 'k'), ])
 
     plot_learning_convergence(
         "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_10500.txt",
@@ -106,7 +112,8 @@ def rl_routing_graphs():
         right_limit=4000,
         y_ticks=np.arange(1, 2, step=0.05),
         title="Gravity Sparsity 30%, 10,500 Matrices",
-        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'), (1.31, "Convergence", 'k'), ])
+        hlines=[(1.79, "Prev", 'r'), (1.64, "Avg K", 'g'), (1.196, "Oblivious", 'indigo'),
+                (1.31, "Convergence", 'k'), ])
 
     plot_learning_convergence(
         "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_0.9_10500.txt",
@@ -114,7 +121,8 @@ def rl_routing_graphs():
         right_limit=6000,
         y_ticks=np.arange(1, 8, step=0.1),
         title="Gravity Sparsity 90%, 10,500 Matrices",
-        hlines=[(1.256, "Prev", 'r'), (1.109, "Avg K", 'g'), ( 1.2, "Oblivious", 'indigo'), (1.06, "Convergence", 'k'), ])
+        hlines=[(1.256, "Prev", 'r'), (1.109, "Avg K", 'g'), (1.2, "Oblivious", 'indigo'),
+                (1.06, "Convergence", 'k'), ])
 
     plot_learning_convergence(
         "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_0.9_10500.txt",
@@ -122,7 +130,8 @@ def rl_routing_graphs():
         right_limit=4000,
         y_ticks=np.arange(1, 2, step=0.05),
         title="Gravity Sparsity 90%, 10,500 Matrices",
-        hlines=[(1.256, "Prev", 'r'), (1.109, "Avg K", 'g'), ( 1.2, "Oblivious", 'indigo'), (1.06, "Convergence", 'k'), ])
+        hlines=[(1.256, "Prev", 'r'), (1.109, "Avg K", 'g'), (1.2, "Oblivious", 'indigo'),
+                (1.06, "Convergence", 'k'), ])
 
     plot_learning_convergence(
         "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\bimodal\\ConsoleOut_bimodal_350.txt",
@@ -158,4 +167,9 @@ def rl_routing_graphs():
 
 
 if __name__ == "__main__":
-    rl_routing_graphs()
+    plot_learning_convergence(
+        "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/Report/RL_results/ConsoleOut_T_lex_gravity_0.9_10500_simplified.txt",
+        left_limit=0,
+        right_limit=5200,
+        y_ticks=np.arange(1, 8, step=0.1),
+        title="Gravity Sparsity 90%, 10,500 Matrices")

@@ -25,6 +25,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=10)
     parser.add_argument("-n_matrices", "--number_of_matrices", type=int, help="Number of matrices to load", default=350)
+    parser.add_argument("-bt_th", "--bottleneck_threshold", type=float, help="STD Threshold", default=0.4)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -46,6 +47,7 @@ if __name__ == "__main__":
     episode_length = args.episode_length
     history_length = args.history_length
     number_of_matrices = args.number_of_matrices
+    bottleneck_threshold = args.bottleneck_threshold
 
     save_path = "{}_agent_simplified_{}".format(args.dumped_path, number_of_matrices)
     dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, number_of_matrices)
@@ -55,6 +57,7 @@ if __name__ == "__main__":
                  entry_point='ecmp_history_simplified:ECMPHistorySimplifiedEnv',
                  kwargs={
                      'max_steps': episode_length,
+                     'bottleneck_th':bottleneck_threshold,
                      'history_length': history_length,
                      'topo_customize': topo,
                      'path_dumped': dumped_path,
