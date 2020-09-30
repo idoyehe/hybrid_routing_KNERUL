@@ -52,8 +52,8 @@ if __name__ == "__main__":
     save_diagnostics = args.save_diagnostics
     save_links_weights = args.save_links_weights
 
-    save_path = "{}_agent_{}".format(args.save_path, number_of_matrices)
-    dump_file_name = "{}_agent_diagnostics_{}".format(args.save_path, number_of_matrices)
+    save_path = "{}_agent_{}".format(args.dumped_path, number_of_matrices)
+    dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, number_of_matrices)
 
     if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
         register(id=ECMP_ENV_GYM_ID,
@@ -91,7 +91,7 @@ if __name__ == "__main__":
     env.close()
 
     if save_links_weights:
-        link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.save_path, number_of_matrices)
+        link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, number_of_matrices)
         link_weights_file = open(link_weights_file_name, 'wb')
         link_weights_matrix = np.array([step_data["links_weights"] for step_data in env_diagnostics]).transpose()
         np.save(link_weights_file, link_weights_matrix)
