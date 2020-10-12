@@ -1,4 +1,5 @@
 import ecmp_history
+from common.logger import logger
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
 from stable_baselines3.common.cmd_util import make_vec_env
@@ -63,7 +64,7 @@ if __name__ == "__main__":
                      'history_length': history_length,
                      'path_dumped': dumped_path,
                      'train_histories_length': number_of_matrices,
-                     'test_histories_length': 0,
+                     'test_histories_length': number_of_matrices * 2,
                      'history_action_type': HistoryConsts.ACTION_W_EPSILON}
                  )
 
@@ -86,9 +87,7 @@ if __name__ == "__main__":
         dump_file = open(dump_file_name, 'wb')
         pickle.dump({"env_diagnostics": env_diagnostics}, dump_file)
         dump_file.close()
-
-    model.save(path=save_path)
-    env.close()
+        model.save(path=save_path)
 
     if save_links_weights:
         link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, number_of_matrices)
@@ -96,3 +95,19 @@ if __name__ == "__main__":
         link_weights_matrix = np.array([step_data["links_weights"] for step_data in env_diagnostics]).transpose()
         np.save(link_weights_file, link_weights_matrix)
         link_weights_file.close()
+
+    logger.info("Testing Part")
+    env.envs[0].env.testing(True)
+    env.envs[0].env.set_data_source()
+    obs = env.reset()
+    rewards_list = list()
+    for _ in range(number_of_matrices * 2):
+        action, _states = model.predict(obs)
+        obs, reward, dones, info = env.step(action)
+        rewards_list.append(reward[0] * -1)
+
+    rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, number_of_matrices * 2)
+    rewards_file = open(rewards_file_name, 'wb')
+    rewards_list = np.array(rewards_list)
+    np.save(rewards_file, rewards_list)
+    rewards_file.close()

@@ -117,7 +117,7 @@ class ECMPHistoryEnv(Env):
 
 
         self._validate_data()
-        self.set_data_source(self._testing)
+        self.set_data_source()
 
     def _validate_data(self):
         is_equal_train = np.zeros((self._num_train_histories, self._num_train_histories))
@@ -143,10 +143,10 @@ class ECMPHistoryEnv(Env):
         assert np.sum(is_equal_test) == 0.0
         assert np.sum(is_equal_train_test) == 0.0
 
-    def set_data_source(self, testing):
-        self._observations = self._test_observations if testing else self._train_observations
-        self._num_sequences = self._num_test_histories if testing else self._num_train_histories
-        self._opt_res = self._opt_test_observations if testing else self._opt_train_observations
+    def set_data_source(self):
+        self._observations = self._test_observations if self._testing else self._train_observations
+        self._num_sequences = self._num_test_histories if self._testing else self._num_train_histories
+        self._opt_res = self._opt_test_observations if self._testing else self._opt_train_observations
 
     def _process_action(self, action):
         if self._history_action_type == HistoryConsts.ACTION_W_EPSILON:
