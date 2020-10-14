@@ -46,11 +46,28 @@ def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
     return flows
 
 
+def __customize_generation(g, pairs, mean, std):
+    flows = []
+
+    for pair in pairs:
+        f_size_mb = -1
+        while f_size_mb < 0:
+            f_size_mb = np.random.normal(mean, std)
+
+        flows.append((pair[0], pair[1], f_size_mb))
+
+    return flows
+
+
 def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage=0.2, big=400, small=150):
     if flow_generation_type == TMType.BIMODAL:
         get_flows = partial(__bimodal_generation, percent=elephant_percentage, big=big, small=small)
     elif flow_generation_type == TMType.GRAVITY:
         get_flows = __gravity_generation
+    elif flow_generation_type == TMType.CUSTOMIZE:
+        mean = np.mean(graph.get_edges_capacities())
+        std = np.std(graph.get_edges_capacities()) * 1.5
+        get_flows = partial(__customize_generation, mean=mean, std=std)
     else:
         raise Exception("No exists traffic matrix type")
 
@@ -77,7 +94,9 @@ def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, elephant_perc
     return tm_mat
 
 
-def one_sample_tm_base(graph, matrix_sparsity, tm_type, elephant_percentage=0.2, network_elephant=400, network_mice=150):
-    tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, elephant_percentage, big=network_elephant, small=network_mice)
+def one_sample_tm_base(graph, matrix_sparsity, tm_type, elephant_percentage=0.2, network_elephant=400,
+                       network_mice=150):
+    tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, elephant_percentage, big=network_elephant,
+                          small=network_mice)
     assert np.all(tm >= 0)
     return tm

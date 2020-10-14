@@ -1,4 +1,4 @@
-import ecmp_history
+import rl_env_history
 from common.logger import logger
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
@@ -7,13 +7,12 @@ from gym import envs, register
 from common.rl_env_consts import HistoryConsts
 from argparse import ArgumentParser
 from sys import argv
-import pickle
 import torch
 import numpy as np
 
 assert torch.cuda.is_available()
 
-ECMP_ENV_GYM_ID: str = 'ecmp-history-v0'
+RL_ENV_HISTORY_GYM_ID: str = 'rl-env-history-v0'
 
 
 def _getOptions(args=argv[1:]):
@@ -26,7 +25,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-tts", "--total_timesteps", type=str, help="Agent Total timesteps", default="1000")
     parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=10)
-    parser.add_argument("-n_matrices", "--number_of_matrices", type=int, help="Number of matrices to load",
+    parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
                         default=350)
     parser.add_argument("-s_diag", "--save_diagnostics", type=bool, help="Dump env diagnostics", default=False)
     parser.add_argument("-s_weights", "--save_links_weights", type=bool, help="Dump links weights", default=False)
@@ -39,37 +38,38 @@ def _getOptions(args=argv[1:]):
 
 if __name__ == "__main__":
     args = _getOptions()
-
-    print("Architecture is: {}".format(args.mlp_architecture))
+    mlp_arch = args.mlp_architecture
     gamma = args.gamma
-    print("gamma = {}".format(gamma))
     dumped_path = args.dumped_path
     n_envs = args.number_of_envs
     n_steps = args.number_of_steps
     total_timesteps = args.total_timesteps
     episode_length = args.episode_length
     history_length = args.history_length
-    number_of_matrices = args.number_of_matrices
+    num_train_observations = args.number_of_observations
     save_diagnostics = args.save_diagnostics
     save_links_weights = args.save_links_weights
 
-    save_path = "{}_agent_{}".format(args.dumped_path, number_of_matrices)
-    dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, number_of_matrices)
+    num_test_observations = num_train_observations * 2
 
-    if ECMP_ENV_GYM_ID not in envs.registry.env_specs:
-        register(id=ECMP_ENV_GYM_ID,
-                 entry_point='ecmp_history:ECMPHistoryEnv',
+    logger.info("Data loaded from: {}".format(dumped_path))
+    logger.info("Architecture is: {}".format(mlp_arch))
+    logger.info("gamma is: {}".format(gamma))
+
+    if RL_ENV_HISTORY_GYM_ID not in envs.registry.env_specs:
+        register(id=RL_ENV_HISTORY_GYM_ID,
+                 entry_point='rl_env_history:RL_Env_History',
                  kwargs={
                      'max_steps': episode_length,
                      'history_length': history_length,
                      'path_dumped': dumped_path,
-                     'train_histories_length': number_of_matrices,
-                     'test_histories_length': number_of_matrices * 2,
+                     'num_train_observations': num_train_observations,
+                     'num_test_observations': num_test_observations,
                      'history_action_type': HistoryConsts.ACTION_W_EPSILON}
                  )
 
-    env = make_vec_env(ECMP_ENV_GYM_ID, n_envs=n_envs)
-    policy_kwargs = [{"pi": args.mlp_architecture, "vf": args.mlp_architecture}]
+    env = make_vec_env(RL_ENV_HISTORY_GYM_ID, n_envs=n_envs)
+    policy_kwargs = [{"pi": mlp_arch, "vf": mlp_arch}]
 
 
     class CustomMLPPolicy(MlpPolicy):
@@ -84,13 +84,15 @@ if __name__ == "__main__":
 
     env_diagnostics = env.envs[0].env.diagnostics
     if save_diagnostics:
+        save_path = "{}_agent_{}".format(args.dumped_path, num_train_observations)
+        dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, num_train_observations)
         dump_file = open(dump_file_name, 'wb')
-        pickle.dump({"env_diagnostics": env_diagnostics}, dump_file)
+        np.save(dump_file, env_diagnostics)
         dump_file.close()
         model.save(path=save_path)
 
     if save_links_weights:
-        link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, number_of_matrices)
+        link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, num_train_observations)
         link_weights_file = open(link_weights_file_name, 'wb')
         link_weights_matrix = np.array([step_data["links_weights"] for step_data in env_diagnostics]).transpose()
         np.save(link_weights_file, link_weights_matrix)
@@ -98,15 +100,15 @@ if __name__ == "__main__":
 
     logger.info("Testing Part")
     env.envs[0].env.testing(True)
-    env.envs[0].env.set_data_source()
     obs = env.reset()
     rewards_list = list()
-    for _ in range(number_of_matrices * 2):
+    for _ in range(num_test_observations):
         action, _states = model.predict(obs)
         obs, reward, dones, info = env.step(action)
+        env.reset()
         rewards_list.append(reward[0] * -1)
 
-    rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, number_of_matrices * 2)
+    rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, num_test_observations)
     rewards_file = open(rewards_file_name, 'wb')
     rewards_list = np.array(rewards_list)
     np.save(rewards_file, rewards_list)

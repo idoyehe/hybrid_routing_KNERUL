@@ -70,7 +70,9 @@ class EdgeConsts:
     MAX_WEIGHT = 50
     MIN_WEIGHT = 1
 
+
 class TMType:
     # TMs types
     BIMODAL = "bimodal"
     GRAVITY = "gravity"
+    CUSTOMIZE = "customize"

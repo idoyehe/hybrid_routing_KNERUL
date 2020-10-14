@@ -32,6 +32,8 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
                                             elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                             network_mice=network_mice,
                                             total_matrices=total_matrices)
+    if tm_type == TMType.CUSTOMIZE:
+        matrix_sparsity = "random"
 
     dict2dump = {
         "tms": tms,
@@ -63,6 +65,8 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
     logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices))
     tm_list = list()
     for index in range(total_matrices):
+        if tm_type == TMType.CUSTOMIZE:
+            matrix_sparsity = np.random.uniform()
         tm = one_sample_tm_base(graph=net.get_g_directed,
                                 matrix_sparsity=matrix_sparsity,
                                 tm_type=tm_type,
