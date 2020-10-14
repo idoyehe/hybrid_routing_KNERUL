@@ -80,7 +80,7 @@ def static_routing_graphs():
 
 def rl_routing_graphs():
     plot_learning_convergence(
-        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_350.txt",
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_0.3_350.txt",
         left_limit=0,
         right_limit=3000,
         y_ticks=np.arange(1, 7, step=0.1),
@@ -89,7 +89,7 @@ def rl_routing_graphs():
                 (1.17, "Convergence", 'k'), ])
 
     plot_learning_convergence(
-        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_350.txt",
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_0.3_350.txt",
         left_limit=500,
         right_limit=3500,
         y_ticks=np.arange(1, 2, step=0.05),
@@ -98,7 +98,7 @@ def rl_routing_graphs():
                 (1.17, "Convergence", 'k'), ])
 
     plot_learning_convergence(
-        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_10500.txt",
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_0.3_10500.txt",
         left_limit=0,
         right_limit=6000,
         y_ticks=np.arange(1, 7, step=0.1),
@@ -107,7 +107,7 @@ def rl_routing_graphs():
                 (1.31, "Convergence", 'k'), ])
 
     plot_learning_convergence(
-        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_10500.txt",
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\gravity\\ConsoleOut_gravity_0.3_10500.txt",
         left_limit=500,
         right_limit=4000,
         y_ticks=np.arange(1, 2, step=0.05),
@@ -134,7 +134,7 @@ def rl_routing_graphs():
                 (1.06, "Convergence", 'k'), ])
 
     plot_learning_convergence(
-        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\bimodal\\ConsoleOut_bimodal_350.txt",
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\bimodal\\ConsoleOut_bimodal_elephant_0.4_350.txt",
         left_limit=0,
         right_limit=6000,
         y_ticks=np.arange(1, 11, step=0.2),
@@ -142,7 +142,7 @@ def rl_routing_graphs():
         hlines=[(1.2, "Prev", 'r'), (1.09, "Avg K", 'g'), (1.1, "Oblivious", 'indigo'), (1.03, "Convergence", 'k'), ])
 
     plot_learning_convergence(
-        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\bimodal\\ConsoleOut_bimodal_350.txt",
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\bimodal\\ConsoleOut_bimodal_elephant_0.4_350.txt",
         left_limit=1000,
         right_limit=4000,
         y_ticks=np.arange(1, 1.2, step=0.01),
@@ -150,7 +150,7 @@ def rl_routing_graphs():
         hlines=[(1.2, "Prev", 'r'), (1.09, "Avg K", 'g'), (1.1, "Oblivious", 'indigo'), (1.03, "Convergence", 'k'), ])
 
     plot_learning_convergence(
-        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\bimodal\\ConsoleOut_bimodal_10500.txt",
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\bimodal\\ConsoleOut_bimodal_elephant_0.4_10500.txt",
         left_limit=0,
         right_limit=6000,
         y_ticks=np.arange(1, 11.2, step=0.2),
@@ -158,7 +158,7 @@ def rl_routing_graphs():
         hlines=[(1.2, "Prev", 'r'), (1.09, "Avg K", 'g'), (1.1, "Oblivious", 'indigo'), (1.04, "Convergence", 'k'), ])
 
     plot_learning_convergence(
-        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\bimodal\\ConsoleOut_bimodal_10500.txt",
+        "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\Report\\RL_results\\bimodal\\ConsoleOut_bimodal_elephant_0.4_10500.txt",
         left_limit=1000,
         right_limit=4000,
         y_ticks=np.arange(1, 1.23, step=0.01),
