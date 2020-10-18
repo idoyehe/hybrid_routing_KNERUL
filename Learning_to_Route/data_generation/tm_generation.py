@@ -52,22 +52,40 @@ def __customize_generation(g, pairs, mean, std):
     for pair in pairs:
         f_size_mb = -1
         while f_size_mb < 0:
-            f_size_mb = np.random.normal(mean, std)
+            f_size_mb = np.mean([1477.6729,121674.91])
 
         flows.append((pair[0], pair[1], f_size_mb))
 
     return flows
 
+def __event_generation(graph, pairs, f_size_mb):
+    flows = [(pair[0], pair[1], f_size_mb) for pair in pairs]
+    return flows
+
+def __const_generation(_, pairs, const_value):
+    flows = [(pair[0], pair[1], const_value) for pair in pairs]
+    return flows
+
 
 def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage=0.2, big=400, small=150):
-    if flow_generation_type == TMType.BIMODAL:
+    if flow_generation_type == TMType.CONST:
+        const_value = np.mean(graph.get_edges_capacities())
+        matrix_sparsity = 1.0
+        get_flows = partial(__const_generation, const_value=const_value)
+    elif flow_generation_type == TMType.BIMODAL:
         get_flows = partial(__bimodal_generation, percent=elephant_percentage, big=big, small=small)
     elif flow_generation_type == TMType.GRAVITY:
         get_flows = __gravity_generation
     elif flow_generation_type == TMType.CUSTOMIZE:
         mean = np.mean(graph.get_edges_capacities())
-        std = np.std(graph.get_edges_capacities()) * 1.5
+        std = np.std(graph.get_edges_capacities()) * 10
         get_flows = partial(__customize_generation, mean=mean, std=std)
+    elif flow_generation_type == TMType.RARE_EVENT:
+        coin = np.random.uniform()
+        get_flows = __gravity_generation
+        if coin <= 0.2:
+            value = np.max(graph.get_edges_capacities())
+            get_flows = partial(__event_generation, f_size_mb=value)
     else:
         raise Exception("No exists traffic matrix type")
 

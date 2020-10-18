@@ -73,6 +73,7 @@ class EdgeConsts:
 
 class TMType:
     # TMs types
+    CONST = "const"
     BIMODAL = "bimodal"
     GRAVITY = "gravity"
     RARE_EVENT = "event"
