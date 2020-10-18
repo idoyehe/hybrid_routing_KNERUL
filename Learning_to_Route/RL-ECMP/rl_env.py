@@ -36,7 +36,7 @@ class RL_Env(Env):
         self._g_name = self._network.get_name
         self._num_nodes = self._network.get_num_nodes
         self._tm_start_index = 0
-        self._current_sequence_index = -1
+        self._current_observation_index = -1
 
         self._history_length = history_length  # number of each state history
         self._history_action_type = history_action_type
@@ -142,7 +142,7 @@ class RL_Env(Env):
 
     def _get_observation(self):
         self._current_history = np.stack(
-            self._observations_tms[self._current_sequence_index][
+            self._observations_tms[self._current_observation_index][
             self._tm_start_index:self._tm_start_index + self._history_length])
         return self._current_history
 
@@ -153,12 +153,6 @@ class RL_Env(Env):
             action[action <= 0] = HistoryConsts.INFTY
         return action
 
-
-    def _get_observation(self):
-        self._current_history = np.stack(
-            self._observations_tms[self._current_sequence_index][
-            self._tm_start_index:self._tm_start_index + self._history_length])
-        return self._current_history
 
     def render(self, mode='human'):
         pass

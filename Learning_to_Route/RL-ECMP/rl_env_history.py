@@ -44,7 +44,7 @@ class RL_Env_History(RL_Env):
         env_data = dict()
         links_weights = self._modify_action(action)
 
-        reward, congestion_ratio, cost, optimal_congestion = self._process_action_get_reward(links_weights)
+        congestion_ratio, cost, optimal_congestion = self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
         env_data["links_weights"] = np.array(links_weights)
@@ -59,9 +59,13 @@ class RL_Env_History(RL_Env):
 
         if not congestion_ratio >= 1.0:
             assert error_bound(cost, optimal_congestion, 5e-4)
-            logger.info("BUG!! congestion_ratio is not validate error bound {}".format(congestion_ratio))
+            logger.info(
+                "BUG!! congestion_ratio is {} not validate error bound!\nCost: {}\nOptimal: {}".format(congestion_ratio,
+                                                                                                       cost,
+                                                                                                       optimal_congestion))
             congestion_ratio = 1.0
 
+        reward = congestion_ratio * self._NORM_FACTOR
         done = self._is_terminal
         info = env_data
         self._diagnostics.append(info)
@@ -69,15 +73,14 @@ class RL_Env_History(RL_Env):
 
     def reset(self):
         self._tm_start_index = 0
-        self._current_sequence_index = (self._current_sequence_index + 1) % self._observations_length
+        self._current_observation_index = (self._current_observation_index + 1) % self._observations_length
         return self._get_observation()
 
-    def _process_action_get_reward(self, links_weights):
-        tm = self._observations_tms[self._current_sequence_index][self._tm_start_index + self._history_length]
-        optimal_congestion = self._optimal_values[self._current_sequence_index][
+    def _process_action_get_cost(self, links_weights):
+        tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
+        optimal_congestion = self._optimal_values[self._current_observation_index][
             self._tm_start_index + self._history_length]
         cost, congestion_dict = self._optimizer.step(links_weights, tm)
         congestion_ratio = cost / optimal_congestion
-        reward = congestion_ratio * self._NORM_FACTOR
         assert congestion_ratio == cost / optimal_congestion
-        return reward, congestion_ratio, cost, optimal_congestion
+        return congestion_ratio, cost, optimal_congestion
