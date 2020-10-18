@@ -75,4 +75,5 @@ class TMType:
     # TMs types
     BIMODAL = "bimodal"
     GRAVITY = "gravity"
+    RARE_EVENT = "event"
     CUSTOMIZE = "customize"

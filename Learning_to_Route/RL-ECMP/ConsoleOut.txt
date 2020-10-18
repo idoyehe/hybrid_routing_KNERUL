@@ -1,5 +1,0 @@
-INFO:Data loaded from: /home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/TMs_DB/T-lex/T-lex_tms_12X12_length_20000_gravity_sparsity_0.3
-INFO:Architecture is: [128, 64, 64]
-INFO:gamma is: 0
-INFO:Creating Network Class
-INFO:Creating Network Class
