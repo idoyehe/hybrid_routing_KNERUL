@@ -35,6 +35,8 @@ class NetworkClass:
         self._reducing_map_dict = None
         self._id2edge_map = None
         self._edge2id_map = None
+        self._capacity_map = None
+        self._total_capacity = 0
 
         if not self._is_directed:
             self._g_directed = NetworkClass(self.get_graph.to_directed())
@@ -235,6 +237,16 @@ class NetworkClass:
     def print_network(self):
         nx.draw(self.get_graph)
         plt.show()
+
+    def capacity_map(self):
+        if self._capacity_map is None:
+            self._capacity_map = dict()
+            self._total_capacity = 0
+            for node in self.nodes:
+                node_out_cap = sum(out_edge[2][EdgeConsts.CAPACITY_STR] for out_edge in self.get_g_directed.out_edges_by_node(node, data=True))
+                self._capacity_map[node] = node_out_cap
+                self._total_capacity += node_out_cap
+        return self._capacity_map, self._total_capacity
 
 
 if __name__ == "__main__":

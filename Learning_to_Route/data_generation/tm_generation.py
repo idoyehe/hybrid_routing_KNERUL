@@ -7,22 +7,13 @@ from functools import partial
 
 def __gravity_generation(g, pairs, scale=1.0):
     flows = []
-    included_nodes = set()
-    for p in pairs:
-        included_nodes.add(p[0])
-        included_nodes.add(p[1])
 
-    capacity_map = {}
-    total_capacity: float = 0.0
-    for node in included_nodes:
-        node_out_cap = sum(out_edge[2][Consts.CAPACITY_STR] for out_edge in g.out_edges_by_node(node, data=True))
-        capacity_map[node] = node_out_cap
-        total_capacity += node_out_cap
+    capacity_map, total_capacity = g.capacity_map()
 
     for pair in pairs:
         src, dst = pair
-        f_size = to_int(capacity_map[src] * capacity_map[dst] / total_capacity)
-        flows.append((src, dst, scale * f_size))
+        f_mb_size = to_int(capacity_map[src] * capacity_map[dst] / total_capacity)
+        flows.append((src, dst, scale * f_mb_size))
 
     return flows
 
@@ -46,21 +37,10 @@ def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
     return flows
 
 
-def __customize_generation(g, pairs, mean, std):
-    flows = []
-
-    for pair in pairs:
-        f_size_mb = -1
-        while f_size_mb < 0:
-            f_size_mb = np.mean([1477.6729,121674.91])
-
-        flows.append((pair[0], pair[1], f_size_mb))
-
-    return flows
-
 def __event_generation(graph, pairs, f_size_mb):
     flows = [(pair[0], pair[1], f_size_mb) for pair in pairs]
     return flows
+
 
 def __const_generation(_, pairs, const_value):
     flows = [(pair[0], pair[1], const_value) for pair in pairs]
@@ -70,16 +50,11 @@ def __const_generation(_, pairs, const_value):
 def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage=0.2, big=400, small=150):
     if flow_generation_type == TMType.CONST:
         const_value = np.mean(graph.get_edges_capacities())
-        matrix_sparsity = 1.0
         get_flows = partial(__const_generation, const_value=const_value)
     elif flow_generation_type == TMType.BIMODAL:
         get_flows = partial(__bimodal_generation, percent=elephant_percentage, big=big, small=small)
     elif flow_generation_type == TMType.GRAVITY:
         get_flows = __gravity_generation
-    elif flow_generation_type == TMType.CUSTOMIZE:
-        mean = np.mean(graph.get_edges_capacities())
-        std = np.std(graph.get_edges_capacities()) * 10
-        get_flows = partial(__customize_generation, mean=mean, std=std)
     elif flow_generation_type == TMType.RARE_EVENT:
         coin = np.random.uniform()
         get_flows = __gravity_generation

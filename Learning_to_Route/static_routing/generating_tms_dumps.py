@@ -15,7 +15,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-topo", "--topology_url", type=str, help="The url to load graph topology from")
     parser.add_argument("-cap", "--default_capacity", type=float, help="The capacity for each edge")
     parser.add_argument("-n", "--total_matrices", type=int, help="The number of total matrices")
-    parser.add_argument("-sp", "--sparsity", type=float, help="The sparsity of the matrix",default=1.0)
+    parser.add_argument("-sp", "--sparsity", type=float, help="The sparsity of the matrix", default=0.5)
     parser.add_argument("-m_type", "--tm_type", type=str, help="The type of the matrix")
     parser.add_argument("-e_p", "--elephant_percentage", type=float, help="The percentage of elephant flows")
     parser.add_argument("-n_e", "--network_elephant", type=float, help="The network elephant expectancy", default=400)
@@ -32,10 +32,6 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
                                             elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                             network_mice=network_mice,
                                             total_matrices=total_matrices)
-    if tm_type == TMType.CUSTOMIZE:
-        matrix_sparsity = "random"
-    elif tm_type == TMType.CONST:
-        matrix_sparsity = 1.0
 
     dict2dump = {
         "tms": tms,
