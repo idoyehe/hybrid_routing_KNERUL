@@ -98,19 +98,19 @@ class RL_Env(Env):
         is_equal_train_test = np.zeros((self._num_train_observations, self._num_test_observations))
 
         for i in range(self._num_train_observations):
-            for j in range(self._num_train_observations):
-                if i == j:
-                    continue
-                is_equal_train[i, j] = np.array_equal(self._train_observations[i], self._train_observations[j])
+            for j in range(i + 1, self._num_train_observations):
+                is_equal_train[i, j] = np.array_equal(self._train_observations[i].flatten(),
+                                                      self._train_observations[j].flatten())
 
         for i in range(self._num_test_observations):
-            for j in range(self._num_test_observations):
-                if i == j: continue
-                is_equal_test[i, j] = np.array_equal(self._test_observations[i], self._test_observations[j])
+            for j in range(i + 1, self._num_test_observations):
+                is_equal_test[i, j] = np.array_equal(self._test_observations[i].flatten(),
+                                                     self._test_observations[j].flatten())
 
         for i in range(self._num_train_observations):
             for j in range(self._num_test_observations):
-                is_equal_train_test[i, j] = np.array_equal(self._train_observations[i], self._test_observations[j])
+                is_equal_train_test[i, j] = np.array_equal(self._train_observations[i].flatten(),
+                                                           self._test_observations[j].flatten())
 
         assert np.sum(is_equal_train) == 0.0
         assert np.sum(is_equal_test) == 0.0
@@ -152,7 +152,6 @@ class RL_Env(Env):
         elif self._history_action_type == HistoryConsts.ACTION_W_INFTY:
             action[action <= 0] = HistoryConsts.INFTY
         return action
-
 
     def render(self, mode='human'):
         pass
