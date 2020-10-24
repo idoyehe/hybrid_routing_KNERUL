@@ -235,7 +235,7 @@ class NetworkClass:
         return self.get_graph.in_edges(node, data=data)
 
     def print_network(self):
-        nx.draw(self.get_graph)
+        nx.draw(self.get_graph,with_labels = True)
         plt.show()
 
     def capacity_map(self):
@@ -243,10 +243,22 @@ class NetworkClass:
             self._capacity_map = dict()
             self._total_capacity = 0
             for node in self.nodes:
-                node_out_cap = sum(out_edge[2][EdgeConsts.CAPACITY_STR] for out_edge in self.get_g_directed.out_edges_by_node(node, data=True))
+                node_out_cap = sum(out_edge[2][EdgeConsts.CAPACITY_STR] for out_edge in
+                                   self.get_g_directed.out_edges_by_node(node, data=True))
                 self._capacity_map[node] = node_out_cap
                 self._total_capacity += node_out_cap
         return self._capacity_map, self._total_capacity
+
+    def get_node_degree(self, node_id):
+        adj = self.get_adjacency
+        return np.sum(adj[node_id])
+
+    def get_degrees(self):
+        deg_list = list()
+        for node in self.nodes:
+            deg_list.append(self.get_node_degree(node))
+
+        return deg_list
 
 
 if __name__ == "__main__":
