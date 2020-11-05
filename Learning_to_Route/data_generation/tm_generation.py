@@ -1,21 +1,19 @@
 from Learning_to_Route.common.consts import TMType, Consts
-from Learning_to_Route.common.utils import *
-from random import shuffle
 import numpy as np
 from functools import partial
+from random import shuffle
 
 
 def __gravity_generation(g, pairs, scale=1.0):
-    flows = []
+    all_gravity_flows = g.gravity_traffic_map(scale)
+    return [flow for flow in all_gravity_flows if flow[0:2] in pairs]
 
-    capacity_map, total_capacity = g.capacity_map()
 
-    for pair in pairs:
-        src, dst = pair
-        f_mb_size = to_int(capacity_map[src] * capacity_map[dst] / total_capacity)
-        flows.append((src, dst, scale * f_mb_size))
-
-    return flows
+def __uniform_generation(g, pairs, scale=1.0):
+    all_gravity_flows = g.gravity_traffic_map(scale)
+    lower_bound = min([flow for _, _, flow in all_gravity_flows])
+    upper_bound = max([flow for _, _, flow in all_gravity_flows])
+    return [(src, dst, scale * np.random.uniform(lower_bound, upper_bound)) for src, dst in pairs]
 
 
 def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
@@ -47,7 +45,8 @@ def __const_generation(_, pairs, const_value):
     return flows
 
 
-def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage=0.2, big=400, small=150):
+def __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs=False, elephant_percentage=0.2, big=400,
+                  small=150):
     if flow_generation_type == TMType.CONST:
         const_value = np.mean(graph.get_edges_capacities())
         get_flows = partial(__const_generation, const_value=const_value)
@@ -55,30 +54,18 @@ def __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percent
         get_flows = partial(__bimodal_generation, percent=elephant_percentage, big=big, small=small)
     elif flow_generation_type == TMType.GRAVITY:
         get_flows = __gravity_generation
-    elif flow_generation_type == TMType.RARE_EVENT:
-        coin = np.random.uniform()
-        get_flows = __gravity_generation
-        if coin <= 0.2:
-            value = np.max(graph.get_edges_capacities())
-            get_flows = partial(__event_generation, f_size_mb=value)
+    elif flow_generation_type == TMType.UNIFORM:
+        get_flows = __uniform_generation
     else:
         raise Exception("No exists traffic matrix type")
 
-    all_pairs = list(graph.get_all_pairs())
-
-    # shuffle the pairs
-    shuffle(all_pairs)
-    num_pairs_selected = int(np.ceil(len(all_pairs) * matrix_sparsity))
-    pairs = []
-    while len(pairs) != num_pairs_selected:
-        new_ind = np.random.choice(len(all_pairs))
-        pairs.append(all_pairs[new_ind])
-        all_pairs.pop(new_ind)
+    pairs = graph.choosing_pairs(matrix_sparsity, static_pairs)
     return get_flows(graph, pairs)
 
 
-def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, elephant_percentage=None, big=400, small=1):
-    tm = __generate_tm(graph, matrix_sparsity, flow_generation_type, elephant_percentage, big, small)
+def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, static_pairs=False, elephant_percentage=None,
+                     big=400, small=150):
+    tm = __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs, elephant_percentage, big, small)
     num_nodes = graph.get_num_nodes
 
     tm_mat = np.zeros((num_nodes, num_nodes), dtype=np.float32)
@@ -87,9 +74,10 @@ def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, elephant_perc
     return tm_mat
 
 
-def one_sample_tm_base(graph, matrix_sparsity, tm_type, elephant_percentage=0.2, network_elephant=400,
+def one_sample_tm_base(graph, matrix_sparsity, tm_type, static_pairs=False, elephant_percentage=0.2,
+                       network_elephant=400,
                        network_mice=150):
-    tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, elephant_percentage, big=network_elephant,
+    tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, static_pairs, elephant_percentage, big=network_elephant,
                           small=network_mice)
     assert np.all(tm >= 0)
     return tm

@@ -76,4 +76,4 @@ class TMType:
     CONST = "const"
     BIMODAL = "bimodal"
     GRAVITY = "gravity"
-    RARE_EVENT = "event"
+    UNIFORM = "uniform"

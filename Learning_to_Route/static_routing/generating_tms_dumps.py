@@ -16,6 +16,8 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-cap", "--default_capacity", type=float, help="The capacity for each edge")
     parser.add_argument("-n", "--total_matrices", type=int, help="The number of total matrices")
     parser.add_argument("-sp", "--sparsity", type=float, help="The sparsity of the matrix", default=0.5)
+    parser.add_argument("-stat_p", "--static_pairs", type=bool, help="Where the pairs with traffic are static",
+                        default=False)
     parser.add_argument("-m_type", "--tm_type", type=str, help="The type of the matrix")
     parser.add_argument("-e_p", "--elephant_percentage", type=float, help="The percentage of elephant flows")
     parser.add_argument("-n_e", "--network_elephant", type=float, help="The network elephant expectancy", default=400)
@@ -25,11 +27,12 @@ def _getOptions(args=argv[1:]):
 
 
 def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matrix_sparsity: float, tm_type,
-                      elephant_percentage: float,
-                      network_elephant, network_mice, total_matrices: int):
+                      static_pairs: bool, elephant_percentage: float, network_elephant, network_mice,
+                      total_matrices: int):
     tms = _generate_traffic_matrix_baseline(net=net,
                                             matrix_sparsity=matrix_sparsity, tm_type=tm_type,
-                                            elephant_percentage=elephant_percentage, network_elephant=network_elephant,
+                                            static_pairs=static_pairs, elephant_percentage=elephant_percentage,
+                                            network_elephant=network_elephant,
                                             network_mice=network_mice,
                                             total_matrices=total_matrices)
 
@@ -44,6 +47,8 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
                                                                                                 net.get_num_nodes,
                                                                                                 total_matrices, tm_type,
                                                                                                 matrix_sparsity)
+    if static_pairs:
+        file_name += "_static_pairs"
 
     from platform import system
     if system() == "Linux":
@@ -58,13 +63,15 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
     return file_name
 
 
-def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, tm_type, elephant_percentage: float,
+def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, tm_type, static_pairs: bool,
+                                      elephant_percentage: float,
                                       network_elephant, network_mice, total_matrices: int):
     logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices))
     tm_list = list()
     for index in range(total_matrices):
         tm = one_sample_tm_base(graph=net.get_g_directed,
                                 matrix_sparsity=matrix_sparsity,
+                                static_pairs=static_pairs,
                                 tm_type=tm_type,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
@@ -91,6 +98,7 @@ if __name__ == "__main__":
     filename: str = _dump_tms_and_opt(net=net, default_capacity=args.default_capacity, url=args.topology_url,
                                       matrix_sparsity=args.sparsity,
                                       tm_type=args.tm_type,
+                                      static_pairs=args.static_pairs,
                                       elephant_percentage=args.elephant_percentage,
                                       network_elephant=args.network_elephant,
                                       network_mice=args.network_mice,

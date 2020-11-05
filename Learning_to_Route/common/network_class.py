@@ -10,6 +10,8 @@ import numpy as np
 import networkx as nx
 from common.logger import logger
 import matplotlib.pyplot as plt
+from Learning_to_Route.common.utils import *
+from random import shuffle
 
 
 class NetworkClass:
@@ -37,6 +39,8 @@ class NetworkClass:
         self._edge2id_map = None
         self._capacity_map = None
         self._total_capacity = 0
+        self._flows = None
+        self._chosen_pairs = None
 
         if not self._is_directed:
             self._g_directed = NetworkClass(self.get_graph.to_directed())
@@ -235,10 +239,10 @@ class NetworkClass:
         return self.get_graph.in_edges(node, data=data)
 
     def print_network(self):
-        nx.draw(self.get_graph,with_labels = True)
+        nx.draw(self.get_graph, with_labels=True)
         plt.show()
 
-    def capacity_map(self):
+    def __capacity_map(self):
         if self._capacity_map is None:
             self._capacity_map = dict()
             self._total_capacity = 0
@@ -248,6 +252,33 @@ class NetworkClass:
                 self._capacity_map[node] = node_out_cap
                 self._total_capacity += node_out_cap
         return self._capacity_map, self._total_capacity
+
+    def gravity_traffic_map(self, scale=1.0):
+        if self._flows is None:
+            self.__capacity_map()
+            self._flows = []
+
+            for src, dst in self.get_all_pairs():
+                f_mb_size = to_int(self._capacity_map[src] * self._capacity_map[dst] / self._total_capacity)
+                self._flows.append((src, dst, scale * f_mb_size))
+        return self._flows
+
+    def __randomize_pairs(self, percent):
+        all_pairs = list(self.get_all_pairs())
+        # shuffle the pairs
+        shuffle(all_pairs)
+        num_pairs_selected = int(np.ceil(len(all_pairs) * percent))
+        chosen_pairs = []
+        while len(chosen_pairs) != num_pairs_selected:
+            pair_index = np.random.choice(len(all_pairs))
+            chosen_pairs.append(all_pairs[pair_index])
+            all_pairs.pop(pair_index)
+        return chosen_pairs
+
+    def choosing_pairs(self, percent, static=False):
+        if self._chosen_pairs is None or static is False:
+            self._chosen_pairs = self.__randomize_pairs(percent)
+        return self._chosen_pairs
 
     def get_node_degree(self, node_id):
         adj = self.get_adjacency
