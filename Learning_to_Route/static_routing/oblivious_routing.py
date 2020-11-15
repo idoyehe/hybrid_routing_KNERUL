@@ -77,7 +77,8 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
     for _arch in net_directed.edges:
         _h_sum = 0
         for _h in net_directed.edges:
-            pi_edges_dict[_arch][_h] = obliv_lp_problem.addVar(name="PI_{}_({})".format(_arch, _h), lb=0.0, vtype=GRB.CONTINUOUS)
+            pi_edges_dict[_arch][_h] = obliv_lp_problem.addVar(name="PI_{}_({})".format(_arch, _h), lb=0.0,
+                                                               vtype=GRB.CONTINUOUS)
             pi_vars_sum += pi_edges_dict[_arch][_h]
             cap_h = net_directed.get_edge_key(_h, EdgeConsts.CAPACITY_STR)
             _h_sum += cap_h * pi_edges_dict[_arch][_h]
@@ -119,12 +120,14 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
         # Flow conservation at the source
         out_flow_from_source = sum(f_arch_dict[out_arch][flow] for out_arch in net_directed.out_edges_by_node(src))
         in_flow_to_source = sum(f_arch_dict[in_arch][flow] for in_arch in net_directed.in_edges_by_node(src))
-        obliv_lp_problem.addConstr(out_flow_from_source - in_flow_to_source, GRB.EQUAL, 1.0, "{}->{};srcConst".format(src, dst))
+        obliv_lp_problem.addConstr(out_flow_from_source - in_flow_to_source, GRB.EQUAL, 1.0,
+                                   "{}->{};srcConst".format(src, dst))
 
         # Flow conservation at the destination
         out_flow_from_dest = sum(f_arch_dict[out_arch][flow] for out_arch in net_directed.out_edges_by_node(dst))
         in_flow_to_dest = sum(f_arch_dict[in_arch][flow] for in_arch in net_directed.in_edges_by_node(dst))
-        obliv_lp_problem.addConstr((in_flow_to_dest - out_flow_from_dest), GRB.EQUAL, 1.0, "{}->{};dstConst".format(src, dst))
+        obliv_lp_problem.addConstr((in_flow_to_dest - out_flow_from_dest), GRB.EQUAL, 1.0,
+                                   "{}->{};dstConst".format(src, dst))
 
         for u in net_directed.nodes:
             if u in flow:
@@ -165,13 +168,19 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
 
     per_arch_flow_fraction = defaultdict(
         lambda: np.zeros(shape=(net_directed.get_num_nodes, net_directed.get_num_nodes), dtype=np.float64))
+
+    per_flow_routing_scheme = np.zeros(shape=(net_directed.get_num_nodes, net_directed.get_num_nodes,
+                                                net_directed.get_num_nodes, net_directed.get_num_nodes),
+                                         dtype=np.float64)
+
     for _arch in net_directed.edges:
         for src, dst in net.get_all_pairs():
             assert src != dst
             flow = (src, dst)
             per_arch_flow_fraction[_arch][flow] = f_arch_dict[_arch][flow].x
+            per_flow_routing_scheme[flow][_arch] = f_arch_dict[_arch][flow].x
 
-    return obliv_ratio, per_arch_flow_fraction
+    return obliv_ratio, per_arch_flow_fraction, per_flow_routing_scheme
 
 
 def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: list, oblivious_routing_per_edge: dict):
@@ -206,11 +215,17 @@ def _getOptions(args=argv[1:]):
 
 if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
+    save_path = "/".join(dump_path.split("/")[0:-1])+"/"
     loaded_dict = load_dump_file(dump_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
-    oblivious_ratio, oblivious_routing_per_edge = _oblivious_routing(net)
+    oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = _oblivious_routing(net)
     print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
     c_l = _calculate_congestion_per_matrices(net=net, traffic_matrix_list=loaded_dict["tms"],
                                              oblivious_routing_per_edge=oblivious_routing_per_edge)
     print("Average Result: {}".format(np.average(c_l)))
     print("STD Result: {}".format(np.std(c_l)))
+
+    oblivious_routing_scheme_name = "{}oblivious_routing_schemes.npy".format(save_path)
+    oblivious_routing_scheme_file = open(oblivious_routing_scheme_name, 'wb')
+    np.save(oblivious_routing_scheme_file, per_flow_routing_scheme)
+    oblivious_routing_scheme_file.close()
