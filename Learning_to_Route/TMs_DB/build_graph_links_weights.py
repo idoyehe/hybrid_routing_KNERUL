@@ -10,7 +10,7 @@ def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for console output file")
     parser.add_argument("-p", "--file_path", type=str, help="The path for console output file")
     parser.add_argument("-topo", "--topology_url", type=str, help="The url to load graph topology from")
-    parser.add_argument("-n_links", "--number_of_links", type=int, help="Number of links to print")
+    parser.add_argument("-n_links", "--number_of_links", type=int, help="Number of links to print",default=-1)
     parser.add_argument("-s_t", "--start_time", type=int, help="Start time to show", default=0)
     parser.add_argument("-ex_p", "--export_path", type=str, help="path to export new graph GML", default="")
     options = parser.parse_args(args)
@@ -58,6 +58,7 @@ if __name__ == "__main__":
     topology_url = args.topology_url
     export_path = args.export_path
     net = NetworkClass(topology_zoo_loader(topology_url)).get_g_directed
+    number_of_links = number_of_links if number_of_links > 0 else net.get_num_edges
     print("Loading from file path: {}".format(file_path))
     link_weights_matrix = load_numpy_object_from_file(file_path)
     print("Done! loading from file")
