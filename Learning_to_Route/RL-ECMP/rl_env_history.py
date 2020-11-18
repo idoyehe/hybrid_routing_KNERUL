@@ -9,6 +9,7 @@ refactoring on 14 Oct 2020
 from rl_env import *
 from Learning_to_Route.common.utils import error_bound
 from optimizer import WNumpyOptimizer
+from optimizer_refine import WNumpyOptimizer_Refine
 
 
 class RL_Env_History(RL_Env):
@@ -41,14 +42,17 @@ class RL_Env_History(RL_Env):
         self._action_space = spaces.Box(low=0, high=np.inf, shape=(self._num_edges,))
 
     def step(self, action):
-        env_data = dict()
+        info = dict()
         links_weights = self._modify_action(action)
 
-        congestion_ratio, cost, optimal_congestion = self._process_action_get_cost(links_weights)
+        congestion_ratio, cost, optimal_congestion, routing_scheme = self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
-        env_data["links_weights"] = np.array(links_weights)
-        env_data[ExtraData.REWARD_OVER_FUTURE] = congestion_ratio
+        if self._testing:
+            info["links_weights"] = np.array(links_weights)
+            info["routing_scheme"] = np.array(routing_scheme)
+        info[ExtraData.REWARD_OVER_FUTURE] = congestion_ratio
+        self._diagnostics.append(info)
 
         self._tm_start_index += 1
         observation = self._get_observation()
@@ -67,8 +71,7 @@ class RL_Env_History(RL_Env):
 
         reward = congestion_ratio * self._NORM_FACTOR
         done = self._is_terminal
-        info = env_data
-        self._diagnostics.append(info)
+
         return observation, reward, done, info
 
     def reset(self):
@@ -80,7 +83,19 @@ class RL_Env_History(RL_Env):
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
         optimal_congestion = self._optimal_values[self._current_observation_index][
             self._tm_start_index + self._history_length]
-        cost, congestion_dict = self._optimizer.step(links_weights, tm)
+        cost, routing_scheme = self.optimizer_step(links_weights, tm)
         congestion_ratio = cost / optimal_congestion
         assert congestion_ratio == cost / optimal_congestion
-        return congestion_ratio, cost, optimal_congestion
+        return congestion_ratio, cost, optimal_congestion, routing_scheme
+
+    def optimizer_step(self, links_weights, tm):
+        routing_scheme = None
+        if self._testing:
+            cost, _, routing_scheme = self._optimizer.step(links_weights, tm)
+        else:
+            cost, _ = self._optimizer.step(links_weights, tm)
+        return cost, routing_scheme
+
+    def testing(self, _testing):
+        super(RL_Env_History, self).testing(_testing)
+        self._optimizer = WNumpyOptimizer_Refine(self._network)

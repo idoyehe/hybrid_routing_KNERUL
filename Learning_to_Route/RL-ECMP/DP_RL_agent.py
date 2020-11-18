@@ -29,6 +29,7 @@ def _getOptions(args=argv[1:]):
                         default=350)
     parser.add_argument("-s_diag", "--save_diagnostics", type=bool, help="Dump env diagnostics", default=False)
     parser.add_argument("-s_weights", "--save_links_weights", type=bool, help="Dump links weights", default=False)
+    parser.add_argument("-s_r_s", "--save_routing_schemes", type=bool, help="Dump Routing Schemes", default=False)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -49,6 +50,7 @@ if __name__ == "__main__":
     num_train_observations = args.number_of_observations
     save_diagnostics = args.save_diagnostics
     save_links_weights = args.save_links_weights
+    save_routing_schemes = args.save_routing_schemes
 
     num_test_observations = num_train_observations * 2
 
@@ -91,22 +93,34 @@ if __name__ == "__main__":
         dump_file.close()
         model.save(path=save_path)
 
-    if save_links_weights:
-        link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, num_train_observations)
-        link_weights_file = open(link_weights_file_name, 'wb')
-        link_weights_matrix = np.array([step_data["links_weights"] for step_data in env_diagnostics]).transpose()
-        np.save(link_weights_file, link_weights_matrix)
-        link_weights_file.close()
+
 
     logger.info("Testing Part")
     env.envs[0].env.testing(True)
     obs = env.reset()
     rewards_list = list()
+    diagnostics = list()
     for _ in range(num_test_observations):
         action, _states = model.predict(obs)
         obs, reward, dones, info = env.step(action)
+        diagnostics.extend(info)
         env.reset()
         rewards_list.append(reward[0] * -1)
+
+
+    if save_links_weights:
+        link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, num_train_observations)
+        link_weights_file = open(link_weights_file_name, 'wb')
+        link_weights_matrix = np.array([step_data["links_weights"] for step_data in diagnostics]).transpose()
+        np.save(link_weights_file, link_weights_matrix)
+        link_weights_file.close()
+
+    if save_routing_schemes:
+        routing_schemes_file_name = "{}_routing_schemes_{}.npy".format(args.dumped_path, num_train_observations)
+        routing_schemes_file = open(routing_schemes_file_name, 'wb')
+        routing_schemes_array = np.array([step_data["routing_scheme"] for step_data in diagnostics])
+        np.save(routing_schemes_file, routing_schemes_array)
+        routing_schemes_file.close()
 
     rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, num_test_observations)
     rewards_file = open(rewards_file_name, 'wb')
