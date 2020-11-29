@@ -170,8 +170,8 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
         lambda: np.zeros(shape=(net_directed.get_num_nodes, net_directed.get_num_nodes), dtype=np.float64))
 
     per_flow_routing_scheme = np.zeros(shape=(net_directed.get_num_nodes, net_directed.get_num_nodes,
-                                                net_directed.get_num_nodes, net_directed.get_num_nodes),
-                                         dtype=np.float64)
+                                              net_directed.get_num_nodes, net_directed.get_num_nodes),
+                                       dtype=np.float64)
 
     for _arch in net_directed.edges:
         for src, dst in net.get_all_pairs():
@@ -185,6 +185,7 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
 
 def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: list, oblivious_routing_per_edge: dict):
     logger.info("Calculating congestion to all traffic matrices by {} oblivious routing")
+    total_archs_load = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float32)
 
     congestion_ratios = list()
     for index, (current_traffic_matrix, current_opt) in enumerate(traffic_matrix_list):
@@ -194,16 +195,21 @@ def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: l
 
         logger.debug('Calculating the congestion per edge and finding max edge congestion')
 
+
         max_congested_link = 0
         for arch, frac_matrix in oblivious_routing_per_edge.items():
             cap_arch = net.get_g_directed.get_edge_key(edge=arch, key=EdgeConsts.CAPACITY_STR)
-            link_congestion = np.sum(np.multiply(frac_matrix, current_traffic_matrix)) / cap_arch
+            link_congestion = np.sum(np.multiply(frac_matrix, current_traffic_matrix))
+
+            total_archs_load[arch] += link_congestion
+
+            link_congestion /= cap_arch
             max_congested_link = max(max_congested_link, link_congestion)
 
         assert max_congested_link >= current_opt
         congestion_ratios.append(max_congested_link / current_opt)
 
-    return congestion_ratios
+    return congestion_ratios, total_archs_load
 
 
 def _getOptions(args=argv[1:]):
@@ -215,17 +221,17 @@ def _getOptions(args=argv[1:]):
 
 if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
-    save_path = "/".join(dump_path.split("/")[0:-1])+"/"
+    save_path = "/".join(dump_path.split("/")[0:-1]) + "/"
     loaded_dict = load_dump_file(dump_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = _oblivious_routing(net)
     print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
-    c_l = _calculate_congestion_per_matrices(net=net, traffic_matrix_list=loaded_dict["tms"],
-                                             oblivious_routing_per_edge=oblivious_routing_per_edge)
+    c_l, total_archs_load = _calculate_congestion_per_matrices(net=net, traffic_matrix_list=loaded_dict["tms"],
+                                                               oblivious_routing_per_edge=oblivious_routing_per_edge)
     print("Average Result: {}".format(np.average(c_l)))
     print("STD Result: {}".format(np.std(c_l)))
 
-    oblivious_routing_scheme_name = "{}oblivious_routing_schemes.npy".format(save_path)
+    oblivious_routing_scheme_name = "{}oblivious_total_load.npy".format(save_path)
     oblivious_routing_scheme_file = open(oblivious_routing_scheme_name, 'wb')
-    np.save(oblivious_routing_scheme_file, per_flow_routing_scheme)
+    np.save(oblivious_routing_scheme_file, total_archs_load)
     oblivious_routing_scheme_file.close()

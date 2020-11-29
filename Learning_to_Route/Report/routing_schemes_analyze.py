@@ -5,7 +5,6 @@ from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.consts import EdgeConsts
 
-
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for console output file")
     parser.add_argument("-o_p", "--oblivious_path", type=str, help="The path for oblivious routing schemes")
@@ -17,22 +16,9 @@ def _getOptions(args=argv[1:]):
 
 def oblivious_parsing(oblivious_path):
     oblivious_matrices_file = open(oblivious_path, "rb")
-    oblivious_matrices = np.load(oblivious_matrices_file)
-    gravity_traffic = net.gravity_traffic_map()
-    gravity_tm = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float32)
-    for src, dst, demand in gravity_traffic:
-        assert demand >= 0
-        gravity_tm[int(src), int(dst)] = demand
+    total_archs_load = np.load(oblivious_matrices_file)
 
-    simulate_all_traffic = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float32)
-    for src in range(net.get_num_nodes):
-        for dst in range(net.get_num_nodes):
-            if src == dst:
-                continue
-            simulate_all_traffic += oblivious_matrices[src][dst] * gravity_tm[src][dst]
-
-    return oblivious_matrices, simulate_all_traffic
-
+    return total_archs_load
 
 def print_link_loads(edges_traffic_list, title: str):
     print(title)
@@ -87,8 +73,8 @@ if __name__ == "__main__":
     topology_url = args.topology_url
     net = NetworkClass(topology_zoo_loader(topology_url)).get_g_directed
 
-    oblivious_matrices, simulate_all_traffic = oblivious_parsing(oblivious_path, net)
-    edges_traffic_list = routing_schemes_analyzing(simulate_all_traffic, net)
+    all_traffic = oblivious_parsing(oblivious_path)
+    edges_traffic_list = routing_schemes_analyzing(all_traffic, net)
     print_link_loads(edges_traffic_list, "Oblivious Links Loads")
 
     learning_matrices, simulate_all_traffic = rl_parsing(learning_path, net)
