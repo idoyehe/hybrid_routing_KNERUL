@@ -97,7 +97,7 @@ class WNumpyOptimizer_Refine:
         one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
         reduced_directed_graph = nx.from_numpy_matrix(one_hop_cost, create_using=nx.DiGraph())
         cost_all_adj = dict(nx.shortest_path_length(reduced_directed_graph, weight='weight'))
-        routing_scheme = np.zeros(shape=(self._num_nodes, self._num_nodes, self._num_nodes, self._num_nodes),
+        routing_scheme = np.zeros(shape=(self._num_nodes, self._num_nodes),
                                   dtype=np.float64)
 
         for node_dst in self._network.nodes:
@@ -118,7 +118,7 @@ class WNumpyOptimizer_Refine:
 
                 for id in range(self._num_edges):
                     arch = self._id2edge[id]
-                    routing_scheme[node_src, node_dst][arch] = cong[id] / total_demands
+                    routing_scheme[arch] = cong[id]
 
                 result += cong
 

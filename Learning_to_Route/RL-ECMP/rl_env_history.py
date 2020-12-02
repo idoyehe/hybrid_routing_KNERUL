@@ -51,6 +51,8 @@ class RL_Env_History(RL_Env):
         if self._testing:
             info["links_weights"] = np.array(links_weights)
             info["routing_scheme"] = np.array(routing_scheme)
+            del routing_scheme
+            del links_weights
         info[ExtraData.REWARD_OVER_FUTURE] = congestion_ratio
         self._diagnostics.append(info)
 

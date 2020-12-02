@@ -195,8 +195,8 @@ def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: l
 
         logger.debug('Calculating the congestion per edge and finding max edge congestion')
 
-
         max_congested_link = 0
+        congested_link = None
         for arch, frac_matrix in oblivious_routing_per_edge.items():
             cap_arch = net.get_g_directed.get_edge_key(edge=arch, key=EdgeConsts.CAPACITY_STR)
             link_congestion = np.sum(np.multiply(frac_matrix, current_traffic_matrix))
@@ -204,10 +204,13 @@ def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: l
             total_archs_load[arch] += link_congestion
 
             link_congestion /= cap_arch
-            max_congested_link = max(max_congested_link, link_congestion)
+            if max_congested_link < link_congestion:
+                max_congested_link = link_congestion
+                congested_link = arch
 
         assert max_congested_link >= current_opt
         congestion_ratios.append(max_congested_link / current_opt)
+        logger.info("Most congested link {}".format(congested_link))
 
     return congestion_ratios, total_archs_load
 

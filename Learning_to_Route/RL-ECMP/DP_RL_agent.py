@@ -52,7 +52,7 @@ if __name__ == "__main__":
     save_links_weights = args.save_links_weights
     save_routing_schemes = args.save_routing_schemes
 
-    num_test_observations = num_train_observations * 2
+    num_test_observations = min(num_train_observations * 2, 20000)
 
     logger.info("Data loaded from: {}".format(dumped_path))
     logger.info("Architecture is: {}".format(mlp_arch))
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     if save_routing_schemes:
         routing_schemes_file_name = "{}_routing_schemes_{}.npy".format(args.dumped_path, num_train_observations)
         routing_schemes_file = open(routing_schemes_file_name, 'wb')
-        routing_schemes_array = np.array([step_data["routing_scheme"] for step_data in diagnostics])
+        routing_schemes_array = np.sum([step_data["routing_scheme"] for step_data in diagnostics],axis=0)
         np.save(routing_schemes_file, routing_schemes_array)
         routing_schemes_file.close()
 
