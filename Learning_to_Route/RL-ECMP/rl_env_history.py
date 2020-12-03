@@ -9,7 +9,8 @@ refactoring on 14 Oct 2020
 from rl_env import *
 from Learning_to_Route.common.utils import error_bound
 from optimizer import WNumpyOptimizer
-from optimizer_refine import WNumpyOptimizer_Refine
+
+ERROR_BOUND = 5e-4
 
 
 class RL_Env_History(RL_Env):
@@ -45,33 +46,22 @@ class RL_Env_History(RL_Env):
         info = dict()
         links_weights = self._modify_action(action)
 
-        congestion_ratio, cost, optimal_congestion, routing_scheme = self._process_action_get_cost(links_weights)
+        cost_congestion_ratio, total_load_per_arch, most_congested_arch = self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
         if self._testing:
             info["links_weights"] = np.array(links_weights)
-            info["routing_scheme"] = np.array(routing_scheme)
-            del routing_scheme
-            del links_weights
-        info[ExtraData.REWARD_OVER_FUTURE] = congestion_ratio
+            info["load_per_link"] = np.array(total_load_per_arch)
+            info["most_congested_link"] = self._network.get_id2edge()[most_congested_arch]
+        del total_load_per_arch
+        del links_weights
+        info[ExtraData.REWARD_OVER_FUTURE] = cost_congestion_ratio
         self._diagnostics.append(info)
 
         self._tm_start_index += 1
         observation = self._get_observation()
 
-        logger.debug("cost  Congestion :{}".format(cost))
-        logger.debug("optimal  Congestion :{}".format(optimal_congestion))
-        logger.debug("Congestion Ratio :{}".format(congestion_ratio))
-
-        if not congestion_ratio >= 1.0:
-            assert error_bound(cost, optimal_congestion, 5e-4)
-            logger.info(
-                "BUG!! congestion_ratio is {} not validate error bound!\nCost: {}\nOptimal: {}".format(congestion_ratio,
-                                                                                                       cost,
-                                                                                                       optimal_congestion))
-            congestion_ratio = 1.0
-
-        reward = congestion_ratio * self._NORM_FACTOR
+        reward = cost_congestion_ratio * self._NORM_FACTOR
         done = self._is_terminal
 
         return observation, reward, done, info
@@ -82,22 +72,27 @@ class RL_Env_History(RL_Env):
         return self._get_observation()
 
     def _process_action_get_cost(self, links_weights):
+        global ERROR_BOUND
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
         optimal_congestion = self._optimal_values[self._current_observation_index][
             self._tm_start_index + self._history_length]
-        cost, routing_scheme = self.optimizer_step(links_weights, tm)
-        congestion_ratio = cost / optimal_congestion
-        assert congestion_ratio == cost / optimal_congestion
-        return congestion_ratio, cost, optimal_congestion, routing_scheme
+        max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights, tm)
+
+        cost_congestion_ratio = max_congestion / optimal_congestion
+
+        if cost_congestion_ratio < 1.0:
+            assert error_bound(cost_congestion_ratio, optimal_congestion, ERROR_BOUND)
+            logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
+                        "Max Congestion: {}\nOptimal Congestion: {}"
+                        .format(cost_congestion_ratio, max_congestion, optimal_congestion))
+
+        cost_congestion_ratio = max(cost_congestion_ratio, 1.0)
+        logger.debug("Cost  Congestion :{}".format(max_congestion))
+        logger.debug("optimal  Congestion :{}".format(optimal_congestion))
+        logger.debug("Congestion Ratio :{}".format(cost_congestion_ratio))
+
+        return cost_congestion_ratio, total_load_per_arch, most_congested_arch
 
     def optimizer_step(self, links_weights, tm):
-        routing_scheme = None
-        if self._testing:
-            cost, _, routing_scheme = self._optimizer.step(links_weights, tm)
-        else:
-            cost, _ = self._optimizer.step(links_weights, tm)
-        return cost, routing_scheme
-
-    def testing(self, _testing):
-        super(RL_Env_History, self).testing(_testing)
-        self._optimizer = WNumpyOptimizer_Refine(self._network)
+        max_congestion, total_load_per_arch, most_congested_arch = self._optimizer.step(links_weights, tm)
+        return max_congestion, total_load_per_arch, most_congested_arch

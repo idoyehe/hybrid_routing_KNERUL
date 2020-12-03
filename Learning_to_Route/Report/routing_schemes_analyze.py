@@ -5,6 +5,7 @@ from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.consts import EdgeConsts
 
+
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for console output file")
     parser.add_argument("-o_p", "--oblivious_path", type=str, help="The path for oblivious routing schemes")
@@ -14,54 +15,34 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def oblivious_parsing(oblivious_path):
-    oblivious_matrices_file = open(oblivious_path, "rb")
-    total_archs_load = np.load(oblivious_matrices_file)
-
+def load_from_npc(file_path):
+    matrix_file = open(file_path, "rb")
+    total_archs_load = np.load(matrix_file)
+    matrix_file.close()
     return total_archs_load
+
 
 def print_link_loads(edges_traffic_list, title: str):
     print(title)
     print("-" * 50)
-    for index, (e_src, e_dst, cap, load) in enumerate(edges_traffic_list):
-        print("{}: Link_Source: {}; Link Destination: {}; Capacity: {} [MB] ;Load: {} [MB]".format(index + 1, e_src,
-                                                                                                   e_dst,
-                                                                                                   cap, load))
+    for index, (e_src, e_dst, cap, load, tcg) in enumerate(edges_traffic_list):
+        print(
+            "{}: Link_Source: {}; Link Destination: {}; Capacity: {} [MB] ;Load: {} [MB]; Total Congestion: {}".format(
+                index + 1, e_src,
+                e_dst,
+                cap, load, tcg))
 
     print("=" * 100)
 
 
-def rl_parsing(learning_path, network: NetworkClass):
-    learning_path_file = open(learning_path, "rb")
-    learning_matrices = np.load(learning_path_file)
-    learning_matrices_sum = np.sum(learning_matrices, axis=0)
-
-    gravity_traffic = net.gravity_traffic_map()
-    gravity_tm = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float32)
-    for src, dst, demand in gravity_traffic:
-        assert demand >= 0
-        gravity_tm[int(src), int(dst)] = demand
-
-    simulate_all_traffic = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float32)
-    for src in range(net.get_num_nodes):
-        for dst in range(net.get_num_nodes):
-            if src == dst:
-                continue
-            simulate_all_traffic += learning_matrices_sum[src][dst] * gravity_tm[src][dst]
-
-    return learning_matrices, simulate_all_traffic
-
-
-def routing_schemes_analyzing(simulate_all_traffic, net: NetworkClass):
+def routing_records_analyzing(simulate_all_traffic, net: NetworkClass):
     edges_traffic_list = list()
-    for e_src in range(net.get_num_nodes):
-        for e_dst in range(net.get_num_nodes):
-            if (e_src, e_dst) not in net.edges:
-                continue
-            cap = net.get_edge_key((e_src, e_dst), EdgeConsts.CAPACITY_STR)
-            edges_traffic_list.append((e_src, e_dst, cap, simulate_all_traffic[e_src][e_dst]))
+    for e_src, e_dst in net.edges:
+        cap = net.get_edge_key((e_src, e_dst), EdgeConsts.CAPACITY_STR)
+        total_congestion = simulate_all_traffic[e_src][e_dst] / cap
+        edges_traffic_list.append((e_src, e_dst, cap, simulate_all_traffic[e_src][e_dst], total_congestion))
 
-    edges_traffic_list.sort(reverse=True, key=lambda e: e[3])
+    edges_traffic_list.sort(reverse=True, key=lambda e: e[4])
 
     return edges_traffic_list
 
@@ -73,10 +54,17 @@ if __name__ == "__main__":
     topology_url = args.topology_url
     net = NetworkClass(topology_zoo_loader(topology_url)).get_g_directed
 
-    all_traffic = oblivious_parsing(oblivious_path)
-    edges_traffic_list = routing_schemes_analyzing(all_traffic, net)
+    all_traffic_oblivous = load_from_npc(oblivious_path)
+    edges_traffic_list = routing_records_analyzing(all_traffic_oblivous, net)
     print_link_loads(edges_traffic_list, "Oblivious Links Loads")
 
-    learning_matrices, simulate_all_traffic = rl_parsing(learning_path, net)
-    edges_traffic_list = routing_schemes_analyzing(simulate_all_traffic, net)
+    all_traffic_rl = load_from_npc(learning_path)
+    temp = np.zeros_like(all_traffic_oblivous)
+
+    for idx, load in enumerate(all_traffic_rl):
+        link = net.get_id2edge()[idx]
+        temp[link] = load
+
+    all_traffic_rl = temp
+    edges_traffic_list = routing_records_analyzing(all_traffic_rl, net)
     print_link_loads(edges_traffic_list, "Reinforcement Learning Loads")

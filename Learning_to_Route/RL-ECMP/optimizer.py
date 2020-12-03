@@ -43,8 +43,9 @@ class WNumpyOptimizer:
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
-        cost, congestion_per_edge = self._get_cost_given_weights(weights_vector, traffic_matrix)
-        return cost, congestion_per_edge
+        max_congestion, total_load_per_arch, most_congested_arch = self._get_cost_given_weights(weights_vector,
+                                                                                                traffic_matrix)
+        return max_congestion, total_load_per_arch, most_congested_arch
 
     def _set_cost_to_dsts(self, weights_vector):
         tmp = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
@@ -65,7 +66,7 @@ class WNumpyOptimizer:
         # loop magic goes here, basically converts the for loop into matrix operations
         def get_new_val(prev_iteration, current_demands):
             current_demand_each_node = self._ingoing_edges @ (
-                        np.transpose(q_val * self._outgoing_edges) @ current_demands)
+                    np.transpose(q_val * self._outgoing_edges) @ current_demands)
             return prev_iteration + current_demand_each_node
 
         prev_iteration = dst_demand
@@ -90,7 +91,7 @@ class WNumpyOptimizer:
         return edge_congestion  # final_s_value,
 
     def _get_cost_given_weights(self, weights_vector, traffic_matrix):
-        result = np.zeros_like(weights_vector, dtype=np.float32)
+        total_load_per_arch = np.zeros_like(weights_vector, dtype=np.float32)
         logger.debug("Calculate each edge weight")
 
         one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
@@ -106,14 +107,15 @@ class WNumpyOptimizer:
             cost_adj = [cost_all_adj[i][node_dst] for i in range(self._num_nodes)]
             edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
             q_val = self._soft_min(edge_cost)
-            cong = self._run_destination_demands(q_val, dst_demand, self._eye_masks[node_dst])
-            cong = np.reshape(cong, [-1])
+            loads = self._run_destination_demands(q_val, dst_demand, self._eye_masks[node_dst])
 
-            result += cong
+            total_load_per_arch += loads
 
-        congestion = result / self._edges_capacities
-        cost = np.max(congestion)
-        return cost, result
+        congestion_per_link = total_load_per_arch / self._edges_capacities
+        most_congested_arch = np.argmax(congestion_per_link)
+        max_congestion = congestion_per_link[most_congested_arch]
+
+        return max_congestion, total_load_per_arch, most_congested_arch
 
     def __get_edge_cost(self, cost_adj, each_edge_weight):
         cost_to_dst1 = cost_adj * self._graph_adjacency_matrix + each_edge_weight
@@ -188,4 +190,3 @@ if __name__ == "__main__":
     cost, congestion_dict = opt.step([100, 100, 0.00000001, 100, 0.00000001, 0.00000001], tm)
     print("Optimizer Congestion: {}".format(cost))
     print("Congestion Ratio :{}".format(cost / opt_congestion))
-
