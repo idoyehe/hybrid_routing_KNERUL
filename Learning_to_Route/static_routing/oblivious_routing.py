@@ -185,10 +185,9 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
 
 def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: list, oblivious_routing_per_edge: dict):
     logger.info("Calculating congestion to all traffic matrices by {} oblivious routing")
-    total_archs_load = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float32)
+    total_archs_load = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float64)
 
-    congested_link_histogram = np.zeros((net.get_num_edges,), dtype=np.float32)
-
+    congested_link_histogram = np.zeros((net.get_num_edges,), dtype=np.float64)
     congestion_ratios = list()
     for index, (current_traffic_matrix, current_opt) in enumerate(traffic_matrix_list):
         logger.info("Current matrix index is: {}".format(index))
@@ -204,6 +203,7 @@ def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: l
             link_flow = np.sum(np.multiply(frac_matrix, current_traffic_matrix))
 
             total_archs_load[arch] += link_flow
+
             link_congestion = link_flow / cap_arch
 
             if link_congestion > max_congestion:
@@ -225,22 +225,7 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-if __name__ == "__main__":
-    dump_path = _getOptions().dumped_path
-    save_path = "/".join(dump_path.split("/")[0:-1]) + "/"
-    loaded_dict = load_dump_file(dump_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
-    oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = _oblivious_routing(net)
-    print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
-    c_l, total_archs_load, congested_link_histogram = _calculate_congestion_per_matrices(net=net, traffic_matrix_list=
-    loaded_dict["tms"],
-                                                                                         oblivious_routing_per_edge=oblivious_routing_per_edge)
-    print("Average Result: {}".format(np.average(c_l)))
-    print("STD Result: {}".format(np.std(c_l)))
-
-    assert np.sum(congested_link_histogram) == len(loaded_dict["tms"])
-    congested_link_histogram = 100 * congested_link_histogram / np.sum(congested_link_histogram)
-
+def _sorted_congestion_links(congested_link_histogram):
     print("Sorted congestion links")
     congested_link_fractions = list()
     for idx, congestion in enumerate(congested_link_histogram):
@@ -250,6 +235,26 @@ if __name__ == "__main__":
     congested_link_fractions.sort(key=lambda e: e[1], reverse=True)
     for idx, (arch, congestion) in enumerate(congested_link_fractions):
         print("# {} link {} in most congest in {:.2f}% of the time".format(idx + 1, arch, congestion))
+
+
+if __name__ == "__main__":
+    dump_path = _getOptions().dumped_path
+    save_path = "/".join(dump_path.split("/")[0:-1]) + "/"
+    loaded_dict = load_dump_file(dump_path)
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
+    oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = _oblivious_routing(net)
+    print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
+    c_l, total_archs_load, congested_link_histogram = _calculate_congestion_per_matrices(net=net,
+                                                                                         traffic_matrix_list=
+                                                                                         loaded_dict["tms"],
+                                                                                         oblivious_routing_per_edge=oblivious_routing_per_edge)
+    print("Average Result: {}".format(np.average(c_l)))
+    print("STD Result: {}".format(np.std(c_l)))
+
+    assert np.sum(congested_link_histogram) == len(loaded_dict["tms"])
+    congested_link_histogram = 100 * congested_link_histogram / np.sum(congested_link_histogram)
+
+    _sorted_congestion_links(congested_link_histogram)
 
     oblivious_routing_scheme_name = "{}oblivious_total_load.npy".format(save_path)
     oblivious_routing_scheme_file = open(oblivious_routing_scheme_name, 'wb')

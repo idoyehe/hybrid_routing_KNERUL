@@ -30,6 +30,7 @@ def _getOptions(args=argv[1:]):
                         default=350)
     parser.add_argument("-s_diag", "--save_diagnostics", type=bool, help="Dump env diagnostics", default=False)
     parser.add_argument("-s_weights", "--save_links_weights", type=bool, help="Dump links weights", default=False)
+    parser.add_argument("-s_agent", "--save_model_agent", type=bool, help="save the model agent", default=False)
     parser.add_argument("-s_r_s", "--save_routing_schemes", type=bool, help="Dump Routing Schemes", default=False)
 
     options = parser.parse_args(args)
@@ -52,6 +53,7 @@ if __name__ == "__main__":
     save_diagnostics = args.save_diagnostics
     save_links_weights = args.save_links_weights
     save_routing_records = args.save_routing_schemes
+    save_model_agent = args.save_model_agent
 
     num_test_observations = min(num_train_observations * 2, 20000)
 
@@ -87,12 +89,10 @@ if __name__ == "__main__":
 
     env_diagnostics = env.envs[0].env.diagnostics
     if save_diagnostics:
-        save_path = "{}_agent_{}".format(args.dumped_path, num_train_observations)
-        dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, num_train_observations)
-        dump_file = open(dump_file_name, 'wb')
-        np.save(dump_file, env_diagnostics)
-        dump_file.close()
-        model.save(path=save_path)
+        diag_dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, num_train_observations)
+        diag_dump_file = open(diag_dump_file_name, 'wb')
+        np.save(diag_dump_file, env_diagnostics)
+        diag_dump_file.close()
 
     logger.info("Testing Part")
     env.envs[0].env.testing(True)
@@ -122,9 +122,10 @@ if __name__ == "__main__":
         total_counter = 0
         for link in [step_data["most_congested_link"] for step_data in diagnostics]:
             most_congested_link_dict[link] += 1
-            total_counter +=1
+            total_counter += 1
 
-        most_congested_link_list = [(link, (100* load) / total_counter) for link, load in most_congested_link_dict.items()]
+        most_congested_link_list = [(link, (100 * load) / total_counter) for link, load in
+                                    most_congested_link_dict.items()]
         most_congested_link_list.sort(key=lambda e: e[1], reverse=True)
 
         for idx, (arch, congestion) in enumerate(most_congested_link_list):
@@ -138,3 +139,7 @@ if __name__ == "__main__":
     rewards_list = np.array(rewards_list)
     np.save(rewards_file, rewards_list)
     rewards_file.close()
+
+    if save_model_agent:
+        save_path = "{}_model_agent_{}".format(dumped_path, num_train_observations)
+        model.save(path=save_path)
