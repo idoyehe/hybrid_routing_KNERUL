@@ -27,7 +27,7 @@ def print_link_loads(edges_traffic_list, title: str):
     print("-" * 50)
     for index, (e_src, e_dst, cap, load, tcg) in enumerate(edges_traffic_list):
         print(
-            "{}: Link_Source: {}; Link Destination: {}; Capacity: {} [MB] ;Load: {} [MB]; Total Congestion: {}".format(
+            "{}: Link_Source: {}; Link Destination: {}; Capacity: {} [MB] ;Load: {} [MB]; Total Congestion: {:.2f}".format(
                 index + 1, e_src,
                 e_dst,
                 cap, load, tcg))
