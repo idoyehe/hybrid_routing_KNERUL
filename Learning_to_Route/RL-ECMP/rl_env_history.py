@@ -10,7 +10,7 @@ from rl_env import *
 from Learning_to_Route.common.utils import error_bound
 from optimizer import WNumpyOptimizer
 
-ERROR_BOUND = 5e-4
+ERROR_BOUND = 1e-3
 
 
 class RL_Env_History(RL_Env):
@@ -81,10 +81,12 @@ class RL_Env_History(RL_Env):
         cost_congestion_ratio = max_congestion / optimal_congestion
 
         if cost_congestion_ratio < 1.0:
-            assert error_bound(cost_congestion_ratio, optimal_congestion, ERROR_BOUND)
-            logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
-                        "Max Congestion: {}\nOptimal Congestion: {}"
-                        .format(cost_congestion_ratio, max_congestion, optimal_congestion))
+            try:
+                assert error_bound(cost_congestion_ratio, optimal_congestion, ERROR_BOUND)
+            except Exception as _:
+                logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
+                            "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion,
+                                                                                optimal_congestion))
 
         cost_congestion_ratio = max(cost_congestion_ratio, 1.0)
         logger.debug("Cost  Congestion :{}".format(max_congestion))

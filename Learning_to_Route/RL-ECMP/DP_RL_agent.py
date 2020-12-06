@@ -114,7 +114,7 @@ if __name__ == "__main__":
         link_weights_file.close()
 
     if save_routing_records:
-        routing_records_file_name = "{}_routing_records_{}.npy".format(args.dumped_path, num_train_observations)
+        routing_records_file_name = "{}_routing_records_{}.npy".format(args.dumped_path, num_test_observations)
         routing_records_file = open(routing_records_file_name, 'wb')
         routing_records_array = np.sum([step_data["load_per_link"] for step_data in diagnostics], axis=0)
         most_congested_link_dict = defaultdict(int)

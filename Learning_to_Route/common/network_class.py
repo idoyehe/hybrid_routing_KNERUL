@@ -229,6 +229,9 @@ class NetworkClass:
         assert isinstance(self.get_graph, nx.DiGraph)
         return self.get_graph.out_edges(node, data=data)
 
+    def all_simple_paths(self, source, target):
+        return nx.all_simple_paths(self.get_graph, source, target)
+
     @property
     def in_edges(self):
         assert isinstance(self.get_graph, nx.DiGraph)
