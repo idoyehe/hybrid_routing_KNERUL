@@ -39,6 +39,9 @@ class RL_Env(Env):
         self._current_observation_index = -1
 
         self._history_length = history_length  # number of each state history
+        self._none_history = self._history_length == 0
+        if self._none_history:
+            self._history_length = 1
         self._history_action_type = history_action_type
         self._num_train_observations = num_train_observations  # number of different train seniors per sparsity
         self._num_test_observations = num_test_observations  # number of different test seniors per sparsity
@@ -88,9 +91,21 @@ class RL_Env(Env):
                 _observations_episodes_optimals.append(np.array(_episode_optimals))
             return np.array(_observations_episodes), np.array(_observations_episodes_optimals)
 
+        def fix_none_history_episode(observations):
+            for ep in observations:
+                ep[0] *= 0
+            return observations
+
         self._train_observations, self._opt_train_observations = __create_observation(self._num_train_observations)
         self._test_observations, self._opt_test_observations = __create_observation(self._num_test_observations)
-        self._validate_data()
+
+        if self._none_history:
+            fix_none_history_episode(self._train_observations)
+            fix_none_history_episode(self._opt_train_observations)
+            fix_none_history_episode(self._test_observations)
+            fix_none_history_episode(self._opt_test_observations)
+
+        # self._validate_data()
 
     def _validate_data(self):
         is_equal_train = np.zeros((self._num_train_observations, self._num_train_observations))

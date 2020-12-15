@@ -32,6 +32,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-s_weights", "--save_links_weights", type=bool, help="Dump links weights", default=False)
     parser.add_argument("-s_agent", "--save_model_agent", type=bool, help="save the model agent", default=False)
     parser.add_argument("-s_r_s", "--save_routing_schemes", type=bool, help="Dump Routing Schemes", default=False)
+    parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -54,6 +55,7 @@ if __name__ == "__main__":
     save_links_weights = args.save_links_weights
     save_routing_records = args.save_routing_schemes
     save_model_agent = args.save_model_agent
+    load_agent = args.load_agent
 
     num_test_observations = min(num_train_observations * 2, 20000)
 
@@ -72,27 +74,30 @@ if __name__ == "__main__":
                      'num_test_observations': num_test_observations,
                      'history_action_type': HistoryConsts.ACTION_W_EPSILON}
                  )
-
     env = make_vec_env(RL_ENV_HISTORY_GYM_ID, n_envs=n_envs)
-    policy_kwargs = [{"pi": mlp_arch, "vf": mlp_arch}]
+    if load_agent is None:
+        policy_kwargs = [{"pi": mlp_arch, "vf": mlp_arch}]
 
 
-    class CustomMLPPolicy(MlpPolicy):
-        def __init__(self, *args, **kwargs):
-            global policy_kwargs
-            super(CustomMLPPolicy, self).__init__(*args, **kwargs, net_arch=policy_kwargs)
+        class CustomMLPPolicy(MlpPolicy):
+            def __init__(self, *args, **kwargs):
+                global policy_kwargs
+                super(CustomMLPPolicy, self).__init__(*args, **kwargs, net_arch=policy_kwargs)
 
 
-    model = PPO(CustomMLPPolicy, env, verbose=1, gamma=gamma, n_steps=n_steps)
+        model = PPO(CustomMLPPolicy, env, verbose=1, gamma=gamma, n_steps=n_steps)
 
-    model.learn(total_timesteps=total_timesteps)
+        model.learn(total_timesteps=total_timesteps)
 
-    env_diagnostics = env.envs[0].env.diagnostics
-    if save_diagnostics:
-        diag_dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, num_train_observations)
-        diag_dump_file = open(diag_dump_file_name, 'wb')
-        np.save(diag_dump_file, env_diagnostics)
-        diag_dump_file.close()
+        env_diagnostics = env.envs[0].env.diagnostics
+        if save_diagnostics:
+            diag_dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, num_train_observations)
+            diag_dump_file = open(diag_dump_file_name, 'wb')
+            np.save(diag_dump_file, env_diagnostics)
+            diag_dump_file.close()
+
+    if load_agent is not None:
+        model = PPO.load(load_agent, env)
 
     logger.info("Testing Part")
     env.envs[0].env.testing(True)
@@ -105,6 +110,12 @@ if __name__ == "__main__":
         diagnostics.extend(info)
         env.reset()
         rewards_list.append(reward[0] * -1)
+
+    rl_vs_obliv = "{}_RL_Vs_Oblivious_{}.npy".format(args.dumped_path, num_test_observations)
+    rl_vs_obliv_file = open(rl_vs_obliv, 'wb')
+    rl_vs_obliv_data = np.array([np.array(step_data["rl_vs_obliv_data"]) for step_data in diagnostics])
+    np.save(rl_vs_obliv_file, rl_vs_obliv_data)
+    rl_vs_obliv_file.close()
 
     if save_links_weights:
         link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, num_train_observations)
@@ -140,6 +151,6 @@ if __name__ == "__main__":
     np.save(rewards_file, rewards_list)
     rewards_file.close()
 
-    if save_model_agent:
+    if save_model_agent and load_agent is None:
         save_path = "{}_model_agent_{}".format(dumped_path, num_train_observations)
         model.save(path=save_path)

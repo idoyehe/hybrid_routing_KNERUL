@@ -49,7 +49,7 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
                 assert error_bound(to_some_v, from_some_v)
 
 
-def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
+def oblivious_routing(net: NetworkClass, oblivious_ratio=None):
     obliv_lp_problem = gb.Model(name="Applegate's and Cohen's Oblivious Routing LP")
     obliv_lp_problem.setParam(GRB.Param.OutputFlag, 0)
     index = 0
@@ -183,7 +183,7 @@ def _oblivious_routing(net: NetworkClass, oblivious_ratio=None):
     return obliv_ratio, per_arch_flow_fraction, per_flow_routing_scheme
 
 
-def _calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: list, oblivious_routing_per_edge: dict):
+def calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: list, oblivious_routing_per_edge: dict):
     logger.info("Calculating congestion to all traffic matrices by {} oblivious routing")
     total_archs_load = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float64)
 
@@ -242,12 +242,12 @@ if __name__ == "__main__":
     save_path = "/".join(dump_path.split("/")[0:-1]) + "/"
     loaded_dict = load_dump_file(dump_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
-    oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = _oblivious_routing(net)
+    oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(net)
     print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
-    c_l, total_archs_load, congested_link_histogram = _calculate_congestion_per_matrices(net=net,
-                                                                                         traffic_matrix_list=
+    c_l, total_archs_load, congested_link_histogram = calculate_congestion_per_matrices(net=net,
+                                                                                        traffic_matrix_list=
                                                                                          loaded_dict["tms"],
-                                                                                         oblivious_routing_per_edge=oblivious_routing_per_edge)
+                                                                                        oblivious_routing_per_edge=oblivious_routing_per_edge)
     print("Average Result: {}".format(np.average(c_l)))
     print("STD Result: {}".format(np.std(c_l)))
 
