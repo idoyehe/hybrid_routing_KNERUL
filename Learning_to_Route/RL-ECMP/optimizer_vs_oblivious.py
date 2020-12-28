@@ -105,8 +105,8 @@ class WNumpyOptimizer_vs_Oblivious:
         cost_all_adj = dict(nx.shortest_path_length(reduced_directed_graph, weight='weight'))
 
         for node_dst in self._network.nodes:
-            dst_demand = np.expand_dims(traffic_matrix[:, node_dst], 1)
-            total_demands = np.sum(dst_demand)
+            dest_demands = np.expand_dims(traffic_matrix[:, node_dst], 1)
+            total_demands = np.sum(dest_demands)
             if total_demands == 0.0:
                 continue
 
@@ -115,7 +115,7 @@ class WNumpyOptimizer_vs_Oblivious:
             edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
 
             q_val = self._soft_min(edge_cost)
-            loads = self._run_destination_demands(q_val, dst_demand, self._eye_masks[node_dst])
+            loads = self._run_destination_demands(q_val, dest_demands, self._eye_masks[node_dst])
 
             total_load_per_arch += loads
 

@@ -11,7 +11,6 @@ from Learning_to_Route.common.utils import error_bound
 from optimizer import WNumpyOptimizer
 from optimizer_vs_oblivious import WNumpyOptimizer_vs_Oblivious
 
-ERROR_BOUND = 1e-3
 
 
 class RL_Env_History(RL_Env):

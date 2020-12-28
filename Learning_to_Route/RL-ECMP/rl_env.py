@@ -9,6 +9,8 @@ from static_routing.generating_tms_dumps import load_dump_file
 from common.topologies import topology_zoo_loader
 import random
 
+ERROR_BOUND = 1e-3
+
 
 class RL_Env(Env):
 
@@ -104,8 +106,8 @@ class RL_Env(Env):
             fix_none_history_episode(self._opt_train_observations)
             fix_none_history_episode(self._test_observations)
             fix_none_history_episode(self._opt_test_observations)
-
-        # self._validate_data()
+        else:
+            self._validate_data()
 
     def _validate_data(self):
         is_equal_train = np.zeros((self._num_train_observations, self._num_train_observations))

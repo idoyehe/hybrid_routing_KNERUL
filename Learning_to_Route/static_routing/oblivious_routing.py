@@ -237,6 +237,31 @@ def _sorted_congestion_links(congested_link_histogram):
         print("# {} link {} in most congest in {:.2f}% of the time".format(idx + 1, arch, congestion))
 
 
+def oblivious_routing_2_probability(oblivious_routing_per_edge, dest_tm, network: NetworkClass):
+    assert dest_tm.shape[0] == dest_tm.shape[1] == network.get_num_nodes
+    flow_per_arch = dict()
+    for arc, frac_matrix in oblivious_routing_per_edge.items():
+        flow_per_arch[arc] = np.sum(np.multiply(frac_matrix, dest_tm))
+
+    probability_matrix = np.zeros(shape=(network.get_num_nodes, network.get_num_edges))
+    for node in range(network.get_num_nodes):
+        for out_edge in network.out_edges_by_node(node):
+            arc_id = network.get_edge2id()[out_edge]
+            probability_matrix[node, arc_id] = flow_per_arch[out_edge]
+
+    probability_matrix_nirmol = np.sum(probability_matrix, axis=1)
+
+    for node in range(network.get_num_nodes):
+        if probability_matrix_nirmol[node] <= 0:
+            continue
+        probability_matrix[node] /= probability_matrix_nirmol[node]
+        assert error_bound(np.sum(probability_matrix[node]),1.0)
+
+    assert np.max(probability_matrix) <= 1.0
+
+    return probability_matrix
+
+
 if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
     save_path = "/".join(dump_path.split("/")[0:-1]) + "/"
