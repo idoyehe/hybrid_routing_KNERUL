@@ -77,3 +77,7 @@ class RL_Env_Oblivious(RL_Env):
     def optimizer_step(self, links_weights, tm, optimal_value):
         kl_value = self._optimizer.step(links_weights, tm, optimal_value)
         return kl_value
+
+    def testing(self, _testing):
+        super(RL_Env_Oblivious, self).testing(_testing)
+        self._optimizer = WNumpyOptimizer_Oblivious(net=self._network, max_iterations=500, testing=True)

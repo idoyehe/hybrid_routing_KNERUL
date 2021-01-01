@@ -6,12 +6,11 @@ Created on 21 Dec 2020
 from common.rl_env_consts import HistoryConsts
 from common.network_class import *
 from common.logger import logger
-from static_routing.oblivious_routing import oblivious_routing, oblivious_routing_2_probability, \
-    calculate_congestion_per_matrices
+from static_routing.oblivious_routing import oblivious_routing, calculate_congestion_per_matrices
 
 
 class WNumpyOptimizer_Oblivious:
-    def __init__(self, net: NetworkClass, max_iterations=500):
+    def __init__(self, net: NetworkClass, max_iterations=500, testing=False):
         """
         constructor
         @param graph_adjacency_matrix: the graph adjacency matrix
@@ -21,6 +20,7 @@ class WNumpyOptimizer_Oblivious:
         self._network = net
         self._max_iterations = max_iterations
         self._nx_graph = True
+        self._testing = testing
         self._graph_adjacency_matrix = self._network.get_adjacency
         self._num_nodes = self._network.get_num_nodes
         self._initialize()
@@ -29,6 +29,7 @@ class WNumpyOptimizer_Oblivious:
             self._network)
 
         self.rl_vs_obliv_data = None
+        self.obliv_congestion_ratio = None
 
     def _initialize(self):
         logger.debug("Building ingoing and outgoing edges map")
@@ -46,8 +47,8 @@ class WNumpyOptimizer_Oblivious:
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
-        kl_value = self._get_cost_given_weights(weights_vector, traffic_matrix, optimal_value)
-        return kl_value
+        cost = self._get_cost_given_weights(weights_vector, traffic_matrix, optimal_value)
+        return cost
 
     def _set_cost_to_dsts(self, weights_vector):
         tmp = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
@@ -92,50 +93,6 @@ class WNumpyOptimizer_Oblivious:
         edge_congestion = np.sum(np.transpose(q_val) @ (final_s_value * mask), axis=1)
         return edge_congestion  # final_s_value,
 
-    # def _get_cost_given_weights(self, weights_vector, traffic_matrix, optimal_value):
-    #     logger.debug("Calculate each edge weight")
-    #     one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
-    #     reduced_directed_graph = nx.from_numpy_matrix(one_hop_cost, create_using=nx.DiGraph())
-    #     cost_all_adj = dict(nx.shortest_path_length(reduced_directed_graph, weight='weight'))
-    #     total_load_per_arch = np.zeros_like(weights_vector, dtype=np.float64)
-    #
-    #     kl_sum = 0
-    #     for node_dst in self._network.nodes:
-    #         dest_demands = np.array(traffic_matrix[:, node_dst])
-    #         total_demands = np.sum(dest_demands)
-    #         if total_demands == 0.0:
-    #             continue
-    #
-    #         cost_adj = [cost_all_adj[i][node_dst] for i in range(self._num_nodes)]
-    #
-    #         edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
-    #
-    #         q_val = self._soft_min(edge_cost)
-    #         dest_tm = np.zeros_like(traffic_matrix)
-    #         dest_tm[:, node_dst] = dest_demands
-    #         p_val = oblivious_routing_2_probability(self.oblivious_routing_per_edge, dest_tm, self._network)
-    #         assert p_val.shape == q_val.shape
-    #
-    #         kl_sum += np.sum(np.abs(p_val - q_val))
-    #
-    #         dest_demands = np.expand_dims(traffic_matrix[:, node_dst], 1)
-    #         loads = self._run_destination_demands(q_val, dest_demands, self._eye_masks[node_dst])
-    #
-    #         total_load_per_arch += loads
-    #
-    #     congestion_per_link = total_load_per_arch / self._edges_capacities
-    #     most_congested_arch = np.argmax(congestion_per_link)
-    #     max_congestion_ratio = congestion_per_link[most_congested_arch] / optimal_value
-    #     most_congested_arch = self._network.get_id2edge()[most_congested_arch]
-    #     obliv_congestion_ratio = calculate_congestion_per_matrices(self._network, [(traffic_matrix, optimal_value)],
-    #                                                                self.oblivious_routing_per_edge)[0][0]
-    #
-    #     print(
-    #         "most_congested_arch: {} congestion ratio: {}".format(most_congested_arch, max_congestion_ratio))
-    #     print("agent Vs. Oblivious {}: ".format(max_congestion_ratio / obliv_congestion_ratio))
-    #
-    #     return kl_sum
-
     def _get_cost_given_weights(self, weights_vector, traffic_matrix, optimal_value):
         logger.debug("Calculate each edge weight")
         one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
@@ -143,14 +100,16 @@ class WNumpyOptimizer_Oblivious:
         cost_all_adj = dict(nx.shortest_path_length(reduced_directed_graph, weight='weight'))
         rl_total_load_per_arch = np.zeros_like(weights_vector, dtype=np.float64)
         obliv_total_load_per_arch = np.zeros_like(weights_vector, dtype=np.float64)
-        obliv_congestion_ratio, _obliv_total_load_per_arch, _ = calculate_congestion_per_matrices(self._network,
-                                                                                            [(traffic_matrix,
-                                                                                              optimal_value)],
-                                                                                            self.oblivious_routing_per_edge)
+
+        self.obliv_congestion_ratio, self._obliv_total_load_per_arch, _ = calculate_congestion_per_matrices(
+            self._network, [(traffic_matrix, optimal_value)], self.oblivious_routing_per_edge)
 
         for index in range(len(obliv_total_load_per_arch)):
             src, dst = self._network.get_id2edge()[index]
-            obliv_total_load_per_arch[index] = _obliv_total_load_per_arch[src,dst]
+            obliv_total_load_per_arch[index] = self._obliv_total_load_per_arch[src, dst]
+
+        oblivious_most_congested = np.argmax(obliv_total_load_per_arch)
+        oblivious_most_congested_arch = self._network.get_id2edge()[oblivious_most_congested]
 
         for node_dst in self._network.nodes:
             dest_demands = np.array(traffic_matrix[:, node_dst])
@@ -172,12 +131,14 @@ class WNumpyOptimizer_Oblivious:
         most_congested_arch = np.argmax(congestion_per_link)
         max_congestion_ratio = congestion_per_link[most_congested_arch] / optimal_value
         most_congested_arch = self._network.get_id2edge()[most_congested_arch]
+        if self._testing:
+            print("RL: most_congested_arch: {} congestion ratio: {}".format(most_congested_arch, max_congestion_ratio))
+            print("Oblivious: most_congested_arch: {} congestion ratio: {}".format(oblivious_most_congested_arch,
+                                                                                   self.obliv_congestion_ratio[0]))
 
-        print(
-            "most_congested_arch: {} congestion ratio: {}".format(most_congested_arch, max_congestion_ratio))
-        print("agent Vs. Oblivious {}: ".format(max_congestion_ratio / obliv_congestion_ratio[0]))
-        delta = np.abs(obliv_total_load_per_arch-rl_total_load_per_arch)/ self._edges_capacities
-        return np.sum(delta)
+            print("RL Vs. Oblivious: {} ".format(max_congestion_ratio / self.obliv_congestion_ratio[0]))
+        cost = np.abs(obliv_total_load_per_arch - rl_total_load_per_arch) / self._edges_capacities
+        return np.sum(cost)
 
     def __get_edge_cost(self, cost_adj, each_edge_weight):
         cost_to_dst1 = cost_adj * self._graph_adjacency_matrix + each_edge_weight
