@@ -1,5 +1,6 @@
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
 from static_routing.optimal_load_balancing import *
+from static_routing.oblivious_routing import *
 from common.logger import logger
 from common.topologies import topology_zoo_loader
 import pickle
@@ -27,10 +28,12 @@ def _getOptions(args=argv[1:]):
 
 
 def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matrix_sparsity: float, tm_type,
+                      oblivious_routing_per_edge,
                       static_pairs: bool, elephant_percentage: float, network_elephant, network_mice,
                       total_matrices: int):
     tms = _generate_traffic_matrix_baseline(net=net,
                                             matrix_sparsity=matrix_sparsity, tm_type=tm_type,
+                                            oblivious_routing_per_edge=oblivious_routing_per_edge,
                                             static_pairs=static_pairs, elephant_percentage=elephant_percentage,
                                             network_elephant=network_elephant,
                                             network_mice=network_mice,
@@ -63,21 +66,24 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
     return file_name
 
 
-def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, tm_type, static_pairs: bool,
+def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, tm_type, oblivious_routing_per_edge,
+                                      static_pairs: bool,
                                       elephant_percentage: float,
                                       network_elephant, network_mice, total_matrices: int):
     logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices))
     tm_list = list()
     for index in range(total_matrices):
-        tm = one_sample_tm_base(graph=net.get_g_directed,
+        tm = one_sample_tm_base(graph=net,
                                 matrix_sparsity=matrix_sparsity,
                                 static_pairs=static_pairs,
                                 tm_type=tm_type,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
         opt_ratio, _ = optimal_load_balancing_LP_solver(net, tm)
+        obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],
+                                                              oblivious_routing_per_edge=oblivious_routing_per_edge)
 
-        tm_list.append((tm, opt_ratio))
+        tm_list.append((tm, opt_ratio, obliv_ratio))
         logger.info("Current TM {} with optimal routing {}".format(index, opt_ratio))
 
     return tm_list
@@ -93,11 +99,15 @@ def load_dump_file(file_name: str):
 
 if __name__ == "__main__":
     args = _getOptions()
-    net = NetworkClass(topology_zoo_loader(args.topology_url, default_capacity=args.default_capacity))
+    net = NetworkClass(topology_zoo_loader(args.topology_url, default_capacity=args.default_capacity)).get_g_directed
+
+    oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(net)
+    print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
 
     filename: str = _dump_tms_and_opt(net=net, default_capacity=args.default_capacity, url=args.topology_url,
                                       matrix_sparsity=args.sparsity,
                                       tm_type=args.tm_type,
+                                      oblivious_routing_per_edge=oblivious_routing_per_edge,
                                       static_pairs=args.static_pairs,
                                       elephant_percentage=args.elephant_percentage,
                                       network_elephant=args.network_elephant,
