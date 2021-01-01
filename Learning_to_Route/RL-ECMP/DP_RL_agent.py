@@ -27,7 +27,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-n_steps", "--number_of_steps", type=int, help="Number of steps per ppo agent", default=100)
     parser.add_argument("-tts", "--total_timesteps", type=str, help="Agent Total timesteps", default="1000")
     parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
-    parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=10)
+    parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=0)
     parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
                         default=350)
     parser.add_argument("-s_diag", "--save_diagnostics", type=bool, help="Dump env diagnostics", default=False)
@@ -71,8 +71,8 @@ if __name__ == "__main__":
 
     if RL_ENV_HISTORY_GYM_ID not in envs.registry.env_specs:
         register(id=RL_ENV_HISTORY_GYM_ID,
-                 # entry_point='rl_env_history:RL_Env_History',
-                 entry_point='rl_env_oblivious:RL_Env_Oblivious',
+                 entry_point='rl_env_history:RL_Env_History',
+                 # entry_point='rl_env_oblivious:RL_Env_Oblivious',
                  kwargs={
                      'max_steps': episode_length,
                      'history_length': history_length,
@@ -118,11 +118,7 @@ if __name__ == "__main__":
         env.reset()
         rewards_list.append(reward[0] * -1)
 
-    rl_vs_obliv = "{}_RL_Vs_Oblivious_{}.npy".format(args.dumped_path, num_test_observations)
-    rl_vs_obliv_file = open(rl_vs_obliv, 'wb')
-    rl_vs_obliv_data = np.array([np.array(step_data["rl_vs_obliv_data"]) for step_data in diagnostics])
-    np.save(rl_vs_obliv_file, rl_vs_obliv_data)
-    rl_vs_obliv_file.close()
+
 
     if save_links_weights:
         link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, num_train_observations)
@@ -157,6 +153,12 @@ if __name__ == "__main__":
     rewards_list = np.array(rewards_list)
     np.save(rewards_file, rewards_list)
     rewards_file.close()
+
+    rl_vs_obliv = "{}_RL_Vs_Oblivious_{}.npy".format(args.dumped_path, num_test_observations)
+    rl_vs_obliv_file = open(rl_vs_obliv, 'wb')
+    rl_vs_obliv_data = np.array([np.array(step_data["rl_vs_obliv_data"]) for step_data in diagnostics])
+    np.save(rl_vs_obliv_file, rl_vs_obliv_data)
+    rl_vs_obliv_file.close()
 
     if save_model_agent and load_agent is None:
         save_path = "{}_model_agent_{}".format(dumped_path, num_train_observations)
