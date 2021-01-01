@@ -71,35 +71,43 @@ class RL_Env(Env):
 
     def _sample_tm(self):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
-        tm, opt = random.choice(self._tms)
-        return tm, opt
+        tm, opt, oblv = random.choice(self._tms)
+        return tm, opt, oblv
 
     def _init_all_observations(self):
         def __create_episode(_episode_len):
             _episode_tms = list()
             _episode_optimals = list()
+            _episode_oblivious = list()
             for _ in range(_episode_len):
-                tm, opt = self._sample_tm()
+                tm, opt, oblv = self._sample_tm()
                 _episode_tms.append(tm)
                 _episode_optimals.append(opt)
-            return _episode_tms, _episode_optimals
+                _episode_oblivious.append(oblv)
+            return _episode_tms, _episode_optimals, _episode_oblivious
 
         def __create_observation(_num_observations):
             _observations_episodes = list()
             _observations_episodes_optimals = list()
+            _observations_episodes_oblivious = list()
             for _ in range(_num_observations):
-                _episode_tms, _episode_optimals = __create_episode(self._history_length + self._episode_len)
+                _episode_tms, _episode_optimals, _episode_oblivious = __create_episode(
+                    self._history_length + self._episode_len)
                 _observations_episodes.append(np.array(_episode_tms))
                 _observations_episodes_optimals.append(np.array(_episode_optimals))
-            return np.array(_observations_episodes), np.array(_observations_episodes_optimals)
+                _observations_episodes_oblivious.append(np.array(_episode_oblivious))
+            return np.array(_observations_episodes), np.array(_observations_episodes_optimals), np.array(
+                _observations_episodes_oblivious)
 
         def fix_none_history_episode(observations):
             for ep in observations:
                 ep[0] *= 0
             return observations
 
-        self._train_observations, self._opt_train_observations = __create_observation(self._num_train_observations)
-        self._test_observations, self._opt_test_observations = __create_observation(self._num_test_observations)
+        self._train_observations, self._opt_train_observations, self._oblv_train_observations = __create_observation(
+            self._num_train_observations)
+        self._test_observations, self._opt_test_observations, self._oblv_test_observations = __create_observation(
+            self._num_test_observations)
 
         if self._none_history:
             fix_none_history_episode(self._train_observations)
