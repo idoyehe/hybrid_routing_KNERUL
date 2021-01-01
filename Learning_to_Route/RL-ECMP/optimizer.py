@@ -37,15 +37,15 @@ class WNumpyOptimizer:
         self._zero_diagonal = np.ones_like(self._graph_adjacency_matrix, dtype=np.float32) - np.eye(self._num_nodes,
                                                                                                     dtype=np.float32)
 
-    def step(self, weights_vector, traffic_matrix, optimal_value):
+    def step(self, weights_vector, traffic_matrix):
         """
         :param weights_vector: the weights vector per edge from agent
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
-        max_congestion, total_load_per_arch, most_congested_arch = self._get_cost_given_weights(weights_vector,
+        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self._get_cost_given_weights(weights_vector,
                                                                                                 traffic_matrix)
-        return max_congestion, total_load_per_arch, most_congested_arch
+        return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
 
     def _set_cost_to_dsts(self, weights_vector):
         tmp = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
@@ -118,8 +118,9 @@ class WNumpyOptimizer:
         congestion_per_link = total_load_per_arch / self._edges_capacities
         most_congested_arch = np.argmax(congestion_per_link)
         max_congestion = congestion_per_link[most_congested_arch]
+        total_congestion = np.sum(congestion_per_link)
 
-        return max_congestion, total_load_per_arch, most_congested_arch
+        return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
 
     def __get_edge_cost(self, cost_adj, each_edge_weight):
         cost_to_dst1 = cost_adj * self._graph_adjacency_matrix + each_edge_weight
@@ -191,6 +192,6 @@ if __name__ == "__main__":
     opt = WNumpyOptimizer(ecmpNetwork)
     opt_congestion, opt_routing_scheme = optimal_load_balancing_LP_solver(net=ecmpNetwork, traffic_matrix=tm)
     print("Optimal Congestion: {}".format(opt_congestion))
-    cost, congestion_dict = opt.step([100, 100, 0.00000001, 100, 0.00000001, 0.00000001], tm)
-    print("Optimizer Congestion: {}".format(cost))
-    print("Congestion Ratio :{}".format(cost / opt_congestion))
+    total_congestion, max_congestion, total_load_per_arch, most_congested_arch = opt.step([100, 100, 0.00000001, 100, 0.00000001, 0.00000001], tm)
+    print("Optimizer Congestion: {}".format(max_congestion))
+    print("Congestion Ratio :{}".format(max_congestion / opt_congestion))
