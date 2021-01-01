@@ -189,8 +189,10 @@ def calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: li
 
     congested_link_histogram = np.zeros((net.get_num_edges,), dtype=np.float64)
     congestion_ratios = list()
-    for index, (current_traffic_matrix, current_opt) in enumerate(traffic_matrix_list):
+    for index, tple in enumerate(traffic_matrix_list):
         logger.info("Current matrix index is: {}".format(index))
+        current_traffic_matrix = tple[0]
+        current_opt = tple[1]
 
         assert current_traffic_matrix.shape == (net.get_num_nodes, net.get_num_nodes)
 
@@ -255,7 +257,7 @@ def oblivious_routing_2_probability(oblivious_routing_per_edge, dest_tm, network
         if probability_matrix_nirmol[node] <= 0:
             continue
         probability_matrix[node] /= probability_matrix_nirmol[node]
-        assert error_bound(np.sum(probability_matrix[node]),1.0)
+        assert error_bound(np.sum(probability_matrix[node]), 1.0)
 
     assert np.max(probability_matrix) <= 1.0
 
@@ -269,9 +271,14 @@ if __name__ == "__main__":
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
     oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(net)
     print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
+
+    traffic_matrix_list = loaded_dict["tms"]
+
+    oblivious_values_list = list()
+
     c_l, total_archs_load, congested_link_histogram = calculate_congestion_per_matrices(net=net,
                                                                                         traffic_matrix_list=
-                                                                                         loaded_dict["tms"],
+                                                                                        loaded_dict["tms"],
                                                                                         oblivious_routing_per_edge=oblivious_routing_per_edge)
     print("Average Result: {}".format(np.average(c_l)))
     print("STD Result: {}".format(np.std(c_l)))
