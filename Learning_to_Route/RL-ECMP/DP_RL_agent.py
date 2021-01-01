@@ -1,7 +1,9 @@
 import rl_env_history
+import rl_env_oblivious
 from common.logger import logger
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.cmd_util import make_vec_env
 from gym import envs, register
 from common.rl_env_consts import HistoryConsts
@@ -59,13 +61,18 @@ if __name__ == "__main__":
 
     num_test_observations = min(num_train_observations * 2, 20000)
 
+    checkpoint_callback = CheckpointCallback(save_freq=1000,
+                                             save_path='/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/logs/',
+                                             name_prefix='rl_agent')
+
     logger.info("Data loaded from: {}".format(dumped_path))
     logger.info("Architecture is: {}".format(mlp_arch))
     logger.info("gamma is: {}".format(gamma))
 
     if RL_ENV_HISTORY_GYM_ID not in envs.registry.env_specs:
         register(id=RL_ENV_HISTORY_GYM_ID,
-                 entry_point='rl_env_history:RL_Env_History',
+                 # entry_point='rl_env_history:RL_Env_History',
+                 entry_point='rl_env_oblivious:RL_Env_Oblivious',
                  kwargs={
                      'max_steps': episode_length,
                      'history_length': history_length,
@@ -87,7 +94,7 @@ if __name__ == "__main__":
 
         model = PPO(CustomMLPPolicy, env, verbose=1, gamma=gamma, n_steps=n_steps)
 
-        model.learn(total_timesteps=total_timesteps)
+        model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
 
         env_diagnostics = env.envs[0].env.diagnostics
         if save_diagnostics:
