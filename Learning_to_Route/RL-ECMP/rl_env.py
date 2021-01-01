@@ -5,7 +5,7 @@ Created on 14 Oct 2020
 from gym import Env, spaces
 from common.network_class import *
 from common.rl_env_consts import HistoryConsts, ExtraData
-from static_routing.generating_tms_dumps import load_dump_file
+from common.utils import load_dump_file
 from common.topologies import topology_zoo_loader
 import random
 
@@ -145,6 +145,7 @@ class RL_Env(Env):
         self._observations_tms = self._test_observations if self._testing else self._train_observations
         self._observations_length = self._num_test_observations if self._testing else self._num_train_observations
         self._optimal_values = self._opt_test_observations if self._testing else self._opt_train_observations
+        self._oblivious_values = self._oblv_test_observations if self._testing else self._oblv_train_observations
 
     def _process_action(self, action):
         if self._history_action_type == HistoryConsts.ACTION_W_EPSILON:

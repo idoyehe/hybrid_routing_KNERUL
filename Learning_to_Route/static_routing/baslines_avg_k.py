@@ -2,7 +2,7 @@ from static_routing.optimal_load_balancing import *
 from static_routing.ecmp_load_balancing import ecmp_arch_congestion
 from common.network_class import NetworkClass
 from common.consts import EdgeConsts
-from static_routing.generating_tms_dumps import load_dump_file
+from common.utils import load_dump_file
 from common.topologies import topology_zoo_loader
 from common.logger import logger
 from argparse import ArgumentParser

@@ -3,12 +3,11 @@ from static_routing.optimal_load_balancing import *
 from static_routing.oblivious_routing import *
 from common.logger import logger
 from common.topologies import topology_zoo_loader
-import pickle
 from common.consts import TMType
 import os
 from argparse import ArgumentParser
 from sys import argv
-from pathlib import Path
+import pickle
 
 
 def _getOptions(args=argv[1:]):
@@ -89,12 +88,7 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
     return tm_list
 
 
-def load_dump_file(file_name: str):
-    dumped_file = open(Path(file_name), 'rb')
-    dict2load = pickle.load(dumped_file)
-    dumped_file.close()
-    assert isinstance(dict2load, dict)
-    return dict2load
+
 
 
 if __name__ == "__main__":

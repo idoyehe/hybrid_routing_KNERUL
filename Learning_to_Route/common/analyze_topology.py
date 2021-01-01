@@ -2,7 +2,7 @@ from network_class import *
 from argparse import ArgumentParser
 from sys import argv
 from pathlib import Path
-from static_routing.generating_tms_dumps import load_dump_file
+from common.utils import load_dump_file
 from topologies import topology_zoo_loader
 
 
