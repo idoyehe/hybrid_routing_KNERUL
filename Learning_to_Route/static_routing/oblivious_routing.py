@@ -184,13 +184,13 @@ def oblivious_routing(net: NetworkClass, oblivious_ratio=None):
 
 
 def calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: list, oblivious_routing_per_edge: dict):
-    logger.info("Calculating congestion to all traffic matrices by {} oblivious routing")
+    logger.debug("Calculating congestion to all traffic matrices by {} oblivious routing")
     total_archs_load = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float64)
 
     congested_link_histogram = np.zeros((net.get_num_edges,), dtype=np.float64)
     congestion_ratios = list()
     for index, tple in enumerate(traffic_matrix_list):
-        logger.info("Current matrix index is: {}".format(index))
+        logger.debug("Current matrix index is: {}".format(index))
         current_traffic_matrix = tple[0]
         current_opt = tple[1]
 
