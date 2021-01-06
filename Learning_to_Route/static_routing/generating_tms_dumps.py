@@ -82,7 +82,7 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
         obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],
                                                               oblivious_routing_per_edge=oblivious_routing_per_edge)
 
-        tm_list.append((tm, opt_ratio, obliv_ratio))
+        tm_list.append((tm, opt_ratio, obliv_ratio[0]))
         logger.info("Current TM {} with optimal routing {}".format(index, opt_ratio))
 
     return tm_list
