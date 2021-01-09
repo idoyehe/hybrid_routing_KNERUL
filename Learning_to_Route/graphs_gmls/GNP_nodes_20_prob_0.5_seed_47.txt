@@ -1,5 +1,5 @@
 graph [
-  name "GNP_nodes_20_prob_0.5_seed_47"
+  Network "GNP_nodes_20_prob_0.5_seed_47"
   node [
     id 0
     label "0"
