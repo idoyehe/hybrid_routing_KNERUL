@@ -172,6 +172,24 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
     return parsed_g
 
 
+def store_graph(graph):
+    file_path = "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/graphs_gmls/{}.txt".format(
+        graph.name)
+    nx.write_gml(graph, file_path)
+
+
+def create_random_connected_graph(nodes, edge_prob, seed, LinkSpeedRaw):
+    graph = nx.gnp_random_graph(nodes, edge_prob, seed)
+    graph.name = "GNP_nodes_{}_prob_{}_seed_{}".format(nodes, edge_prob, seed)
+    if nx.is_connected(graph):
+        for edge in graph.edges:
+            graph.edges[edge]["LinkSpeedRaw"] = LinkSpeedRaw
+        store_graph(graph)
+        return
+    else:
+        raise Exception("Random Graph is not connected")
+
+
 BASIC_TOPOLOGIES = {
     "STAR": _star(),
     "RING": _ring(),
