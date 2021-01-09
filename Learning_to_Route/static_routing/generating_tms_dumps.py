@@ -44,21 +44,28 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
         "capacity": default_capacity,
         "tms_sparsity": matrix_sparsity,
         "tms_type": tm_type, }
-    file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name,
-                                                                                                net.get_num_nodes,
-                                                                                                net.get_num_nodes,
-                                                                                                total_matrices, tm_type,
-                                                                                                matrix_sparsity)
+
+    folder_name:str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_name)
+    file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name,
+                                                                                                    net.get_name,
+                                                                                                    net.get_num_nodes,
+                                                                                                    net.get_num_nodes,
+                                                                                                    total_matrices,
+                                                                                                    tm_type,
+                                                                                                    matrix_sparsity)
     if static_pairs:
         file_name += "_static_pairs"
 
     from platform import system
     if system() == "Linux":
         file_name = file_name.replace("\\", "/")
+        folder_name = folder_name.replace("\\", "/")
+
 
     if tm_type == TMType.BIMODAL:
         file_name += "_elephant_percentage_{}".format(elephant_percentage)
 
+    os.makedirs(folder_name, exist_ok=True)
     dump_file = open(file_name, 'wb')
     pickle.dump(dict2dump, dump_file)
     dump_file.close()
@@ -86,9 +93,6 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
         logger.info("Current TM {} with optimal routing {}".format(index, opt_ratio))
 
     return tm_list
-
-
-
 
 
 if __name__ == "__main__":
