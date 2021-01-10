@@ -45,7 +45,7 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
         "tms_sparsity": matrix_sparsity,
         "tms_type": tm_type, }
 
-    folder_name:str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_name)
+    folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_name)
     file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name,
                                                                                                     net.get_name,
                                                                                                     net.get_num_nodes,
@@ -60,7 +60,6 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
     if system() == "Linux":
         file_name = file_name.replace("\\", "/")
         folder_name = folder_name.replace("\\", "/")
-
 
     if tm_type == TMType.BIMODAL:
         file_name += "_elephant_percentage_{}".format(elephant_percentage)
@@ -85,7 +84,9 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
                                 tm_type=tm_type,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
+
         opt_ratio, _ = optimal_load_balancing_LP_solver(net, tm)
+
         obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],
                                                               oblivious_routing_per_edge=oblivious_routing_per_edge)
 

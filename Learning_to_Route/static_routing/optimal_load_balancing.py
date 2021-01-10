@@ -45,7 +45,20 @@ def __validate_solution(net_directed: NetworkClass, flows: list, traffic_matrix,
                 assert error_bound(to_some_v, from_some_v)
 
 
-def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_ratio_value=None):
+def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
+    prev_opt_ratio, prev_link_carries_per_flow = aux_optimal_load_balancing_LP_solver(net, traffic_matrix)
+    while True:
+        try:
+            next_opt_ratio = prev_opt_ratio - 0.001
+            prev_opt_ratio, prev_link_carries_per_flow = aux_optimal_load_balancing_LP_solver(net, traffic_matrix,
+                                                                                              next_opt_ratio)
+            print("****** Gurobi Failure ******")
+            prev_opt_ratio = next_opt_ratio
+        except Exception as e:
+            return prev_opt_ratio, prev_link_carries_per_flow
+
+
+def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_ratio_value=None):
     opt_lp_problem = gb.Model(name="LP problem for optimal load balancing, given network and TM")
 
     flows = extract_flows(traffic_matrix)
@@ -96,13 +109,15 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_rati
         # Flow conservation at the source
         from_its_src = sum(arch_vars_per_flow[out_arch][flow] for out_arch in net_direct.out_edges_by_node(src))
         to_its_src = sum(arch_vars_per_flow[in_arch][flow] for in_arch in net_direct.in_edges_by_node(src))
-        opt_lp_problem.addConstr(from_its_src - to_its_src, GRB.EQUAL, traffic_matrix[flow], "{}->{};srcConst".format(src, dst))
+        opt_lp_problem.addConstr(from_its_src - to_its_src, GRB.EQUAL, traffic_matrix[flow],
+                                 "{}->{};srcConst".format(src, dst))
         # opt_lp_problem.addConstr(to_its_src, GRB.EQUAL, 0)
 
         # Flow conservation at the destination
         from_its_dst = sum(arch_vars_per_flow[out_arch][flow] for out_arch in net_direct.out_edges_by_node(dst))
         to_its_dst = sum(arch_vars_per_flow[in_arch][flow] for in_arch in net_direct.in_edges_by_node(dst))
-        opt_lp_problem.addConstr(to_its_dst - from_its_dst, GRB.EQUAL, traffic_matrix[flow], "{}->{};dstConst".format(src, dst))
+        opt_lp_problem.addConstr(to_its_dst - from_its_dst, GRB.EQUAL, traffic_matrix[flow],
+                                 "{}->{};dstConst".format(src, dst))
         # opt_lp_problem.addConstr(from_its_dst, GRB.EQUAL, 0)
 
         for u in net_direct.nodes:

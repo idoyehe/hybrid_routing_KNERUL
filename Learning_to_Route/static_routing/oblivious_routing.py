@@ -50,6 +50,19 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
 
 
 def oblivious_routing(net: NetworkClass, oblivious_ratio=None):
+    prev_obliv_ratio, prev_per_arch_flow_fraction, prev_per_flow_routing_scheme = aux_oblivious_routing(net)
+    while True:
+        try:
+            next_obliv_ratio = prev_obliv_ratio - 0.001
+            prev_obliv_ratio, prev_per_arch_flow_fraction, prev_per_flow_routing_scheme = aux_oblivious_routing(net,
+                                                                                                                next_obliv_ratio)
+            prev_obliv_ratio = next_obliv_ratio
+            print("****** Gurobi Failure ******")
+        except Exception as e:
+            return prev_obliv_ratio, prev_per_arch_flow_fraction, prev_per_flow_routing_scheme
+
+
+def aux_oblivious_routing(net: NetworkClass, oblivious_ratio=None):
     obliv_lp_problem = gb.Model(name="Applegate's and Cohen's Oblivious Routing LP")
     obliv_lp_problem.setParam(GRB.Param.OutputFlag, 0)
     index = 0
@@ -184,7 +197,7 @@ def oblivious_routing(net: NetworkClass, oblivious_ratio=None):
 
 
 def calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: list, oblivious_routing_per_edge: dict):
-    logger.debug("Calculating congestion to all traffic matrices by {} oblivious routing")
+    logger.info("Calculating congestion to all traffic matrices by {} oblivious routing")
     total_archs_load = np.zeros((net.get_num_nodes, net.get_num_nodes), dtype=np.float64)
 
     congested_link_histogram = np.zeros((net.get_num_edges,), dtype=np.float64)
@@ -196,7 +209,7 @@ def calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: li
 
         assert current_traffic_matrix.shape == (net.get_num_nodes, net.get_num_nodes)
 
-        logger.debug('Calculating the congestion per edge and finding max edge congestion')
+        logger.info('Calculating the congestion per edge and finding max edge congestion')
 
         max_congestion = -1
         most_congested_link = None
