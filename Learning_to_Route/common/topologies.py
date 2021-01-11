@@ -182,18 +182,9 @@ def create_random_connected_graph(nodes, edge_prob, seed, LinkSpeedRaw):
     graph = nx.gnp_random_graph(nodes, edge_prob, seed)
     graph.name = "GNP_nodes_{}_prob_{}_seed_{}".format(nodes, edge_prob, seed)
     if nx.is_connected(graph):
-        for index in range(graph.number_of_nodes()):
-            graph.add_edges_from([()])
-
-
-
-
         for edge in graph.edges:
             graph.edges[edge]["LinkSpeedRaw"] = LinkSpeedRaw
         store_graph(graph)
-
-
-
 
         return
     else:
@@ -210,3 +201,6 @@ BASIC_TOPOLOGIES = {
     "TRIANGLE": _triangle(),
     "CLIQUE": _clique()
 }
+
+if __name__ == "__main__":
+    create_random_connected_graph(12, 0.6, 47, 10000000000)
