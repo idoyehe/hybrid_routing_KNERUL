@@ -75,9 +75,8 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_
         assert traffic_matrix[flow] > 0
         for _arch in net_direct.edges:
             g_var_name = "arch{};flow{}->{};".format(str(_arch), src, dst)
-            g_var = opt_lp_problem.addVar(lb=0.0, name=g_var_name, vtype=GRB.CONTINUOUS)
+            g_var = opt_lp_problem.addVar(lb=0.0, ub=traffic_matrix[flow], name=g_var_name, vtype=GRB.CONTINUOUS)
             all_vars_sum += g_var
-
             arch_vars_per_flow[_arch][flow] = g_var
             arch_all_vars[_arch].append(g_var)
 
