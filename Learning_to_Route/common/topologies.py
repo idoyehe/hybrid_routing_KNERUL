@@ -201,6 +201,3 @@ BASIC_TOPOLOGIES = {
     "TRIANGLE": _triangle(),
     "CLIQUE": _clique()
 }
-
-if __name__ == "__main__":
-    create_random_connected_graph(12, 0.6, 47, 10000000000)

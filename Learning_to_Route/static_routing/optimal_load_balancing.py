@@ -108,16 +108,14 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_
         # Flow conservation at the source
         from_its_src = sum(arch_vars_per_flow[out_arch][flow] for out_arch in net_direct.out_edges_by_node(src))
         to_its_src = sum(arch_vars_per_flow[in_arch][flow] for in_arch in net_direct.in_edges_by_node(src))
-        opt_lp_problem.addConstr(from_its_src - to_its_src, GRB.EQUAL, traffic_matrix[flow],
-                                 "{}->{};srcConst".format(src, dst))
-        # opt_lp_problem.addConstr(to_its_src, GRB.EQUAL, 0)
+        opt_lp_problem.addConstr(from_its_src, GRB.EQUAL, traffic_matrix[flow], "{}->{};srcConst".format(src, dst))
+        opt_lp_problem.addConstr(to_its_src, GRB.EQUAL, 0)
 
         # Flow conservation at the destination
         from_its_dst = sum(arch_vars_per_flow[out_arch][flow] for out_arch in net_direct.out_edges_by_node(dst))
         to_its_dst = sum(arch_vars_per_flow[in_arch][flow] for in_arch in net_direct.in_edges_by_node(dst))
-        opt_lp_problem.addConstr(to_its_dst - from_its_dst, GRB.EQUAL, traffic_matrix[flow],
-                                 "{}->{};dstConst".format(src, dst))
-        # opt_lp_problem.addConstr(from_its_dst, GRB.EQUAL, 0)
+        opt_lp_problem.addConstr(to_its_dst, GRB.EQUAL, traffic_matrix[flow], "{}->{};dstConst".format(src, dst))
+        opt_lp_problem.addConstr(from_its_dst, GRB.EQUAL, 0)
 
         for u in net_direct.nodes:
             if u in flow:
