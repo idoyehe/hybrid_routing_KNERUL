@@ -63,7 +63,11 @@ def oblivious_routing(net: NetworkClass, oblivious_ratio=None):
 
 
 def aux_oblivious_routing(net: NetworkClass, oblivious_ratio=None):
-    obliv_lp_problem = gb.Model(name="Applegate's and Cohen's Oblivious Routing LP")
+    gb_env = gb.Env(empty=True)
+    gb_env.setParam(GRB.Param.OutputFlag, 0)
+    gb_env.setParam(GRB.Param.NumericFocus, 3)
+    gb_env.start()
+    obliv_lp_problem = gb.Model(name="Applegate's and Cohen's Oblivious Routing LP", env=gb_env)
     obliv_lp_problem.setParam(GRB.Param.OutputFlag, 0)
     index = 0
 
@@ -225,9 +229,9 @@ def calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: li
                 max_congestion = link_congestion
                 most_congested_link = arch
 
-        assert max_congestion >= current_opt
+        assert round(max_congestion, 4) >= current_opt
 
-        congestion_ratios.append(max_congestion / current_opt)
+        congestion_ratios.append(round(max_congestion / current_opt, 4))
         congested_link_histogram[net.get_edge2id()[most_congested_link]] += 1
 
     return congestion_ratios, total_archs_load, congested_link_histogram
