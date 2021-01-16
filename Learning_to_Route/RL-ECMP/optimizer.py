@@ -28,9 +28,9 @@ class WNumpyOptimizer:
         self._initialize()
         self._max_iters = 500
         self._testing = testing
-
-        self.oblivious_ratio, self.oblivious_routing_per_edge, self.per_flow_routing_scheme = \
-            oblivious_routing(self._network)
+        if self._testing:
+            self.oblivious_ratio, self.oblivious_routing_per_edge, self.per_flow_routing_scheme = \
+                oblivious_routing(self._network)
 
     def _initialize(self):
         logger.debug("Building ingoing and outgoing edges map")

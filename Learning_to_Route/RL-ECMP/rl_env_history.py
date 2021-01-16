@@ -28,7 +28,7 @@ class RL_Env_History(RL_Env):
                                              num_test_observations=num_test_observations, testing=testing)
 
         self._num_edges = self._network.get_num_edges
-        self._optimizer = WNumpyOptimizer(self._network)
+        assert isinstance(self._optimizer, WNumpyOptimizer)
         self._set_action_space()
 
         self._diagnostics = list()
