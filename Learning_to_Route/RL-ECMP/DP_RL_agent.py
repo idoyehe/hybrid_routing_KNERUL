@@ -103,6 +103,10 @@ if __name__ == "__main__":
             np.save(diag_dump_file, env_diagnostics)
             diag_dump_file.close()
 
+    if save_model_agent and load_agent is None:
+        save_path = "{}_model_agent_{}".format(dumped_path, num_train_observations)
+        model.save(path=save_path)
+
     if load_agent is not None:
         model = PPO.load(load_agent, env)
 
@@ -117,8 +121,6 @@ if __name__ == "__main__":
         diagnostics.extend(info)
         env.reset()
         rewards_list.append(reward[0] * -1)
-
-
 
     if save_links_weights:
         link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, num_train_observations)
@@ -154,12 +156,8 @@ if __name__ == "__main__":
     np.save(rewards_file, rewards_list)
     rewards_file.close()
 
-    rl_vs_obliv = "{}_RL_Vs_Oblivious_{}.npy".format(args.dumped_path, num_test_observations)
-    rl_vs_obliv_file = open(rl_vs_obliv, 'wb')
-    rl_vs_obliv_data = np.array([np.array(step_data["rl_vs_obliv_data"]) for step_data in diagnostics])
-    np.save(rl_vs_obliv_file, rl_vs_obliv_data)
-    rl_vs_obliv_file.close()
-
-    if save_model_agent and load_agent is None:
-        save_path = "{}_model_agent_{}".format(dumped_path, num_train_observations)
-        model.save(path=save_path)
+    # rl_vs_obliv = "{}_RL_Vs_Oblivious_{}.npy".format(args.dumped_path, num_test_observations)
+    # rl_vs_obliv_file = open(rl_vs_obliv, 'wb')
+    # rl_vs_obliv_data = np.array([np.array(step_data["rl_vs_obliv_data"]) for step_data in diagnostics])
+    # np.save(rl_vs_obliv_file, rl_vs_obliv_data)
+    # rl_vs_obliv_file.close()
