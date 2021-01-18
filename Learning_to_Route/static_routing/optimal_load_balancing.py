@@ -60,8 +60,6 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
 
 def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_ratio_value=None):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.OutputFlag, 0)
-    gb_env.setParam(GRB.Param.NumericFocus, 3)
     gb_env.start()
     opt_lp_problem = gb.Model(name="LP problem for optimal load balancing, given network and TM", env=gb_env)
 
@@ -91,9 +89,6 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_
 
     if opt_ratio_value is None:
         opt_ratio = opt_lp_problem.addVar(lb=0.0, name="opt_ratio", vtype=GRB.CONTINUOUS)
-        # opt_lp_problem.setParam(GRB.Param.BarConvTol, 0.01)
-        # opt_lp_problem.setParam(GRB.Param.Method, 2)
-        # opt_lp_problem.setParam(GRB.Param.Crossover, 0)
 
         opt_lp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
         opt_lp_problem.setObjectiveN(opt_ratio, 0, 1)
