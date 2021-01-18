@@ -19,33 +19,29 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
         flow = (src, dst)
         for v in net_directed.nodes:
             if v == src:
-                from_its_source = 0
-                for out_arches_from_src in net_directed.out_edges_by_node(v):
-                    from_its_source += arch_f_vars_dict[out_arches_from_src][flow].x
+                from_its_source = sum(arch_f_vars_dict[flow + out_arches_from_src].x for out_arches_from_src in
+                                      net_directed.out_edges_by_node(v))
                 assert error_bound(from_its_source, 1.0)
-                to_its_src = 0
-                for in_arches_to_src in net_directed.in_edges_by_node(v):
-                    to_its_src += arch_f_vars_dict[in_arches_to_src][flow].x
+                to_its_src = sum(arch_f_vars_dict[flow + in_arches_to_src].x for in_arches_to_src in
+                                 net_directed.in_edges_by_node(v))
                 assert error_bound(to_its_src)
 
             elif v == dst:
-                from_its_dst = 0
-                for out_arches_from_dst in net_directed.out_edges_by_node(v):
-                    from_its_dst += arch_f_vars_dict[out_arches_from_dst][flow].x
+                from_its_dst = sum(arch_f_vars_dict[flow + out_arches_from_dst].x for out_arches_from_dst in
+                                   net_directed.out_edges_by_node(v))
                 assert error_bound(from_its_dst)
 
-                to_its_dst = 0
-                for in_arches_to_dst in net_directed.in_edges_by_node(v):
-                    to_its_dst += arch_f_vars_dict[in_arches_to_dst][flow].x
+                to_its_dst = sum(arch_f_vars_dict[flow + in_arches_to_dst].x for in_arches_to_dst in
+                                 net_directed.in_edges_by_node(v))
                 assert error_bound(to_its_dst, 1.0)
+
             else:
                 assert v not in flow
-                to_some_v = 0
-                for in_arches_to_v in net_directed.in_edges_by_node(v):
-                    to_some_v += arch_f_vars_dict[in_arches_to_v][flow].x
-                from_some_v = 0
-                for out_arches_from_v in net_directed.out_edges_by_node(v):
-                    from_some_v += arch_f_vars_dict[out_arches_from_v][flow].x
+                to_some_v = sum(
+                    arch_f_vars_dict[flow + in_arches_to_v].x for in_arches_to_v in net_directed.in_edges_by_node(v))
+
+                from_some_v = sum(arch_f_vars_dict[flow + out_arches_from_v].x for out_arches_from_v in
+                                  net_directed.out_edges_by_node(v))
                 assert error_bound(to_some_v, from_some_v)
 
 
@@ -64,18 +60,17 @@ def oblivious_routing(net: NetworkClass, oblivious_ratio=None):
 
 def aux_oblivious_routing(net: NetworkClass, oblivious_ratio=None):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.OutputFlag, 0)
-    gb_env.setParam(GRB.Param.NumericFocus, 3)
     gb_env.start()
     obliv_lp_problem = gb.Model(name="Applegate's and Cohen's Oblivious Routing LP", env=gb_env)
     obliv_lp_problem.setParam(GRB.Param.OutputFlag, 0)
-    index = 0
+    objective_index = 0
 
     if oblivious_ratio is None:
         obliv_ratio = obliv_lp_problem.addVar(name="obliv_ratio", lb=0.0, vtype=GRB.CONTINUOUS)
+        # obliv_lp_problem.setObjective(obliv_ratio, GRB.MINIMIZE)
         obliv_lp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
-        obliv_lp_problem.setObjectiveN(obliv_ratio, index, 1)
-        index += 1
+        obliv_lp_problem.setObjectiveN(obliv_ratio, objective_index, 1)
+        objective_index += 1
         obliv_lp_problem.update()
 
     else:
@@ -83,51 +78,56 @@ def aux_oblivious_routing(net: NetworkClass, oblivious_ratio=None):
 
     net_directed = net.get_g_directed
 
-    pi_edges_dict = defaultdict(dict)
-    pe_edges_dict = defaultdict(dict)
-    f_arch_dict = defaultdict(dict)
+    pi_edges_dict = obliv_lp_problem.addVars(net_directed.edges, net_directed.edges, name="PI", lb=0.0,
+                                             vtype=GRB.CONTINUOUS)
+    obliv_lp_problem.update()
 
-    pi_vars_sum = 0
-    pe_vars_sum = 0
-    f_vars_sum = 0
-
-    for _arch in net_directed.edges:
-        _h_sum = 0
+    for _e in net_directed.edges:
+        _e_h_sum = 0
         for _h in net_directed.edges:
-            pi_edges_dict[_arch][_h] = obliv_lp_problem.addVar(name="PI_{}_({})".format(_arch, _h), lb=0.0,
-                                                               vtype=GRB.CONTINUOUS)
-            pi_vars_sum += pi_edges_dict[_arch][_h]
+            pi_e_h = pi_edges_dict[_e + _h]
             cap_h = net_directed.get_edge_key(_h, EdgeConsts.CAPACITY_STR)
-            _h_sum += cap_h * pi_edges_dict[_arch][_h]
-        obliv_lp_problem.addConstr(_h_sum, GRB.LESS_EQUAL, obliv_ratio, "SUM(cap(h)*pi_e_(h)<=r;{})".format(_arch))
+            _e_h_sum += cap_h * pi_e_h
+        obliv_lp_problem.addConstr(_e_h_sum, GRB.LESS_EQUAL, obliv_ratio, "SUM(cap(h)*pi_e_(h)<=r;{})".format(_e))
 
-    obliv_lp_problem.setObjectiveN(pi_vars_sum, index)
-    index += 1
+    obliv_lp_problem.setObjectiveN(sum(dict(pi_edges_dict).values()), objective_index)
+    objective_index += 1
 
-    for _arch in net_directed.edges:
-        _capacity_arch = net_directed.get_edge_key(_arch, EdgeConsts.CAPACITY_STR)
-        for i in range(net_directed.get_num_nodes):
-            for j in range(net_directed.get_num_nodes):
-                if i == j:
-                    pe_edges_dict[_arch][(i, j)] = 0
-                    f_arch_dict[_arch][(i, j)] = 0
-                else:
-                    p_e_i_j = pe_edges_dict[_arch][(i, j)] = \
-                        obliv_lp_problem.addVar(name="P_{}_({})".format(_arch, (i, j)), lb=0.0, vtype=GRB.CONTINUOUS)
-                    pe_vars_sum += p_e_i_j
-
-                    f_i_j_e = f_arch_dict[_arch][(i, j)] = \
-                        obliv_lp_problem.addVar(name="f_{}_({})".format((i, j), _arch), lb=0.0, vtype=GRB.CONTINUOUS)
-                    f_vars_sum += f_i_j_e
-
-                    obliv_lp_problem.addConstr(f_i_j_e, GRB.LESS_EQUAL, _capacity_arch * p_e_i_j,
-                                               "f_ij({})/cap(e)<=p_{}(i,j)".format(_arch, _arch))
+    pe_edges_dict = obliv_lp_problem.addVars(net_directed.edges, net_directed.get_num_nodes, net_directed.get_num_nodes,
+                                             name="Pe", lb=0.0,
+                                             vtype=GRB.CONTINUOUS)
+    f_arch_dict = obliv_lp_problem.addVars(net_directed.get_num_nodes, net_directed.get_num_nodes, net_directed.edges,
+                                           name="f", lb=0.0, ub=1.0,
+                                           vtype=GRB.CONTINUOUS)
 
     obliv_lp_problem.update()
-    obliv_lp_problem.setObjectiveN(pe_vars_sum, index)
-    index += 1
-    obliv_lp_problem.setObjectiveN(f_vars_sum, index)
-    index += 1
+
+    for _e in net_directed.edges:
+        _capacity_arch = net_directed.get_edge_key(_e, EdgeConsts.CAPACITY_STR)
+        for i in net_directed.nodes:
+            for j in net_directed.nodes:
+                f_i_j_e = f_arch_dict[(i, j) + _e]
+                p_e_i_j = pe_edges_dict[_e + (i, j)]
+                if i == j:
+                    pe_edges_dict[_e + (i, j)] = 0
+                    f_arch_dict[(i, j) + _e] = 0
+                else:
+                    obliv_lp_problem.addConstr(f_i_j_e, GRB.LESS_EQUAL, _capacity_arch * p_e_i_j,
+                                               "f_ij({})/cap(e)<=p_{}(i,j)".format(_e, _e))
+
+    obliv_lp_problem.update()
+    obliv_lp_problem.setObjectiveN(sum(dict(pe_edges_dict).values()), objective_index)
+    objective_index += 1
+    obliv_lp_problem.setObjectiveN(sum(dict(f_arch_dict).values()), objective_index)
+    objective_index += 1
+    obliv_lp_problem.update()
+
+    for _e in net_directed.edges:
+        for i in net_directed.nodes:
+            for j, k in net_directed.edges:
+                obliv_lp_problem.addConstr((pi_edges_dict[_e + (j, k)] +
+                                            pe_edges_dict[_e + (i, j)] -
+                                            pe_edges_dict[_e + (i, k)]), GRB.GREATER_EQUAL, 0.0)
 
     # flow constrains
     for src, dst in net_directed.get_all_pairs():
@@ -135,35 +135,26 @@ def aux_oblivious_routing(net: NetworkClass, oblivious_ratio=None):
         flow = (src, dst)
 
         # Flow conservation at the source
-        out_flow_from_source = sum(f_arch_dict[out_arch][flow] for out_arch in net_directed.out_edges_by_node(src))
-        in_flow_to_source = sum(f_arch_dict[in_arch][flow] for in_arch in net_directed.in_edges_by_node(src))
-        obliv_lp_problem.addConstr(out_flow_from_source - in_flow_to_source, GRB.EQUAL, 1.0,
-                                   "{}->{};srcConst".format(src, dst))
+        out_flow_from_source = sum(f_arch_dict[flow + out_arch] for out_arch in net_directed.out_edges_by_node(src))
+        in_flow_to_source = sum(f_arch_dict[flow + in_arch] for in_arch in net_directed.in_edges_by_node(src))
+        obliv_lp_problem.addConstr(out_flow_from_source, GRB.EQUAL, 1.0)
+        obliv_lp_problem.addConstr(in_flow_to_source, GRB.EQUAL, 0.0)
 
         # Flow conservation at the destination
-        out_flow_from_dest = sum(f_arch_dict[out_arch][flow] for out_arch in net_directed.out_edges_by_node(dst))
-        in_flow_to_dest = sum(f_arch_dict[in_arch][flow] for in_arch in net_directed.in_edges_by_node(dst))
-        obliv_lp_problem.addConstr((in_flow_to_dest - out_flow_from_dest), GRB.EQUAL, 1.0,
-                                   "{}->{};dstConst".format(src, dst))
+        out_flow_from_dest = sum(f_arch_dict[flow + out_arch] for out_arch in net_directed.out_edges_by_node(dst))
+        in_flow_to_dest = sum(f_arch_dict[flow + in_arch] for in_arch in net_directed.in_edges_by_node(dst))
+        obliv_lp_problem.addConstr(in_flow_to_dest, GRB.EQUAL, 1.0)
+        obliv_lp_problem.addConstr(out_flow_from_dest, GRB.EQUAL, 0.0)
 
         for u in net_directed.nodes:
             if u in flow:
                 continue
             # Flow conservation at transit node
-            out_flow = sum(f_arch_dict[out_arch][flow] for out_arch in net_directed.out_edges_by_node(u))
-            in_flow = sum(f_arch_dict[in_arch][flow] for in_arch in net_directed.in_edges_by_node(u))
-            obliv_lp_problem.addConstr(out_flow - in_flow, GRB.EQUAL, 0.0, "{}->{};trans_{}_Const".format(src, dst, u))
+            out_flow = sum(f_arch_dict[flow + out_arch] for out_arch in net_directed.out_edges_by_node(u))
+            in_flow = sum(f_arch_dict[flow + in_arch] for in_arch in net_directed.in_edges_by_node(u))
+            obliv_lp_problem.addConstr(out_flow, GRB.EQUAL, in_flow)
 
     obliv_lp_problem.update()
-
-    for _arch_e in net_directed.edges:
-        for i in range(net.get_num_nodes):
-            for _arc_a in net_directed.edges:
-                j = _arc_a[0]
-                k = _arc_a[1]
-                obliv_lp_problem.addConstr((pi_edges_dict[_arch_e][_arc_a] +
-                                            pe_edges_dict[_arch_e][(i, j)] -
-                                            pe_edges_dict[_arch_e][(i, k)]), GRB.GREATER_EQUAL, 0.0)
 
     try:
         logger.info("LP Submit to Solve {}".format(obliv_lp_problem.ModelName))
@@ -194,8 +185,7 @@ def aux_oblivious_routing(net: NetworkClass, oblivious_ratio=None):
         for src, dst in net.get_all_pairs():
             assert src != dst
             flow = (src, dst)
-            per_arch_flow_fraction[_arch][flow] = f_arch_dict[_arch][flow].x
-            per_flow_routing_scheme[flow][_arch] = f_arch_dict[_arch][flow].x
+            per_flow_routing_scheme[flow][_arch] = per_arch_flow_fraction[_arch][flow] = f_arch_dict[flow + _arch].x
 
     return obliv_ratio, per_arch_flow_fraction, per_flow_routing_scheme
 
