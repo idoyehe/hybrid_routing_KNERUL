@@ -47,7 +47,8 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
 
 def oblivious_routing(net: NetworkClass):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.OutputFlag,0)
+    gb_env.setParam(GRB.Param.OutputFlag, 0)
+    gb_env.setParam(GRB.Param.NumericFocus, 3)
     gb_env.start()
     prev_obliv_ratio, prev_per_arch_flow_fraction, prev_per_flow_routing_scheme = aux_oblivious_routing(net, gb_env)
     while True:
