@@ -45,8 +45,10 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
                 assert error_bound(to_some_v, from_some_v)
 
 
-def oblivious_routing(net: NetworkClass, oblivious_ratio=None):
-    prev_obliv_ratio, prev_per_arch_flow_fraction, prev_per_flow_routing_scheme = aux_oblivious_routing(net)
+def oblivious_routing(net: NetworkClass):
+    gb_env = gb.Env(empty=True)
+    gb_env.start()
+    prev_obliv_ratio, prev_per_arch_flow_fraction, prev_per_flow_routing_scheme = aux_oblivious_routing(net, gb_env)
     while True:
         try:
             next_obliv_ratio = prev_obliv_ratio - 0.001
@@ -58,10 +60,8 @@ def oblivious_routing(net: NetworkClass, oblivious_ratio=None):
             return prev_obliv_ratio, prev_per_arch_flow_fraction, prev_per_flow_routing_scheme
 
 
-def aux_oblivious_routing(net: NetworkClass, oblivious_ratio=None):
-    gb_env = gb.Env(empty=True)
-    gb_env.start()
-    obliv_lp_problem = gb.Model(name="Applegate's and Cohen's Oblivious Routing LP", env=gb_env)
+def aux_oblivious_routing(net: NetworkClass, gurobi_env, oblivious_ratio=None):
+    obliv_lp_problem = gb.Model(name="Applegate's and Cohen's Oblivious Routing LP", env=gurobi_env)
     obliv_lp_problem.setParam(GRB.Param.OutputFlag, 0)
     objective_index = 0
 
@@ -159,6 +159,7 @@ def aux_oblivious_routing(net: NetworkClass, oblivious_ratio=None):
     try:
         logger.info("LP Submit to Solve {}".format(obliv_lp_problem.ModelName))
         obliv_lp_problem.update()
+        obliv_lp_problem.write("oblivious_lp.mps")
         obliv_lp_problem.optimize()
         assert obliv_lp_problem.Status == GRB.OPTIMAL
 

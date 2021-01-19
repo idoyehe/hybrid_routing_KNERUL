@@ -46,7 +46,9 @@ def __validate_solution(net_directed: NetworkClass, flows: list, traffic_matrix,
 
 
 def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
-    prev_opt_ratio, prev_link_carries_per_flow = aux_optimal_load_balancing_LP_solver(net, traffic_matrix)
+    gb_env = gb.Env(empty=True)
+    gb_env.start()
+    prev_opt_ratio, prev_link_carries_per_flow = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env)
     while True:
         try:
             next_opt_ratio = prev_opt_ratio - 0.001
@@ -58,10 +60,8 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
             return prev_opt_ratio, prev_link_carries_per_flow
 
 
-def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, opt_ratio_value=None):
-    gb_env = gb.Env(empty=True)
-    gb_env.start()
-    opt_lp_problem = gb.Model(name="LP problem for optimal load balancing, given network and TM", env=gb_env)
+def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, gurobi_env, opt_ratio_value=None):
+    opt_lp_problem = gb.Model(name="LP problem for optimal load balancing, given network and TM", env=gurobi_env)
 
     flows = extract_flows(traffic_matrix)
 
