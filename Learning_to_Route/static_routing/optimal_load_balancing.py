@@ -47,6 +47,7 @@ def __validate_solution(net_directed: NetworkClass, flows: list, traffic_matrix,
 
 def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
     gb_env = gb.Env(empty=True)
+    gb_env.setParam(GRB.Param.OutputFlag,0)
     gb_env.start()
     prev_opt_ratio, prev_link_carries_per_flow = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env)
     while True:
