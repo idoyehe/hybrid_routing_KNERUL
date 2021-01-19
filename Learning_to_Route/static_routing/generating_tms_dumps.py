@@ -14,6 +14,7 @@ def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
     parser.add_argument("-topo", "--topology_url", type=str, help="The url to load graph topology from")
     parser.add_argument("-cap", "--default_capacity", type=float, help="The capacity for each edge")
+    parser.add_argument("-obliv", "--oblivious", type=bool, help="Run Oblivious as baseline", default=False)
     parser.add_argument("-n", "--total_matrices", type=int, help="The number of total matrices", default=20000)
     parser.add_argument("-sp", "--sparsity", type=float, help="The sparsity of the matrix", default=0.3)
     parser.add_argument("-stat_p", "--static_pairs", type=bool, help="Where the pairs with traffic are static",
@@ -27,7 +28,7 @@ def _getOptions(args=argv[1:]):
 
 
 def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matrix_sparsity: float, tm_type,
-                      oblivious_routing_per_edge,
+                      oblivious_routing_per_edge, oblivious_routing_per_flow,
                       static_pairs: bool, elephant_percentage: float, network_elephant, network_mice,
                       total_matrices: int):
     tms = _generate_traffic_matrix_baseline(net=net,
@@ -41,6 +42,10 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
     dict2dump = {
         "tms": tms,
         "url": url,
+        "oblivious_routing": {
+            "per_edge": oblivious_routing_per_edge,
+            "per_flow": oblivious_routing_per_flow
+        },
         "capacity": default_capacity,
         "tms_sparsity": matrix_sparsity,
         "tms_type": tm_type, }
@@ -87,10 +92,11 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
 
         opt_ratio, _ = optimal_load_balancing_LP_solver(net, tm)
 
-        obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],
-                                                              oblivious_routing_per_edge=oblivious_routing_per_edge)
+        # obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],
+        #                                                       oblivious_routing_per_edge=oblivious_routing_per_edge)
 
-        tm_list.append((tm, opt_ratio, obliv_ratio[0]))
+        # tm_list.append((tm, opt_ratio, obliv_ratio[0]))
+        tm_list.append((tm, opt_ratio, None))
         logger.info("Current TM {} with optimal routing {}".format(index, opt_ratio))
 
     return tm_list
@@ -100,13 +106,18 @@ if __name__ == "__main__":
     args = _getOptions()
     net = NetworkClass(topology_zoo_loader(args.topology_url, default_capacity=args.default_capacity)).get_g_directed
 
-    oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(net)
-    print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
+    oblivious_routing_per_edge = None
+    oblivious_routing_per_flow = None
+
+    if args.oblivious:
+        oblivious_ratio, oblivious_routing_per_edge, oblivious_routing_per_flow = oblivious_routing(net)
+        print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
 
     filename: str = _dump_tms_and_opt(net=net, default_capacity=args.default_capacity, url=args.topology_url,
                                       matrix_sparsity=args.sparsity,
                                       tm_type=args.tm_type,
                                       oblivious_routing_per_edge=oblivious_routing_per_edge,
+                                      oblivious_routing_per_flow=oblivious_routing_per_flow,
                                       static_pairs=args.static_pairs,
                                       elephant_percentage=args.elephant_percentage,
                                       network_elephant=args.network_elephant,
