@@ -33,7 +33,11 @@ class RL_Env(Env):
         self._tms = loaded_dict["tms"]
         self._tm_type = loaded_dict["tms_type"]
         self._tm_sparsity_list = loaded_dict["tms_sparsity"]  # percentage of participating pairs, assumed to be a list
-
+        if "oblivious_routing" in loaded_dict.keys():
+            self._oblivious_routing_per_edge = loaded_dict["oblivious_routing"]["per_edge"]
+            self._oblivious_routing_per_flow = loaded_dict["oblivious_routing"]["per_flow"]
+        else:
+            self._oblivious_routing_per_edge = self._oblivious_routing_per_flow = None
         self._network = self._network.get_g_directed
         self._g_name = self._network.get_name
         self._num_nodes = self._network.get_num_nodes

@@ -9,11 +9,11 @@ refactoring on 24/04/2020
 from common.rl_env_consts import HistoryConsts
 from common.network_class import *
 from common.logger import logger
-from static_routing.oblivious_routing import oblivious_routing, calculate_congestion_per_matrices
+from static_routing.oblivious_routing import calculate_congestion_per_matrices
 
 
 class WNumpyOptimizer:
-    def __init__(self, net: NetworkClass, max_iterations=500, testing=False):
+    def __init__(self, net: NetworkClass, oblivious_routing_per_edge, max_iterations=500, testing=False):
         """
         constructor
         @param graph_adjacency_matrix: the graph adjacency matrix
@@ -28,9 +28,7 @@ class WNumpyOptimizer:
         self._initialize()
         self._max_iters = 500
         self._testing = testing
-        if self._testing:
-            self.oblivious_ratio, self.oblivious_routing_per_edge, self.per_flow_routing_scheme = \
-                oblivious_routing(self._network)
+        self._oblivious_routing_per_edge = oblivious_routing_per_edge
 
     def _initialize(self):
         logger.debug("Building ingoing and outgoing edges map")
@@ -125,30 +123,29 @@ class WNumpyOptimizer:
         rl_total_congestion = np.sum(rl_congestion_per_link)
 
         if self._testing:
-            oblv_congestion, obliv_rl_total_load_per_arch, oblv_congestion_link_histogram = calculate_congestion_per_matrices(
-                self._network,
-                [(traffic_matrix,
-                  optimal_value)],
-                self.oblivious_routing_per_edge)
-            oblv_congestion = oblv_congestion[0]
+            self.rl_vs_obliv_data = None
+            if self._oblivious_routing_per_edge is not None:
+                oblv_congestion, obliv_rl_total_load_per_arch, oblv_congestion_link_histogram = \
+                    calculate_congestion_per_matrices(self._network, [(traffic_matrix, optimal_value)],
+                                                      self._oblivious_routing_per_edge)
+                oblv_congestion = oblv_congestion[0]
 
-            assert np.sum(oblv_congestion_link_histogram) == 1
-            oblv_most_congested_arch = str(self._network.get_id2edge()[np.argmax(oblv_congestion_link_histogram)])
-            rl_most_congested_arch = str(self._network.get_id2edge()[rl_most_congested_arch])
+                assert np.sum(oblv_congestion_link_histogram) == 1
+                oblv_most_congested_arch = str(self._network.get_id2edge()[np.argmax(oblv_congestion_link_histogram)])
+                rl_most_congested_arch = str(self._network.get_id2edge()[rl_most_congested_arch])
+                print("Oblivious most congested link: {}".format(oblv_most_congested_arch))
+                rl_oblivious_delta = np.abs((rl_max_congestion / optimal_value) - oblv_congestion)
+
+                self.rl_vs_obliv_data = \
+                    (rl_most_congested_arch,
+                     oblv_most_congested_arch,
+                     (rl_most_congested_arch == oblv_most_congested_arch),
+                     rl_oblivious_delta)
+                print("Oblivious cost value: {}".format(oblv_congestion))
+                print("Delta: {}".format(rl_oblivious_delta))
 
             print("RL most congested link: {}".format(rl_most_congested_arch))
-            print("Oblivious most congested link: {}".format(oblv_most_congested_arch))
-            rl_oblivious_delta = np.abs((rl_max_congestion / optimal_value) - oblv_congestion)
-
-            self.rl_vs_obliv_data = \
-                (rl_most_congested_arch,
-                 oblv_most_congested_arch,
-                 (rl_most_congested_arch == oblv_most_congested_arch),
-                 rl_oblivious_delta)
-
             print("RL cost value: {}".format(rl_max_congestion / optimal_value))
-            print("Oblivious cost value: {}".format(oblv_congestion))
-            print("Delta: {}".format(rl_oblivious_delta))
 
         return rl_total_congestion, rl_max_congestion, rl_total_load_per_arch, rl_most_congested_arch
 
@@ -211,9 +208,7 @@ class WNumpyOptimizer:
 
 
 if __name__ == "__main__":
-    from Learning_to_Route.data_generation import tm_generation
-    from common.topologies import BASIC_TOPOLOGIES, topology_zoo_loader
-    from Learning_to_Route.common.consts import TMType
+    from common.topologies import BASIC_TOPOLOGIES
     from static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
 
     ecmpNetwork = NetworkClass(BASIC_TOPOLOGIES["TRIANGLE"])
