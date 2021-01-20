@@ -91,12 +91,13 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
                                 network_mice=network_mice)
 
         opt_ratio, _ = optimal_load_balancing_LP_solver(net, tm)
+        obliv_ratio = None
+        if oblivious_routing_per_edge is not None:
+            obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],
+                                                                  oblivious_routing_per_edge=oblivious_routing_per_edge)
+            obliv_ratio = obliv_ratio[0]
 
-        # obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],
-        #                                                       oblivious_routing_per_edge=oblivious_routing_per_edge)
-
-        # tm_list.append((tm, opt_ratio, obliv_ratio[0]))
-        tm_list.append((tm, opt_ratio, None))
+        tm_list.append((tm, opt_ratio, obliv_ratio))
         logger.info("Current TM {} with optimal routing {}".format(index, opt_ratio))
 
     return tm_list

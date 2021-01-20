@@ -2,7 +2,6 @@ from Learning_to_Route.common.utils import error_bound
 from common.network_class import NetworkClass
 from common.consts import EdgeConsts
 from common.logger import *
-from collections import defaultdict
 from common.utils import load_dump_file
 from common.topologies import topology_zoo_loader
 from argparse import ArgumentParser
@@ -69,7 +68,6 @@ def aux_oblivious_routing(net: NetworkClass, gurobi_env, oblivious_ratio=None):
 
     if oblivious_ratio is None:
         obliv_ratio = obliv_lp_problem.addVar(name="obliv_ratio", lb=0.0, vtype=GRB.CONTINUOUS)
-        # obliv_lp_problem.setObjective(obliv_ratio, GRB.MINIMIZE)
         obliv_lp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
         obliv_lp_problem.setObjectiveN(obliv_ratio, objective_index, 1)
         objective_index += 1
@@ -177,8 +175,9 @@ def aux_oblivious_routing(net: NetworkClass, gurobi_env, oblivious_ratio=None):
     if oblivious_ratio is None:
         obliv_ratio = obliv_lp_problem.objVal
 
-    per_arch_flow_fraction = defaultdict(
-        lambda: np.zeros(shape=(net_directed.get_num_nodes, net_directed.get_num_nodes), dtype=np.float64))
+    per_arch_flow_fraction = np.zeros(shape=(net_directed.get_num_nodes, net_directed.get_num_nodes,
+                                             net_directed.get_num_nodes, net_directed.get_num_nodes),
+                                      dtype=np.float64)
 
     per_flow_routing_scheme = np.zeros(shape=(net_directed.get_num_nodes, net_directed.get_num_nodes,
                                               net_directed.get_num_nodes, net_directed.get_num_nodes),
@@ -210,7 +209,8 @@ def calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: li
 
         max_congestion = -1
         most_congested_link = None
-        for arch, frac_matrix in oblivious_routing_per_edge.items():
+        for arch in net.edges:
+            frac_matrix = oblivious_routing_per_edge[arch]
             cap_arch = net.get_g_directed.get_edge_key(edge=arch, key=EdgeConsts.CAPACITY_STR)
             link_flow = np.sum(np.multiply(frac_matrix, current_traffic_matrix))
 
