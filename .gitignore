@@ -4,4 +4,5 @@
 *~*
 /ConsoleOut*.txt
 *.npy
+*.mps
 /Learning_to_Route/TMs_DB/*.zip
