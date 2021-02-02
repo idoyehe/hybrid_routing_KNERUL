@@ -1,7 +1,6 @@
 from network_class import *
 from argparse import ArgumentParser
 from sys import argv
-from pathlib import Path
 from common.utils import load_dump_file
 from topologies import topology_zoo_loader
 

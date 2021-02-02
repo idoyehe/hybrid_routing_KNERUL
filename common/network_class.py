@@ -10,8 +10,8 @@ import numpy as np
 import networkx as nx
 from common.logger import logger
 import matplotlib.pyplot as plt
-from Learning_to_Route.common.utils import *
-from random import shuffle,choice
+from utils import *
+from random import shuffle
 
 
 class NetworkClass:

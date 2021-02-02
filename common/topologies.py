@@ -1,8 +1,7 @@
 import networkx as nx
 from common.consts import EdgeConsts
-import matplotlib.pyplot as plt
 import urllib.request
-from Learning_to_Route.common.size_consts import SizeConsts
+from size_consts import SizeConsts
 
 DEFAULT_CAPACITY = 10
 
