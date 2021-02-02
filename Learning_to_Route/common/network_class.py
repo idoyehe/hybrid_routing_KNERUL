@@ -11,7 +11,7 @@ import networkx as nx
 from common.logger import logger
 import matplotlib.pyplot as plt
 from Learning_to_Route.common.utils import *
-from random import shuffle
+from random import shuffle,choice
 
 
 class NetworkClass:
@@ -311,3 +311,25 @@ if __name__ == "__main__":
     net.reducing_undirected2directed()
     adj = net.get_adjacency
     pairs = net.get_all_pairs()
+
+
+# if __name__ == "__main__":
+#     from common.topologies import topology_zoo_loader,store_graph
+#     net = NetworkClass(topology_zoo_loader("/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/graphs_gmls/GRnet.txt"))
+#     adj = net.get_adjacency
+#     pairs = net.get_all_pairs()
+#     new_edges_collection =list()
+#     for pair in pairs:
+#         if adj[pair] == 0 and pair[0] < pair[1]:
+#             new_edges_collection.append(pair)
+#
+#     shuffle(new_edges_collection)
+#     graph = net.get_graph.copy()
+#     for _ in range(25):
+#         new_edge = choice(new_edges_collection)
+#         graph.add_edge(new_edge[0],new_edge[1],capacity= 1000)
+#
+#     for edge in graph.edges:
+#         graph.edges[edge]["capacity"]*=SizeConsts.ONE_Mb
+#     graph.name = "GRnet_66"
+#     store_graph(graph)

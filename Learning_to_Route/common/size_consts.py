@@ -1,5 +1,5 @@
 class SizeConsts:
-    ONE_BIT = 1
+    ONE_BIT = 1.0
     ONE_BYTE = 8 * ONE_BIT
     ONE_KB = 1024 * ONE_BYTE
     ONE_MB = 1024 * ONE_KB
