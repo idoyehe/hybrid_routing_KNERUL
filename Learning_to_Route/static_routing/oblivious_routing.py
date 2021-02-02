@@ -1,4 +1,4 @@
-from common.utils import error_bound,load_dump_file
+from common.utils import error_bound, load_dump_file
 from common.network_class import NetworkClass
 from common.consts import EdgeConsts
 from common.logger import *
@@ -53,6 +53,7 @@ def oblivious_routing(net: NetworkClass):
         try:
             next_obliv_ratio = prev_obliv_ratio - 0.001
             prev_obliv_ratio, prev_per_arch_flow_fraction, prev_per_flow_routing_scheme = aux_oblivious_routing(net,
+                                                                                                                gb_env,
                                                                                                                 next_obliv_ratio)
             prev_obliv_ratio = next_obliv_ratio
             print("****** Gurobi Failure ******")

@@ -50,6 +50,7 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
         try:
             next_opt_ratio = prev_opt_ratio - 0.001
             prev_opt_ratio, prev_link_carries_per_flow = aux_optimal_load_balancing_LP_solver(net, traffic_matrix,
+                                                                                              gb_env,
                                                                                               next_opt_ratio)
             print("****** Gurobi Failure ******")
             prev_opt_ratio = next_opt_ratio
