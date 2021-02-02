@@ -2,8 +2,7 @@ import numpy as np
 from argparse import ArgumentParser
 from sys import argv
 from common.network_class import NetworkClass
-from common.topologies import topology_zoo_loader
-from common.consts import EdgeConsts
+from topologies import topology_zoo_loader
 
 
 def _getOptions(args=argv[1:]):

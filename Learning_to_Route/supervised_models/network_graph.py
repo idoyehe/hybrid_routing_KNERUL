@@ -1,5 +1,5 @@
-from Learning_to_Route.common.size_consts import SizeConsts
-from Learning_to_Route.common.consts import Consts
+from size_consts import SizeConsts
+from consts import Consts
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np

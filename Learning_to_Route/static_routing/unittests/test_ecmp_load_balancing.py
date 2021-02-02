@@ -1,8 +1,7 @@
-import pytest
 import numpy as np
-from common.topologies import BASIC_TOPOLOGIES
+from topologies import BASIC_TOPOLOGIES
 from ecmp_load_balancing import ecmp_arch_congestion
-from common.network_class import NetworkClass
+from network_class import NetworkClass
 
 
 def test_star_topology():

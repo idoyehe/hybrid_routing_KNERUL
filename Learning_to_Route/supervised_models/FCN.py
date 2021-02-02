@@ -3,8 +3,8 @@ from keras.layers.core import Flatten
 from keras.layers import Dense
 
 from Learning_to_Route.supervised_models.network_graph import NetworkGraph
-from Learning_to_Route.supervised_models.model_input_generation import get_x_y_data, sample_tm_cyclic, sample_tm_average, sample_tm_reg
-from Learning_to_Route.common.consts import Consts
+from Learning_to_Route.supervised_models.model_input_generation import get_x_y_data, sample_tm_cyclic
+from consts import Consts
 from Learning_to_Route.supervised_models.trainer import trainer_function
 
 

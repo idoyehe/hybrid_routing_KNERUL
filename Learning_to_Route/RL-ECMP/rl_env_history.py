@@ -7,7 +7,7 @@ refactoring on 14 Oct 2020
 """
 
 from rl_env import *
-from Learning_to_Route.common.utils import error_bound
+from common.utils import error_bound
 from optimizer import WNumpyOptimizer
 
 

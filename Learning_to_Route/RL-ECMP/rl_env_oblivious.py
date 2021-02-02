@@ -7,7 +7,6 @@ refactoring on 20 Dec 2020
 """
 
 from rl_env import *
-from Learning_to_Route.common.utils import error_bound
 from optimizer_oblivious import WNumpyOptimizer_Oblivious
 
 

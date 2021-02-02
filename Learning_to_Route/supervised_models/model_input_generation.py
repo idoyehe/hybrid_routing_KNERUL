@@ -1,7 +1,7 @@
 from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
-from Learning_to_Route.common.consts import Consts
-from Learning_to_Route.common.utils import norm_func
-from Learning_to_Route.common.size_consts import SizeConsts
+from consts import Consts
+from utils import norm_func
+from size_consts import SizeConsts
 
 from functools import reduce
 import numpy as np

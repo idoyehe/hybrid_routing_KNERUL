@@ -1,4 +1,4 @@
-from Learning_to_Route.common.consts import TMType, Consts
+from common.consts import TMType
 import numpy as np
 from functools import partial
 from random import shuffle

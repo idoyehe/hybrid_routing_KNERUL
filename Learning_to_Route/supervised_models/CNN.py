@@ -1,11 +1,11 @@
 from keras.models import Sequential
 from keras.layers.core import Flatten
-from keras.layers import Dense, Convolution2D, Input, Lambda
+from keras.layers import Dense, Convolution2D
 from keras.layers.pooling import AveragePooling2D
 
 from Learning_to_Route.supervised_models.network_graph import NetworkGraph
-from Learning_to_Route.supervised_models.model_input_generation import get_x_y_data, sample_tm_cyclic, sample_tm_average, sample_tm_reg
-from Learning_to_Route.common.consts import Consts
+from Learning_to_Route.supervised_models.model_input_generation import get_x_y_data, sample_tm_reg
+from consts import Consts
 from Learning_to_Route.supervised_models.trainer import trainer_function
 
 

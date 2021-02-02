@@ -1,6 +1,6 @@
 from common.consts import EdgeConsts
-from Learning_to_Route.common.utils import extract_flows, error_bound
-from common.network_class import NetworkClass, nx
+from common.utils import extract_flows, error_bound
+from common.network_class import NetworkClass
 from collections import defaultdict
 from common.logger import *
 import numpy as np

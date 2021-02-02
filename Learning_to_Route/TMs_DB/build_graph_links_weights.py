@@ -2,8 +2,8 @@ import numpy as np
 from argparse import ArgumentParser
 from sys import argv
 import matplotlib.pyplot as plt
-from common.topologies import topology_zoo_loader
-from common.network_class import NetworkClass, nx
+from topologies import topology_zoo_loader
+from network_class import NetworkClass, nx
 
 
 def _getOptions(args=argv[1:]):

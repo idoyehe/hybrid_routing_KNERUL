@@ -208,7 +208,7 @@ class WNumpyOptimizer:
 
 
 if __name__ == "__main__":
-    from common.topologies import BASIC_TOPOLOGIES
+    from topologies import BASIC_TOPOLOGIES
     from static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
 
     ecmpNetwork = NetworkClass(BASIC_TOPOLOGIES["TRIANGLE"])
