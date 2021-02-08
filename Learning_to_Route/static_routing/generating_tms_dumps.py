@@ -50,8 +50,8 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
         "tms_sparsity": matrix_sparsity,
         "tms_type": tm_type, }
 
-    folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_name)
-    file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name,
+    folder_name: str = os.getcwd() + "\\..\\..\\TMs_DB\\{}".format(net.get_name)
+    file_name: str = os.getcwd() + "\\..\\..\\TMs_DB\\{}\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name,
                                                                                                     net.get_name,
                                                                                                     net.get_num_nodes,
                                                                                                     net.get_num_nodes,
