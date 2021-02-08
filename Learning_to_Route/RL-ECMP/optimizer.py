@@ -10,9 +10,10 @@ from common.rl_env_consts import HistoryConsts
 from common.network_class import *
 from common.logger import logger
 from static_routing.oblivious_routing import calculate_congestion_per_matrices
+from common.optimizer_abstract import Optimizer_Abstract
 
 
-class WNumpyOptimizer:
+class WNumpyOptimizer(Optimizer_Abstract):
     def __init__(self, net: NetworkClass, oblivious_routing_per_edge, max_iterations=500, testing=False):
         """
         constructor
@@ -22,7 +23,6 @@ class WNumpyOptimizer:
         """
         self._network = net
         self._max_iterations = max_iterations
-        self._nx_graph = True
         self._graph_adjacency_matrix = self._network.get_adjacency
         self._num_nodes = self._network.get_num_nodes
         self._initialize()
@@ -99,8 +99,11 @@ class WNumpyOptimizer:
         logger.debug("Calculate each edge weight")
 
         one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
-        reduced_directed_graph = nx.from_numpy_matrix(one_hop_cost, create_using=nx.DiGraph())
-        cost_all_adj = dict(nx.shortest_path_length(reduced_directed_graph, weight='weight'))
+
+        reduced_directed_graph = nx.DiGraph()
+        for edge_index, cost in enumerate(weights_vector):
+            u, v = self._network.get_id2edge()[edge_index]
+            reduced_directed_graph.add_edge(u, v, cost=cost)
 
         for node_dst in self._network.nodes:
             dest_demands = np.expand_dims(traffic_matrix[:, node_dst], 1)
@@ -108,7 +111,7 @@ class WNumpyOptimizer:
             if total_demands == 0.0:
                 continue
 
-            cost_adj = [cost_all_adj[i][node_dst] for i in range(self._num_nodes)]
+            cost_adj = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight='cost')
 
             edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
 
