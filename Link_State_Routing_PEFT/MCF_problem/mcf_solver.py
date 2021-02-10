@@ -2,12 +2,13 @@ from common.consts import EdgeConsts
 from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.logger import *
-import numpy as np
 import gurobipy as gb
 from gurobipy import GRB
 from argparse import ArgumentParser
 from sys import argv
 from common.utils import load_dump_file, error_bound
+
+R = 9
 
 
 def __validate_splitting_ratios(net_direct, splitting_ratios_vars_per_dest):
@@ -49,7 +50,7 @@ def __validate_flow_per_matrix(net_direct, tm, current_matrix_flows_vars_per_des
             for out_arch in net_direct.out_edges_by_node(s):
                 assert current_matrix_flows_vars_per_dest[(t,) + out_arch] >= 0
                 outgoing_flow += current_matrix_flows_vars_per_dest[(t,) + out_arch]
-                assert error_bound(current_matrix_flows_vars_per_dest[(t,) + out_arch], \
+                assert error_bound(current_matrix_flows_vars_per_dest[(t,) + out_arch],
                                    splitting_ratios_vars_per_dest[(t,) + out_arch] * (ingoing_flows + tm[s, t]))
 
             assert error_bound(outgoing_flow - ingoing_flows, tm[s, t])
@@ -99,7 +100,7 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
     opt_qp_problem = gb.Model(name="QP problem for mean MCF, given network and TM list and probabilities",
                               env=gurobi_env)
 
-    traffic_matrix_list_length = len(traffic_matrix_list)
+    traffic_matrix_list_length = len(tm_list)
 
     net_direct = net.get_g_directed
     splitting_ratios_vars_per_dest = opt_qp_problem.addVars(net_direct.nodes, net_direct.edges, name="x", lb=0.0,
@@ -111,66 +112,53 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
 
             sum_res = 1.0
             if u == t:  # target is the u means no splitting ratios, all stay in target means u
-                sum_res = 0
+                sum_res = 0.0
 
-            opt_qp_problem.addConstr(
-                sum(splitting_ratios_vars_per_dest[(t, u, v[1])] for v in net_direct.out_edges_by_node(u)) == sum_res)
+            ratios_sum = sum(splitting_ratios_vars_per_dest[(t, u, v)] for _, v in net_direct.out_edges_by_node(u))
+            opt_qp_problem.addConstr(ratios_sum == sum_res)
 
     flows_vars_per_matrix_index_per_dest = opt_qp_problem.addVars(traffic_matrix_list_length, net_direct.nodes,
                                                                   net_direct.edges,
-                                                                  name="f", lb=0.0,
-                                                                  vtype=GRB.CONTINUOUS)
+                                                                  name="f", lb=0.0, vtype=GRB.CONTINUOUS)
     r_vars_per_matrix = opt_qp_problem.addVars(traffic_matrix_list_length)
 
     opt_qp_problem.update()
 
-    for matrix_index in range(0, len(tm_list)):
-        for arch in net_direct.edges:
+    for m_index in range(0, len(tm_list)):
+        for u, v in net_direct.edges:
+            arch = (u, v)
             capacity = net_direct.get_edge_key(arch, EdgeConsts.CAPACITY_STR)
-            opt_qp_problem.addConstr(
-                sum(flows_vars_per_matrix_index_per_dest[(matrix_index, t) + arch] for t in
-                    net_direct.nodes) <= capacity * r_vars_per_matrix[matrix_index])
+            link_utilization = sum(flows_vars_per_matrix_index_per_dest[(m_index, t, u, v)] for t in net_direct.nodes)
+            opt_qp_problem.addConstr(link_utilization <= capacity * r_vars_per_matrix[m_index])
 
-    for m_index, (_, tm) in enumerate(tm_list):
+        for m_index, (_, tm) in enumerate(tm_list):
 
-        for s in net_direct.nodes:
-            for t in net_direct.nodes:
-                if s == t:
-                    opt_qp_problem.addConstrs(
-                        (flows_vars_per_matrix_index_per_dest[(m_index, t) + arch] == 0 for arch in
-                         net_direct.out_edges_by_node(t)))
-                    _collected_flow_in_t_destined_t = sum(
-                        flows_vars_per_matrix_index_per_dest[(m_index, t) + arch] for arch in
-                        net_direct.in_edges_by_node(t))
-                    opt_qp_problem.addConstr(_collected_flow_in_t_destined_t == sum(tm[:, t]))
-                    continue
+            for s in net_direct.nodes:
+                for t in net_direct.nodes:
+                    if s == t:
+                        opt_qp_problem.addConstrs(flows_vars_per_matrix_index_per_dest[(m_index, t, t, v)] == 0
+                                                  for _, v in net_direct.out_edges_by_node(t))
 
-                _collected_flow_in_s_destined_t = sum(
-                    flows_vars_per_matrix_index_per_dest[(m_index, t) + arch] for arch in
-                    net_direct.in_edges_by_node(s)) + tm[s, t]
+                        _collected_flow_in_t_destined_t = sum(flows_vars_per_matrix_index_per_dest[(m_index, t, v, t)]
+                                                              for v, _ in net_direct.in_edges_by_node(t))
+                        opt_qp_problem.addConstr(_collected_flow_in_t_destined_t == sum(tm[:, t]))
+                        continue
 
-                _outgoing_flow_from_s_destined_t = sum(
-                    flows_vars_per_matrix_index_per_dest[(m_index, t) + arch] for arch in
-                    net_direct.out_edges_by_node(s))
-                opt_qp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t)
+                    _collected_flow_in_s_destined_t = sum(flows_vars_per_matrix_index_per_dest[(m_index, t, v, s)]
+                                                          for v, _ in net_direct.in_edges_by_node(s)) + tm[s, t]
 
-                for out_arch in net_direct.out_edges_by_node(s):
-                    opt_qp_problem.addConstr(flows_vars_per_matrix_index_per_dest[(m_index, t) + out_arch] ==
-                                             _collected_flow_in_s_destined_t * splitting_ratios_vars_per_dest[
-                                                 (t,) + out_arch])
+                    _outgoing_flow_from_s_destined_t = sum(flows_vars_per_matrix_index_per_dest[(m_index, t, s, v)]
+                                                           for _, v in net_direct.out_edges_by_node(s))
+                    opt_qp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t)
 
-    opt_qp_problem.update()
+                    for _, v in net_direct.out_edges_by_node(s):
+                        opt_qp_problem.addConstr(
+                            flows_vars_per_matrix_index_per_dest[(m_index, t, s, v)] ==
+                            _collected_flow_in_s_destined_t * splitting_ratios_vars_per_dest[(t, s, v)])
 
-    total_objective = 0.0
-    for m_index, (tm_prob, _) in enumerate(tm_list):
-        # m_objective = 0
-        # for arch in net_direct.edges:
-        #     capacity = net_direct.get_edge_key(arch, EdgeConsts.CAPACITY_STR)
-        #     m_objective += sum(
-        #         flows_vars_per_matrix_index_per_dest[(m_index, t) + arch] for t in net_direct.nodes) / capacity
 
-        # total_objective += tm_prob * m_objective
-        total_objective += tm_prob * r_vars_per_matrix[matrix_index]
+    total_objective = sum(tm_prob * r_vars_per_matrix[m_index] for m_index, (tm_prob, _) in enumerate(tm_list))
+
     if opt_ratio_value is None:
         opt_qp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
         opt_qp_problem.setObjective(total_objective)
@@ -180,6 +168,7 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
 
     try:
         logger.info("LP Submit to Solve {}".format(opt_qp_problem.ModelName))
+        opt_qp_problem.update()
         opt_qp_problem.optimize()
         assert opt_qp_problem.Status == GRB.OPTIMAL
     except AssertionError as e:
@@ -189,7 +178,7 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
         raise Exception("****Optimize failed****\nException is:\n{}".format(e))
 
     if opt_ratio_value is None:
-        opt_ratio_value = opt_qp_problem.objVal
+        opt_ratio_value = round(opt_qp_problem.objVal, R)
 
     if logger.level == logging.DEBUG:
         opt_qp_problem.printStats()
@@ -198,19 +187,19 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
     splitting_ratios_vars_per_dest = dict(splitting_ratios_vars_per_dest)
 
     for key in splitting_ratios_vars_per_dest.keys():
-        splitting_ratios_vars_per_dest[key] = splitting_ratios_vars_per_dest[key].x
+        splitting_ratios_vars_per_dest[key] = round(splitting_ratios_vars_per_dest[key].x, R)
 
     flows_vars_per_matrix_index_per_dest = dict(flows_vars_per_matrix_index_per_dest)
 
     for key in flows_vars_per_matrix_index_per_dest.keys():
-        flows_vars_per_matrix_index_per_dest[key] = flows_vars_per_matrix_index_per_dest[key].x
+        flows_vars_per_matrix_index_per_dest[key] = round(flows_vars_per_matrix_index_per_dest[key].x, R)
 
     opt_qp_problem.close()
-    __validate_solution(net_direct, traffic_matrix_list, splitting_ratios_vars_per_dest,
+    __validate_solution(net_direct, tm_list, splitting_ratios_vars_per_dest,
                         flows_vars_per_matrix_index_per_dest)
 
     necessary_capacity_dict = dict()
-    for m_index, (_, _) in enumerate(traffic_matrix_list):
+    for m_index, (_, _) in enumerate(tm_list):
         for arch in net_direct.edges:
             necessary_capacity = 0
             for t in net_direct.nodes:
@@ -219,18 +208,23 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
 
     return opt_ratio_value, splitting_ratios_vars_per_dest, necessary_capacity_dict
 
-
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for dump file")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
     options = parser.parse_args(args)
     return options
 
-
 if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
     loaded_dict = load_dump_file(dump_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
-    l = 10
-    traffic_matrix_list = [(1 / l, t[0] / 100) for t in loaded_dict["tms"][0:l]]
-    opt_ratio_value, splitting_ratios_vars_per_dest, necessary_capacity_dict = mcf_QP_solver(net, traffic_matrix_list)
+    net = NetworkClass(
+        topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
+    from random import shuffle
+
+    shuffle(loaded_dict["tms"])
+    l = 2
+    traffic_matrix_list = [(1 / l, t[0]) for t in loaded_dict["tms"][0:l]]
+    opt_ratio_value, splitting_ratios_vars_per_dest, necessary_capacity_dict = mcf_QP_solver(net,
+                                                                                             traffic_matrix_list)
+
+    assert round(opt_ratio_value, 4) == round(loaded_dict["tms"][0][1], 4)
