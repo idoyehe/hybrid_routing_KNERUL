@@ -1,0 +1,39 @@
+graph [
+  Network "Triangle"
+  node [
+    id 0
+    label "0"
+  ]
+  node [
+    id 1
+    label "1"
+  ]
+  node [
+    id 2
+    label "2"
+  ]
+  edge [
+    source 0
+    target 1
+    LinkSpeed "10"
+    LinkLabel "10Mb/s"
+    LinkSpeedUnits "M"
+    LinkSpeedRaw 10000000.0
+  ]
+  edge [
+    source 0
+    target 2
+    LinkSpeed "10"
+    LinkLabel "10Mb/s"
+    LinkSpeedUnits "M"
+    LinkSpeedRaw 10000000.0
+  ]
+  edge [
+    source 1
+    target 2
+    LinkSpeed "10"
+    LinkLabel "10Mb/s"
+    LinkSpeedUnits "M"
+    LinkSpeedRaw 10000000.0
+  ]
+]

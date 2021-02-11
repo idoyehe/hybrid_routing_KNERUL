@@ -138,7 +138,7 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
     if url.startswith("http"):
         gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
     else:
-        local_path = url
+        local_path = url.replace("Learning_to_Route/","")
         from platform import system
         if system() == "Linux":
             local_path = "/home/idoye/PycharmProjects/Research_Implementing" + \
