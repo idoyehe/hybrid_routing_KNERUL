@@ -68,7 +68,7 @@ def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, static_pairs=
     tm = __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs, elephant_percentage, big, small)
     num_nodes = graph.get_num_nodes
 
-    tm_mat = np.zeros((num_nodes, num_nodes), dtype=np.float32)
+    tm_mat = np.zeros((num_nodes, num_nodes), dtype=np.float64)
     for src, dst, demand in tm:
         tm_mat[int(src), int(dst)] = max(0., demand)
     return tm_mat

@@ -1,4 +1,4 @@
-from Learning_to_Route.data_generation.tm_generation import one_sample_tm_base
+from common.data_generation.tm_generation import one_sample_tm_base
 from consts import Consts
 from utils import norm_func
 from size_consts import SizeConsts
