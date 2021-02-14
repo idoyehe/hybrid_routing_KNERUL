@@ -120,8 +120,7 @@ def _aux_mcf_LP_solver(net: NetworkClass, traffic_matrices_list, gurobi_env, opt
 
     mcf_problem.update()
     """Building Constraints"""
-    total_objective = sum(
-        tm_prb * vars_r_per_mtrx[m_idx] for m_idx, (tm_prb, _) in enumerate(traffic_matrices_list))
+    total_objective = sum(tm_prb * vars_r_per_mtrx[m_idx] for m_idx, (tm_prb, _) in enumerate(traffic_matrices_list))
 
     if opt_ratio_value is None:
         mcf_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
