@@ -67,6 +67,14 @@ def __validate_flow(net_direct, traffic_matrix_list, flows_vars_per_matrix_index
         __validate_flow_per_matrix(net_direct, tm, current_matrix_flows_vars_per_dest, splitting_ratios_vars_per_dest)
 
 
+def __extract_values(gurobi_vars_dict):
+    gurobi_vars_dict = dict(gurobi_vars_dict)
+
+    for key in gurobi_vars_dict.keys():
+        gurobi_vars_dict[key] = round(gurobi_vars_dict[key].x, R)
+    return gurobi_vars_dict
+
+
 def __validate_solution(net_direct, traffic_matrix_list, splitting_ratios_vars_per_dest,
                         flows_vars_per_matrix_index_per_dest):
     __validate_splitting_ratios(net_direct, splitting_ratios_vars_per_dest)
@@ -79,21 +87,24 @@ def mcf_QP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env.setParam(GRB.Param.OutputFlag, 0)
     gb_env.setParam(GRB.Param.NumericFocus, 3)
     gb_env.setParam(GRB.Param.NonConvex, 2)
+    gb_env.setParam(GRB.Param.FeasibilityTol, 1e-9)
     gb_env.start()
 
-    opt_ratio_value, splitting_ratios_vars_per_dest, necessary_capacity_dict = _aux_mcf_LP_solver(net,
-                                                                                                  traffic_matrix_list,
-                                                                                                  gb_env)
+    opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict = _aux_mcf_LP_solver(
+        net,
+        traffic_matrix_list,
+        gb_env)
     while True:
         try:
-            opt_ratio_value, splitting_ratios_vars_per_dest, necessary_capacity_dict = _aux_mcf_LP_solver(net,
-                                                                                                          traffic_matrix_list,
-                                                                                                          gb_env,
-                                                                                                          opt_ratio_value - 0.001)
+            opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict = _aux_mcf_LP_solver(
+                net,
+                traffic_matrix_list,
+                gb_env,
+                opt_ratio_value - 0.001)
             print("****** Gurobi Failure ******")
             opt_ratio_value -= 0.001
         except Exception as e:
-            return opt_ratio_value, splitting_ratios_vars_per_dest, necessary_capacity_dict
+            return opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict
 
 
 def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=None):
@@ -156,7 +167,6 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
                             flows_vars_per_matrix_index_per_dest[(m_index, t, s, v)] ==
                             _collected_flow_in_s_destined_t * splitting_ratios_vars_per_dest[(t, s, v)])
 
-
     total_objective = sum(tm_prob * r_vars_per_matrix[m_index] for m_index, (tm_prob, _) in enumerate(tm_list))
 
     if opt_ratio_value is None:
@@ -184,15 +194,9 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
         opt_qp_problem.printStats()
         opt_qp_problem.printQuality()
 
-    splitting_ratios_vars_per_dest = dict(splitting_ratios_vars_per_dest)
-
-    for key in splitting_ratios_vars_per_dest.keys():
-        splitting_ratios_vars_per_dest[key] = round(splitting_ratios_vars_per_dest[key].x, R)
-
-    flows_vars_per_matrix_index_per_dest = dict(flows_vars_per_matrix_index_per_dest)
-
-    for key in flows_vars_per_matrix_index_per_dest.keys():
-        flows_vars_per_matrix_index_per_dest[key] = round(flows_vars_per_matrix_index_per_dest[key].x, R)
+    splitting_ratios_vars_per_dest = __extract_values(splitting_ratios_vars_per_dest)
+    flows_vars_per_matrix_index_per_dest = __extract_values(flows_vars_per_matrix_index_per_dest)
+    r_vars_per_matrix = __extract_values(r_vars_per_matrix)
 
     opt_qp_problem.close()
     __validate_solution(net_direct, tm_list, splitting_ratios_vars_per_dest,
@@ -206,13 +210,15 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
                 necessary_capacity += flows_vars_per_matrix_index_per_dest[(m_index, t) + arch]
             necessary_capacity_dict[(m_index, arch)] = necessary_capacity
 
-    return opt_ratio_value, splitting_ratios_vars_per_dest, necessary_capacity_dict
+    return opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict
+
 
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for dump file")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
     options = parser.parse_args(args)
     return options
+
 
 if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
@@ -221,10 +227,10 @@ if __name__ == "__main__":
         topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
     from random import shuffle
 
-    shuffle(loaded_dict["tms"])
-    l = 2
-    traffic_matrix_list = [(1 / l, t[0]) for t in loaded_dict["tms"][0:l]]
-    opt_ratio_value, splitting_ratios_vars_per_dest, necessary_capacity_dict = mcf_QP_solver(net,
-                                                                                             traffic_matrix_list)
+    l = 3
+    traffic_matrix_list = [(1 / l, t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
+    opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict = \
+        mcf_QP_solver(net, traffic_matrix_list)
+    pass
 
-    assert round(opt_ratio_value, 4) == round(loaded_dict["tms"][0][1], 4)
+    # assert round(opt_ratio_value, 4) == round(loaded_dict["tms"][0][1], 4)

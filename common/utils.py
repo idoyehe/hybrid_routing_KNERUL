@@ -16,7 +16,7 @@ def extract_flows(traffic_matrix):
     return list(map(lambda f: tuple(f), dstack(where(traffic_matrix > 0))[0]))
 
 
-def error_bound(x, y=0, ERROR_BOUND=1e-4):
+def error_bound(x, y=0, ERROR_BOUND=1e-3):
     return abs(x - y) <= ERROR_BOUND
 
 
