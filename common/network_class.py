@@ -107,10 +107,9 @@ class NetworkClass:
             self._all_pairs = []
             for src_ind in self._graph.nodes:
                 for dst_ind in self._graph.nodes:
-                    if dst_ind == src_ind:
+                    if dst_ind == src_ind or not nx.has_path(self.get_graph, src_ind, dst_ind):
                         continue
                     self._all_pairs.append((src_ind, dst_ind))
-        assert len(self._all_pairs) == self.get_num_nodes * (self.get_num_nodes - 1)
         return self._all_pairs
 
     def __getitem__(self, item):
@@ -311,7 +310,6 @@ if __name__ == "__main__":
     net.reducing_undirected2directed()
     adj = net.get_adjacency
     pairs = net.get_all_pairs()
-
 
 # if __name__ == "__main__":
 #     from common.topologies import topology_zoo_loader,store_graph
