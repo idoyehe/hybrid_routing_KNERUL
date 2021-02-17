@@ -231,6 +231,3 @@ if __name__ == "__main__":
     traffic_matrix_list = [(1 / l, t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
     opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict = \
         mcf_QP_solver(net, traffic_matrix_list)
-    pass
-
-    # assert round(opt_ratio_value, 4) == round(loaded_dict["tms"][0][1], 4)
