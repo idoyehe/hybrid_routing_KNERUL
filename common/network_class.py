@@ -162,17 +162,17 @@ class NetworkClass:
         self._capacities = np.zeros(num_edges)
         self._id2edge_map = dict()
         self._edge2id_map = dict()
-        eid = 0
+        edge_id = 0
         for i in range(len(graph_adjacency)):
             for j in range(len(graph_adjacency)):
                 if graph_adjacency[i][j] == 1:
-                    outgoing[i, eid] = 1
-                    ingoing[j, eid] = 1
-                    self._capacities[eid] = self.get_edge_key((i, j), EdgeConsts.CAPACITY_STR)
-                    self._id2edge_map[eid] = (i, j)
-                    self._edge2id_map[(i, j)] = eid
-                    eid += 1
-        return self._num_edges, ingoing, outgoing, self._capacities
+                    outgoing[i, edge_id] = 1
+                    ingoing[j, edge_id] = 1
+                    self._capacities[edge_id] = self.get_edge_key((i, j), EdgeConsts.CAPACITY_STR)
+                    self._id2edge_map[edge_id] = (i, j)
+                    self._edge2id_map[(i, j)] = edge_id
+                    edge_id += 1
+        return ingoing, outgoing, self._capacities
 
     def get_id2edge(self):
         if self._id2edge_map is None:

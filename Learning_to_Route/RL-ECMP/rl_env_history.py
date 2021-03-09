@@ -76,26 +76,24 @@ class RL_Env_History(RL_Env):
         return self._get_observation()
 
     def _process_action_get_cost(self, links_weights):
-        global ERROR_BOUND
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
-        optimal_congestion = self._optimal_values[self._current_observation_index][
-            self._tm_start_index + self._history_length]
+        optimal_val = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]
         total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
-            self.optimizer_step(links_weights, tm, optimal_congestion)
+            self.optimizer_step(links_weights, tm, optimal_val)
 
-        cost_congestion_ratio = max_congestion / optimal_congestion
+        cost_congestion_ratio = max_congestion / optimal_val
 
         if cost_congestion_ratio < 1.0:
             try:
-                assert error_bound(cost_congestion_ratio, optimal_congestion, ERROR_BOUND)
+                assert error_bound(cost_congestion_ratio, optimal_val)
             except Exception as _:
                 logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
                             "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion,
-                                                                                optimal_congestion))
+                                                                                optimal_val))
 
         cost_congestion_ratio = max(cost_congestion_ratio, 1.0)
-        logger.debug("Cost  Congestion :{}".format(max_congestion))
-        logger.debug("optimal  Congestion :{}".format(optimal_congestion))
+        logger.debug("SoftMin  Congestion :{}".format(max_congestion))
+        logger.debug("Optimal  Congestion :{}".format(optimal_val))
         logger.debug("Congestion Ratio :{}".format(cost_congestion_ratio))
 
         return total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch
@@ -107,4 +105,4 @@ class RL_Env_History(RL_Env):
 
     def testing(self, _testing):
         super(RL_Env_History, self).testing(_testing)
-        self._optimizer = WNumpyOptimizer(self._network, self._oblivious_routing_per_edge, max_iterations=500, testing=_testing)
+        self._optimizer = WNumpyOptimizer(self._network, self._oblivious_routing_per_edge, testing=_testing)

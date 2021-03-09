@@ -4,7 +4,7 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.cmd_util import make_vec_env
 from gym import envs, register
-from common.rl_env_consts import HistoryConsts
+from common.RL_Env.rl_env_consts import HistoryConsts
 from argparse import ArgumentParser
 from sys import argv
 import torch
@@ -153,9 +153,3 @@ if __name__ == "__main__":
     rewards_list = np.array(rewards_list)
     np.save(rewards_file, rewards_list)
     rewards_file.close()
-
-    # rl_vs_obliv = "{}_RL_Vs_Oblivious_{}.npy".format(args.dumped_path, num_test_observations)
-    # rl_vs_obliv_file = open(rl_vs_obliv, 'wb')
-    # rl_vs_obliv_data = np.array([np.array(step_data["rl_vs_obliv_data"]) for step_data in diagnostics])
-    # np.save(rl_vs_obliv_file, rl_vs_obliv_data)
-    # rl_vs_obliv_file.close()
