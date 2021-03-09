@@ -2,10 +2,10 @@ from common.consts import EdgeConsts
 from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.logger import *
+from sys import argv
 import gurobipy as gb
 from gurobipy import GRB
 from argparse import ArgumentParser
-from sys import argv
 from common.utils import load_dump_file, error_bound, extract_flows
 
 R = 10
