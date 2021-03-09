@@ -9,12 +9,12 @@ refactoring on 24/04/2020
 from common.RL_Env.rl_env_consts import HistoryConsts
 from common.network_class import *
 from common.logger import logger
-from static_routing.oblivious_routing import calculate_congestion_per_matrices
+from common.static_routing.oblivious_routing import calculate_congestion_per_matrices
 from common.RL_Env.optimizer_abstract import Optimizer_Abstract
 
 
 class WNumpyOptimizer(Optimizer_Abstract):
-    def __init__(self, net: NetworkClass, oblivious_routing_per_edge, max_iterations=500, testing=False):
+    def __init__(self, net: NetworkClass, oblivious_routing_per_edge, testing=False):
         """
         constructor
         @param graph_adjacency_matrix: the graph adjacency matrix
@@ -22,11 +22,10 @@ class WNumpyOptimizer(Optimizer_Abstract):
         @param max_iterations: number of max iterations
         """
         self._network = net
-        self._max_iterations = max_iterations
         self._graph_adjacency_matrix = self._network.get_adjacency
         self._num_nodes = self._network.get_num_nodes
+        self._num_edges = self._network.get_num_edges
         self._initialize()
-        self._max_iters = 500
         self._testing = testing
         self._oblivious_routing_per_edge = oblivious_routing_per_edge
 
@@ -126,7 +125,7 @@ class WNumpyOptimizer(Optimizer_Abstract):
         rl_total_congestion = np.sum(rl_congestion_per_link)
 
         if self._testing:
-            self.rl_vs_obliv_data = None
+            self.vs_oblivious_data = None
             if self._oblivious_routing_per_edge is not None:
                 oblv_congestion, obliv_rl_total_load_per_arch, oblv_congestion_link_histogram = \
                     calculate_congestion_per_matrices(self._network, [(traffic_matrix, optimal_value)],
@@ -137,15 +136,15 @@ class WNumpyOptimizer(Optimizer_Abstract):
                 oblv_most_congested_arch = str(self._network.get_id2edge()[np.argmax(oblv_congestion_link_histogram)])
                 rl_most_congested_arch = str(self._network.get_id2edge()[rl_most_congested_arch])
                 print("Oblivious most congested link: {}".format(oblv_most_congested_arch))
-                rl_oblivious_delta = np.abs((rl_max_congestion / optimal_value) - oblv_congestion)
+                rl_oblivious_ratio = np.abs((rl_max_congestion / optimal_value) / oblv_congestion)
 
-                self.rl_vs_obliv_data = \
+                self.vs_oblivious_data = \
                     (rl_most_congested_arch,
                      oblv_most_congested_arch,
                      (rl_most_congested_arch == oblv_most_congested_arch),
-                     rl_oblivious_delta)
+                     rl_oblivious_ratio)
                 print("Oblivious cost value: {}".format(oblv_congestion))
-                print("Delta: {}".format(rl_oblivious_delta))
+                print("RL Oblivious Ratio: {}".format(rl_oblivious_ratio))
 
             print("RL most congested link: {}".format(rl_most_congested_arch))
             print("RL cost value: {}".format(rl_max_congestion / optimal_value))

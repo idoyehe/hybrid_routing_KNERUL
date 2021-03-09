@@ -171,7 +171,7 @@ if __name__ == "__main__":
     dumped_path = args.dumped_path
 
     topology_url = args.topology_url
-    net = NetworkClass(topology_zoo_loader(topology_url)).get_g_directed
+    net = NetworkClass(topology_zoo_loader(topology_url))
 
     data_matrix = load_from_npc(dumped_path)
     edges_matrix_disagreements, edges_matrix_deltas = analyze_disagreements(net, data_matrix)

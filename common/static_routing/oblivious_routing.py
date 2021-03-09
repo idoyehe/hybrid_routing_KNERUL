@@ -76,7 +76,7 @@ def aux_oblivious_routing(net: NetworkClass, gurobi_env, oblivious_ratio=None):
     else:
         obliv_ratio = oblivious_ratio
 
-    net_directed = net.get_g_directed
+    net_directed = net
 
     pi_edges_dict = obliv_lp_problem.addVars(net_directed.edges, net_directed.edges, name="PI", lb=0.0,
                                              vtype=GRB.CONTINUOUS)
@@ -211,7 +211,7 @@ def calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: li
         most_congested_link = None
         for arch in net.edges:
             frac_matrix = oblivious_routing_per_edge[arch]
-            cap_arch = net.get_g_directed.get_edge_key(edge=arch, key=EdgeConsts.CAPACITY_STR)
+            cap_arch = net.get_edge_key(edge=arch, key=EdgeConsts.CAPACITY_STR)
             link_flow = np.sum(np.multiply(frac_matrix, current_traffic_matrix))
 
             total_archs_load[arch] += link_flow
@@ -278,7 +278,7 @@ if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
     save_path = "/".join(dump_path.split("/")[0:-1]) + "/"
     loaded_dict = load_dump_file(dump_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(net)
     print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
 

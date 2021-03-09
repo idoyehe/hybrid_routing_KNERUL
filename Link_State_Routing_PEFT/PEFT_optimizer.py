@@ -36,8 +36,8 @@ class PEFTOptimizer(Optimizer_Abstract):
         return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
 
     def _calculating_exponent_distance_gap(self, weights_vector):
-        net = self._network.get_g_directed
-        net_direct = net.get_g_directed
+        net = self._network
+        net_direct = net
         del net
 
         assert len(weights_vector) == net_direct.get_num_edges
@@ -63,8 +63,8 @@ class PEFTOptimizer(Optimizer_Abstract):
         return exp_h_by_dest_s_t
 
     def _calculating_equivalent_number(self, exp_h_by_dest_s_t):
-        net = self._network.get_g_directed
-        net_direct = net.get_g_directed
+        net = self._network
+        net_direct = net
         del net
 
         gb_env = gb.Env(empty=True)
@@ -114,8 +114,8 @@ class PEFTOptimizer(Optimizer_Abstract):
         return gammas_by_dest_by_u
 
     def _calculating_splitting_ratios(self, weights_vector):
-        net = self._network.get_g_directed
-        net_direct = net.get_g_directed
+        net = self._network
+        net_direct = net
         del net
 
         exp_h_by_dest_s_t = self._calculating_exponent_distance_gap(weights_vector)
@@ -152,8 +152,8 @@ class PEFTOptimizer(Optimizer_Abstract):
 
     def _calculating_traffic_distribution(self, weights_vector, tm, optimal_value):
         splitting_ratios = self._calculating_splitting_ratios(weights_vector)
-        net = self._network.get_g_directed
-        net_direct = net.get_g_directed
+        net = self._network
+        net_direct = net
         del net
 
         gb_env = gb.Env(empty=True)
@@ -234,7 +234,7 @@ if __name__ == "__main__":
     from topologies import BASIC_TOPOLOGIES
     from static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
 
-    ecmpNetwork = NetworkClass(BASIC_TOPOLOGIES["TRIANGLE"]).get_g_directed
+    ecmpNetwork = NetworkClass(BASIC_TOPOLOGIES["TRIANGLE"])
     tm = np.array([[0, 10, 0], [0, 0, 0], [0, 0, 0]])
 
     opt = PEFTOptimizer(ecmpNetwork, None)

@@ -52,10 +52,10 @@ class RL_Env_History(RL_Env):
             self._tm_start_index + self._history_length]
 
         if self._testing:
-            info["links_weights"] = np.array(links_weights)
-            info["load_per_link"] = np.array(total_load_per_arch)
-            info["most_congested_link"] = most_congested_arch
-            info["rl_vs_obliv_data"] = self._optimizer.rl_vs_obliv_data
+            info[ExtraData.LINK_WEIGHTS] = np.array(links_weights)
+            info[ExtraData.LOAD_PER_LINK] = np.array(total_load_per_arch)
+            info[ExtraData.MOST_CONGESTED_LINK] = most_congested_arch
+            info[ExtraData.VS_OBLIVIOUS_DATA] = self._optimizer.vs_oblivious_data
 
         del total_load_per_arch
         del links_weights

@@ -16,14 +16,12 @@ from random import shuffle
 
 class NetworkClass:
 
-    def __init__(self, topo, min_weight=1e-12, max_weight=50):
+    def __init__(self, topo):
         logger.info("Creating Network Class")
 
-        self._graph = topo.copy()
+        self._graph = topo.to_directed().copy()
+        assert nx.is_directed(self.get_graph)
         self._is_directed = nx.is_directed(self.get_graph)
-
-        self._min_weight = min_weight  # min_weight
-        self._max_weight = max_weight
 
         self._all_edges = self._graph.edges
 
@@ -33,7 +31,6 @@ class NetworkClass:
         self._num_edges = len(self._all_edges)
         self._actual_weight = np.zeros(self._graph.number_of_edges())
         self._set_adjacency()  # mark all adjacent nodes
-        self._g_directed_reduced = None
         self._reducing_map_dict = None
         self._id2edge_map = None
         self._edge2id_map = None
@@ -41,11 +38,6 @@ class NetworkClass:
         self._total_capacity = 0
         self._flows = None
         self._chosen_pairs = None
-
-        if not self._is_directed:
-            self._g_directed = NetworkClass(self.get_graph.to_directed())
-        else:
-            self._g_directed = self
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
@@ -56,10 +48,6 @@ class NetworkClass:
                     continue
                 if j in self._graph[i]:
                     self._adj[i, j] = 1.0
-
-    @property
-    def get_g_directed(self):
-        return self._g_directed
 
     @property
     def g_is_directed(self):
@@ -110,6 +98,7 @@ class NetworkClass:
                     if dst_ind == src_ind or not nx.has_path(self.get_graph, src_ind, dst_ind):
                         continue
                     self._all_pairs.append((src_ind, dst_ind))
+                    assert dst_ind != src_ind and nx.has_path(self.get_graph, src_ind, dst_ind)
         return self._all_pairs
 
     def __getitem__(self, item):
@@ -167,7 +156,7 @@ class NetworkClass:
         """
 
         graph_adjacency = self.get_adjacency
-        num_edges = np.int32(np.sum(graph_adjacency))
+        num_edges = self.get_num_edges
         ingoing = np.zeros((len(graph_adjacency), num_edges))
         outgoing = np.zeros((len(graph_adjacency), num_edges))
         self._capacities = np.zeros(num_edges)
@@ -194,30 +183,6 @@ class NetworkClass:
         if self._edge2id_map is None:
             self.build_edges_map()
         return self._edge2id_map
-
-    def reducing_undirected2directed(self):
-        if self._g_directed_reduced is None:
-            self._g_directed_reduced = nx.DiGraph()
-            self._reducing_map_dict = dict()
-            for (u, v, u_v_capacity) in self._graph.edges.data(EdgeConsts.CAPACITY_STR):
-                x_node = (u, v, "in")
-                y_node = (u, v, "out")
-                _virtual_edges_data = {EdgeConsts.WEIGHT_STR: 0, EdgeConsts.CAPACITY_STR: u_v_capacity}
-                _reduced_edge_data = {EdgeConsts.WEIGHT_STR: 1, EdgeConsts.CAPACITY_STR: u_v_capacity}
-
-                self._g_directed_reduced.add_edge(u_of_edge=u, v_of_edge=x_node, **_virtual_edges_data)
-                self._g_directed_reduced.add_edge(u_of_edge=v, v_of_edge=x_node, **_virtual_edges_data)
-
-                self._g_directed_reduced.add_edge(u_of_edge=y_node, v_of_edge=u, **_virtual_edges_data)
-                self._g_directed_reduced.add_edge(u_of_edge=y_node, v_of_edge=v, **_virtual_edges_data)
-
-                self._g_directed_reduced.add_edge(u_of_edge=x_node, v_of_edge=y_node, **_reduced_edge_data)
-
-                self._reducing_map_dict[(u, v)] = (x_node, y_node)
-
-            self._g_directed_reduced = NetworkClass(self._g_directed_reduced)
-
-        return self._g_directed_reduced, self._reducing_map_dict
 
     @property
     def out_edges(self):
@@ -251,7 +216,7 @@ class NetworkClass:
             self._total_capacity = 0
             for node in self.nodes:
                 node_out_cap = sum(out_edge[2][EdgeConsts.CAPACITY_STR] for out_edge in
-                                   self.get_g_directed.out_edges_by_node(node, data=True))
+                                   self.out_edges_by_node(node, data=True))
                 self._capacity_map[node] = node_out_cap
                 self._total_capacity += node_out_cap
         return self._capacity_map, self._total_capacity
@@ -308,6 +273,5 @@ if __name__ == "__main__":
 
 
     net = NetworkClass(get_base_graph())
-    net.reducing_undirected2directed()
     adj = net.get_adjacency
     pairs = net.get_all_pairs()

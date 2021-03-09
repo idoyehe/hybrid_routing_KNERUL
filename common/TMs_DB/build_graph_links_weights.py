@@ -57,11 +57,11 @@ if __name__ == "__main__":
     start_time = args.start_time
     topology_url = args.topology_url
     export_path = args.export_path
-    net = NetworkClass(topology_zoo_loader(topology_url)).get_g_directed
+    net = NetworkClass(topology_zoo_loader(topology_url))
     number_of_links = number_of_links if number_of_links > 0 else net.get_num_edges
     print("Loading from file path: {}".format(file_path))
     link_weights_matrix = load_numpy_object_from_file(file_path)
     print("Done! loading from file")
     links_weights_data_dict = plot_link_weights(link_weights_matrix, net.get_id2edge(), number_of_links, start_time)
     net = modify_network(net, links_weights_data_dict)
-    nx.write_gml(net.get_g_directed.get_graph, export_path)
+    nx.write_gml(net.get_graph, export_path)

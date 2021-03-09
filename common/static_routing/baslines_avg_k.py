@@ -35,13 +35,13 @@ def _calculate_congestion_per_matrices(net: NetworkClass, k: int, traffic_matrix
             ecmp_flows_matrix[src][dst] = float(current_traffic_matrix[src][dst])
 
         # for flows in average is Zero but in real are non zero
-        ecmp_arch_congestion_result = ecmp_arch_congestion(net.get_g_directed, ecmp_flows_matrix)
+        ecmp_arch_congestion_result = ecmp_arch_congestion(net, ecmp_flows_matrix)
 
         logger.debug('Calculating the congestion per arch and finding max link congestion')
 
         max_congested_link = 0
-        for link in net.get_g_directed.edges:
-            link_capacity = net.get_g_directed.get_edge_key(link, EdgeConsts.CAPACITY_STR)
+        for link in net.edges:
+            link_capacity = net.get_edge_key(link, EdgeConsts.CAPACITY_STR)
             fractions_from_lp = per_arch_flow_fraction_lp[link]
             new_flows_total_congestion_on_link = ecmp_arch_congestion_result[link]
 

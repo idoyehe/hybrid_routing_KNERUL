@@ -106,7 +106,7 @@ def _aux_mcf_LP_solver(net: NetworkClass, traffic_matrices_list, gurobi_env, opt
 
     flows = extract_flows(total_demands)
 
-    net_direct = net.get_g_directed
+    net_direct = net
     del net
 
     vars_flows_src_dst_per_edge = mcf_problem.addVars(flows, net_direct.edges,
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
     loaded_dict = load_dump_file(dump_path)
     net = NetworkClass(
-        topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
+        topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     from random import shuffle
 
     shuffle(loaded_dict["tms"])

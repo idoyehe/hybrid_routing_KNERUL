@@ -113,7 +113,7 @@ def _aux_mcf_LP_solver(net: NetworkClass, tm_list, gurobi_env, opt_ratio_value=N
 
     traffic_matrix_list_length = len(tm_list)
 
-    net_direct = net.get_g_directed
+    net_direct = net
     splitting_ratios_vars_per_dest = opt_qp_problem.addVars(net_direct.nodes, net_direct.edges, name="x", lb=0.0,
                                                             ub=1.000000000, vtype=GRB.CONTINUOUS)
     opt_qp_problem.update()
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
     loaded_dict = load_dump_file(dump_path)
     net = NetworkClass(
-        topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
+        topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     from random import shuffle
 
     l = 3

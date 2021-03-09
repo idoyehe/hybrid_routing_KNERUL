@@ -52,7 +52,7 @@ if __name__ == "__main__":
     oblivious_path = args.oblivious_path
     learning_path = args.learning_path
     topology_url = args.topology_url
-    net = NetworkClass(topology_zoo_loader(topology_url)).get_g_directed
+    net = NetworkClass(topology_zoo_loader(topology_url))
 
     all_traffic_oblivous = load_from_npc(oblivious_path)
     edges_traffic_list = routing_records_analyzing(all_traffic_oblivous, net)

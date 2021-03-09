@@ -26,9 +26,8 @@ class HistoryConsts:
 
 
 class ExtraData:
-    REWARD_OVER_FUTURE = "over_future"
-    REWARD_OVER_PREV = "over_prev"
-    REWARD_OVER_AVG = "over_avg"
-    REWARD_OVER_AVG_EXPECTED = "over_avg_expected"
-    REWARD_OVER_AVG_ACTUAL = "over_avg_actual"
-    REWARD_OVER_RANDOM = "over_random"
+    LOAD_PER_LINK = "load_per_link"
+    LINK_WEIGHTS = "links_weights"
+    REWARD_OVER_FUTURE = "cost_over_future"
+    MOST_CONGESTED_LINK = "most_congested_link"
+    VS_OBLIVIOUS_DATA = "vs_oblivious_data"

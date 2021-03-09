@@ -65,7 +65,7 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
 
     arch_all_vars = defaultdict(list)
 
-    net_direct = net.get_g_directed
+    net_direct = net
 
     arch_vars_per_flow = opt_lp_problem.addVars(net_direct.edges, flows, name="g", lb=0.0)
     opt_lp_problem.update()

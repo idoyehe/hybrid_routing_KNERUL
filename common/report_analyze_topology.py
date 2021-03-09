@@ -51,7 +51,7 @@ if __name__ == "__main__":
     args = _getOptions()
     dumped_path = args.dumped_path
     loaded_dict = load_dump_file(dumped_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"])).get_g_directed
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     print("Topology Name: {}".format(net.get_name))
     print("Number of Nodes: {}".format(net.get_num_nodes))
     print("Number of Edges: {}".format(net.get_num_edges))

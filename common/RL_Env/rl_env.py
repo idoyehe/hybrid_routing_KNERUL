@@ -4,7 +4,7 @@ Created on 14 Oct 2020
 """
 from gym import Env, spaces
 from common.network_class import *
-from common.RL_Env.rl_env_consts import HistoryConsts
+from common.RL_Env.rl_env_consts import HistoryConsts, ExtraData
 from common.utils import load_dump_file
 from common.topologies import topology_zoo_loader
 import random
@@ -38,7 +38,7 @@ class RL_Env(Env):
             self._oblivious_routing_per_flow = loaded_dict["oblivious_routing"]["per_flow"]
         else:
             self._oblivious_routing_per_edge = self._oblivious_routing_per_flow = None
-        self._network = self._network.get_g_directed
+        self._network = self._network
         self._g_name = self._network.get_name
         self._num_nodes = self._network.get_num_nodes
         self._tm_start_index = 0
