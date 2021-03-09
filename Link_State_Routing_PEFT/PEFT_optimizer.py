@@ -3,26 +3,14 @@ import numpy as np
 import gurobipy as gb
 from gurobipy import GRB
 from common.logger import *
-from common.RL_Env.optimizer_abstract import Optimizer_Abstract
+from common.RL_Env.optimizer_abstract import *
 from math import fsum
 
 
 class PEFTOptimizer(Optimizer_Abstract):
-    def __init__(self, net: NetworkClass, oblivious_routing_per_edge=None, max_iterations=500, testing=False):
-        """
-        constructor
-        @param graph_adjacency_matrix: the graph adjacency matrix
-        @param edges_capacities: all edges capacities
-        @param max_iterations: number of max iterations
-        """
-        self._network = net
-        self._graph_adjacency_matrix = self._network.get_adjacency
-        self._num_nodes = self._network.get_num_nodes
-        self._initialize()
-
-    def _initialize(self):
-        logger.debug("Building ingoing and outgoing edges map")
-        _, self._ingoing_edges, self._outgoing_edges, self._edges_capacities = self._network.build_edges_map()
+    def __init__(self, net: NetworkClass, oblivious_routing_per_edge, testing=False):
+        super(PEFTOptimizer, self).__init__(net, testing)
+        self._oblivious_routing_per_edge = oblivious_routing_per_edge
 
     def step(self, weights_vector, traffic_matrix, optimal_value):
         """
@@ -30,15 +18,14 @@ class PEFTOptimizer(Optimizer_Abstract):
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
+        splitting_ratios = self._calculating_splitting_ratios(weights_vector)
         total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
-            self._calculating_traffic_distribution(weights_vector, traffic_matrix, optimal_value)
+            self._calculating_traffic_distribution(splitting_ratios, traffic_matrix)
 
         return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
 
     def _calculating_exponent_distance_gap(self, weights_vector):
-        net = self._network
-        net_direct = net
-        del net
+        net_direct = self._network
 
         assert len(weights_vector) == net_direct.get_num_edges
 
@@ -63,9 +50,7 @@ class PEFTOptimizer(Optimizer_Abstract):
         return exp_h_by_dest_s_t
 
     def _calculating_equivalent_number(self, exp_h_by_dest_s_t):
-        net = self._network
-        net_direct = net
-        del net
+        net_direct = self._network
 
         gb_env = gb.Env(empty=True)
         gb_env.setParam(GRB.Param.OutputFlag, 0)
@@ -114,10 +99,7 @@ class PEFTOptimizer(Optimizer_Abstract):
         return gammas_by_dest_by_u
 
     def _calculating_splitting_ratios(self, weights_vector):
-        net = self._network
-        net_direct = net
-        del net
-
+        net_direct = self._network
         exp_h_by_dest_s_t = self._calculating_exponent_distance_gap(weights_vector)
         gammas_by_dest_by_u = self._calculating_equivalent_number(exp_h_by_dest_s_t)
 
@@ -143,96 +125,17 @@ class PEFTOptimizer(Optimizer_Abstract):
                 splitting_ratios[t, edge_index] = gamma_px_by_dest_by_u_v[t, edge_index] / sum_gamma_px_by_dest_by_u[
                     t, u]
 
-        # for t in net_direct.nodes:
-        #     for u in net_direct.nodes:
-        #         assert error_bound(1.0, fsum(
-        #             splitting_ratios[t, net_direct.get_edge2id()[u, v]] for _, v in net_direct.out_edges_by_node(u)))
+        for t in net_direct.nodes:
+            for u in net_direct.nodes:
+                assert error_bound(1.0, sum(
+                    splitting_ratios[t, net_direct.get_edge2id()[u, v]] for _, v in net_direct.out_edges_by_node(u)))
 
         return splitting_ratios
 
-    def _calculating_traffic_distribution(self, weights_vector, tm, optimal_value):
-        splitting_ratios = self._calculating_splitting_ratios(weights_vector)
-        net = self._network
-        net_direct = net
-        del net
-
-        gb_env = gb.Env(empty=True)
-        gb_env.setParam(GRB.Param.OutputFlag, 0)
-        gb_env.setParam(GRB.Param.NumericFocus, 3)
-        gb_env.start()
-
-        lp_problem = gb.Model(name="LP problem for flows, given network, traffic matrix and splitting_ratios",
-                              env=gb_env)
-        flows_vars_per_per_dest_per_edge = lp_problem.addVars(net_direct.nodes, net_direct.edges, name="f", lb=0.0,
-                                                              vtype=GRB.CONTINUOUS)
-
-        for s in net_direct.nodes:
-            for t in net_direct.nodes:
-                if s == t:
-                    lp_problem.addConstrs(
-                        (flows_vars_per_per_dest_per_edge[(t,) + arch] == 0 for arch in
-                         net_direct.out_edges_by_node(t)))
-                    _collected_flow_in_t_destined_t = sum(
-                        flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in
-                        net_direct.in_edges_by_node(t))
-                    lp_problem.addConstr(_collected_flow_in_t_destined_t == sum(tm[:, t]))
-                    continue
-
-                _collected_flow_in_s_destined_t = sum(
-                    flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in
-                    net_direct.in_edges_by_node(s)) + tm[s, t]
-
-                _outgoing_flow_from_s_destined_t = sum(
-                    flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in
-                    net_direct.out_edges_by_node(s))
-                lp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t)
-
-                for out_arch in net_direct.out_edges_by_node(s):
-                    edge_index = net_direct.get_edge2id()[out_arch]
-                    lp_problem.addConstr(flows_vars_per_per_dest_per_edge[(t,) + out_arch] ==
-                                         _collected_flow_in_s_destined_t * splitting_ratios[t, edge_index])
-
-        lp_problem.update()
-
-        try:
-            logger.info("LP Submit to Solve {}".format(lp_problem.ModelName))
-            lp_problem.optimize()
-            assert lp_problem.Status == GRB.OPTIMAL
-        except AssertionError as e:
-            raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
-
-        except gb.GurobiError as e:
-            raise Exception("****Optimize failed****\nException is:\n{}".format(e))
-
-        if logger.level == logging.DEBUG:
-            lp_problem.printStats()
-            lp_problem.printQuality()
-
-        flows_vars_per_per_dest_per_edge = dict(flows_vars_per_per_dest_per_edge)
-        for key in flows_vars_per_per_dest_per_edge.keys():
-            flows_vars_per_per_dest_per_edge[key] = flows_vars_per_per_dest_per_edge[key].x
-
-        flows_vars_per_edge_dict = dict()
-        total_load_per_link = np.zeros((net_direct.get_num_edges), dtype=np.float64)
-
-        for u, v in net_direct.edges:
-            flows_vars_per_edge_dict[(u, v)] = sum(
-                flows_vars_per_per_dest_per_edge[(t, u, v)] for t in net_direct.nodes)
-            edge_index = net_direct.get_edge2id()[(u, v)]
-            total_load_per_link[edge_index] = flows_vars_per_edge_dict[(u, v)]
-
-        total_congestion_per_link = total_load_per_link / self._edges_capacities
-
-        most_congested_link = np.argmax(total_congestion_per_link)
-        max_congestion = total_congestion_per_link[most_congested_link]
-        total_congestion = np.sum(total_congestion_per_link)
-
-        return total_congestion, max_congestion, total_congestion_per_link, most_congested_link
-
 
 if __name__ == "__main__":
-    from topologies import BASIC_TOPOLOGIES
-    from static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
+    from common.topologies import BASIC_TOPOLOGIES
+    from common.static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
 
     ecmpNetwork = NetworkClass(BASIC_TOPOLOGIES["TRIANGLE"])
     tm = np.array([[0, 10, 0], [0, 0, 0], [0, 0, 0]])

@@ -8,7 +8,7 @@ refactoring on 14 Oct 2020
 
 from common.RL_Env.rl_env import *
 from common.utils import error_bound
-from soft_min_optimizer import WNumpyOptimizer
+from soft_min_optimizer import SoftMinOptimizer
 
 
 class RL_Env_History(RL_Env):
@@ -28,7 +28,7 @@ class RL_Env_History(RL_Env):
                                              num_test_observations=num_test_observations, testing=testing)
 
         self._num_edges = self._network.get_num_edges
-        assert isinstance(self._optimizer, WNumpyOptimizer)
+        assert isinstance(self._optimizer, SoftMinOptimizer)
         self._set_action_space()
 
         self._diagnostics = list()
@@ -105,4 +105,4 @@ class RL_Env_History(RL_Env):
 
     def testing(self, _testing):
         super(RL_Env_History, self).testing(_testing)
-        self._optimizer = WNumpyOptimizer(self._network, self._oblivious_routing_per_edge, testing=_testing)
+        self._optimizer = SoftMinOptimizer(self._network, self._oblivious_routing_per_edge, testing=_testing)

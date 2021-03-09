@@ -5,6 +5,7 @@ import gurobipy as gb
 from gurobipy import GRB
 from common.utils import error_bound
 
+
 class Optimizer_Abstract(object):
     def __init__(self, net: NetworkClass, testing=False):
         """
@@ -91,6 +92,8 @@ class Optimizer_Abstract(object):
         for key in flows_vars_per_per_dest_per_edge.keys():
             flows_vars_per_per_dest_per_edge[key] = flows_vars_per_per_dest_per_edge[key].x
 
+        self.__validate_flow(net_direct, tm, flows_vars_per_per_dest_per_edge, splitting_ratios)
+
         flows_vars_per_edge_dict = dict()
         total_load_per_link = np.zeros((net_direct.get_num_edges), dtype=np.float64)
 
@@ -107,3 +110,25 @@ class Optimizer_Abstract(object):
         total_congestion = np.sum(total_congestion_per_link)
 
         return total_congestion, max_congestion, total_congestion_per_link, most_congested_link
+
+    @staticmethod
+    def __validate_flow(net_direct, tm, flows_vars_per_per_dest_per_edge, splitting_ratios):
+        for dst in net_direct.nodes:
+            for src in net_direct.nodes:
+                if src == dst:
+                    total_demand_dst = sum(tm[:, dst])
+                    assert error_bound(total_demand_dst, sum(
+                        flows_vars_per_per_dest_per_edge[dst, u, dst] for u, _ in net_direct.in_edges_by_node(dst)))
+                else:
+                    _collected_flow_in_s_destined_t = sum(
+                        flows_vars_per_per_dest_per_edge[dst, u, src] for u, _ in net_direct.in_edges_by_node(src)) + \
+                                                      tm[src, dst]
+
+                    _outgoing_flow_from_s_destined_t = sum(
+                        flows_vars_per_per_dest_per_edge[dst, src, u] for _, u in net_direct.out_edges_by_node(src))
+                    assert error_bound(_collected_flow_in_s_destined_t, _outgoing_flow_from_s_destined_t)
+
+                    for _, v in net_direct.out_edges_by_node(src):
+                        edge_index = net_direct.get_edge2id()[(src, v)]
+                        assert error_bound(flows_vars_per_per_dest_per_edge[dst, src, v],
+                                           _collected_flow_in_s_destined_t * splitting_ratios[dst, edge_index])

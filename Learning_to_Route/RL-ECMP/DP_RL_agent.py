@@ -10,8 +10,10 @@ from sys import argv
 import torch
 import numpy as np
 from collections import defaultdict
+from platform import system
 
-assert torch.cuda.is_available()
+if system() == "Linux":
+    assert torch.cuda.is_available()
 
 RL_ENV_HISTORY_GYM_ID: str = 'rl-env-history-v0'
 

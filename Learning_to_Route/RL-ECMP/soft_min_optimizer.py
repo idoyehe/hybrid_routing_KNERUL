@@ -11,9 +11,9 @@ from common.static_routing.oblivious_routing import calculate_congestion_per_mat
 from common.RL_Env.optimizer_abstract import *
 
 
-class WNumpyOptimizer(Optimizer_Abstract):
+class SoftMinOptimizer(Optimizer_Abstract):
     def __init__(self, net: NetworkClass, oblivious_routing_per_edge, testing=False):
-        super(WNumpyOptimizer, self).__init__(net, testing)
+        super(SoftMinOptimizer, self).__init__(net, testing)
         self._oblivious_routing_per_edge = oblivious_routing_per_edge
 
     def step(self, weights_vector, traffic_matrix, optimal_value):
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     network = NetworkClass(BASIC_TOPOLOGIES["TRIANGLE"])
     tm = np.array([[0, 10, 0], [0, 0, 0], [0, 0, 0]])
     oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(network)
-    opt = WNumpyOptimizer(network, oblivious_routing_per_edge)
+    opt = SoftMinOptimizer(network, oblivious_routing_per_edge)
     opt_congestion, opt_routing_scheme = optimal_load_balancing_LP_solver(net=network, traffic_matrix=tm)
     print("Optimal Congestion: {}".format(opt_congestion))
     total_congestion, max_congestion, total_load_per_arch, most_congested_arch = opt.step(

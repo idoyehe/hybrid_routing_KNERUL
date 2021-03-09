@@ -228,7 +228,7 @@ def _aux_mcf_LP_solver(net: NetworkClass, traffic_matrices_list, gurobi_env, opt
     return opt_ratio_value, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_dict, src_dst_path_prob
 
 
-def mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
+def multiple_matrices_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, 0)
     gb_env.setParam(GRB.Param.NumericFocus, 3)
@@ -292,7 +292,7 @@ if __name__ == "__main__":
     p = [0.99] + [(1 - 0.99) / (l - 1)] * (l - 1)
     traffic_matrix_list = [(p[i], t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
     opt_ratio_value, splitting_ratios_per_src_dst_edge, r_vars_per_matrix, necessary_capacity_dict, src_dst_path_prob = \
-        mcf_LP_solver(net, traffic_matrix_list)
+        multiple_matrices_mcf_LP_solver(net, traffic_matrix_list)
 
     for i, t_elem in enumerate(loaded_dict["tms"][0:l]):
         assert r_vars_per_matrix[i] >= t_elem[1] or error_bound(r_vars_per_matrix[i], t_elem[1])
