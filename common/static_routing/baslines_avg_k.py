@@ -1,5 +1,5 @@
-from static_routing.optimal_load_balancing import *
-from static_routing.ecmp_load_balancing import ecmp_arch_congestion
+from optimal_load_balancing import *
+from ecmp_load_balancing import ecmp_arch_congestion
 from common.network_class import NetworkClass
 from common.consts import EdgeConsts
 from common.utils import load_dump_file

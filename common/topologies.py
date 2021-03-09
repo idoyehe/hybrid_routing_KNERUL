@@ -1,7 +1,7 @@
 import networkx as nx
 from common.consts import EdgeConsts
 import urllib.request
-from size_consts import SizeConsts
+from common.size_consts import SizeConsts
 
 DEFAULT_CAPACITY = 10
 

@@ -10,7 +10,7 @@ import numpy as np
 import networkx as nx
 from common.logger import logger
 import matplotlib.pyplot as plt
-from utils import *
+from common.utils import *
 from random import shuffle
 
 
@@ -246,6 +246,7 @@ class NetworkClass:
 
     def __capacity_map(self):
         if self._capacity_map is None:
+            assert self.g_is_directed
             self._capacity_map = dict()
             self._total_capacity = 0
             for node in self.nodes:
@@ -266,15 +267,15 @@ class NetworkClass:
         return self._flows
 
     def __randomize_pairs(self, percent):
-        all_pairs = list(self.get_all_pairs())
+        all_pairs_copy = list(self.get_all_pairs())
         # shuffle the pairs
-        shuffle(all_pairs)
-        num_pairs_selected = int(np.ceil(len(all_pairs) * percent))
-        chosen_pairs = []
+        shuffle(all_pairs_copy)
+        num_pairs_selected = int(np.ceil(len(all_pairs_copy) * percent))
+        chosen_pairs = list()
         while len(chosen_pairs) != num_pairs_selected:
-            pair_index = np.random.choice(len(all_pairs))
-            chosen_pairs.append(all_pairs[pair_index])
-            all_pairs.pop(pair_index)
+            pair_index = np.random.choice(len(all_pairs_copy))
+            chosen_pairs.append(all_pairs_copy[pair_index])
+            all_pairs_copy.pop(pair_index)
         return chosen_pairs
 
     def choosing_pairs(self, percent, static=False):
@@ -310,24 +311,3 @@ if __name__ == "__main__":
     net.reducing_undirected2directed()
     adj = net.get_adjacency
     pairs = net.get_all_pairs()
-
-# if __name__ == "__main__":
-#     from common.topologies import topology_zoo_loader,store_graph
-#     net = NetworkClass(topology_zoo_loader("/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/graphs_gmls/GRnet.txt"))
-#     adj = net.get_adjacency
-#     pairs = net.get_all_pairs()
-#     new_edges_collection =list()
-#     for pair in pairs:
-#         if adj[pair] == 0 and pair[0] < pair[1]:
-#             new_edges_collection.append(pair)
-#
-#     shuffle(new_edges_collection)
-#     graph = net.get_graph.copy()
-#     for _ in range(25):
-#         new_edge = choice(new_edges_collection)
-#         graph.add_edge(new_edge[0],new_edge[1],capacity= 1000)
-#
-#     for edge in graph.edges:
-#         graph.edges[edge]["capacity"]*=SizeConsts.ONE_Mb
-#     graph.name = "GRnet_66"
-#     store_graph(graph)

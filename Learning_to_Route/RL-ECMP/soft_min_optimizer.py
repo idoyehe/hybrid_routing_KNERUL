@@ -6,11 +6,11 @@ refactoring on 24/04/2020
 @by: Ido Yehezkel
 """
 
-from common.rl_env_consts import HistoryConsts
+from common.RL_Env.rl_env_consts import HistoryConsts
 from common.network_class import *
 from common.logger import logger
 from static_routing.oblivious_routing import calculate_congestion_per_matrices
-from common.optimizer_abstract import Optimizer_Abstract
+from common.RL_Env.optimizer_abstract import Optimizer_Abstract
 
 
 class WNumpyOptimizer(Optimizer_Abstract):

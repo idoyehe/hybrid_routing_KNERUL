@@ -1,4 +1,4 @@
-from size_consts import SizeConsts
+from common.size_consts import SizeConsts
 from numpy import round, where, dstack, abs
 from pathlib import Path
 import pickle

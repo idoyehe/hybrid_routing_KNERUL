@@ -4,7 +4,7 @@ Created on 14 Oct 2020
 """
 from gym import Env, spaces
 from common.network_class import *
-from common.rl_env_consts import HistoryConsts, ExtraData
+from common.RL_Env.rl_env_consts import HistoryConsts
 from common.utils import load_dump_file
 from common.topologies import topology_zoo_loader
 import random
@@ -32,7 +32,7 @@ class RL_Env(Env):
             topology_zoo_loader(url=loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
         self._tms = loaded_dict["tms"]
         self._tm_type = loaded_dict["tms_type"]
-        self._tm_sparsity_list = loaded_dict["tms_sparsity"]  # percentage of participating pairs, assumed to be a list
+        self._tm_sparsity = loaded_dict["tms_sparsity"]  # percentage of participating pairs, assumed to be a list
         if "oblivious_routing" in loaded_dict.keys():
             self._oblivious_routing_per_edge = loaded_dict["oblivious_routing"]["per_edge"]
             self._oblivious_routing_per_flow = loaded_dict["oblivious_routing"]["per_flow"]

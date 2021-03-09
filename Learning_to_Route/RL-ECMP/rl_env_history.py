@@ -6,9 +6,9 @@ refactoring on 14 Oct 2020
 @by: Ido Yehezkel
 """
 
-from rl_env import *
+from common.RL_Env.rl_env import *
 from common.utils import error_bound
-from optimizer import WNumpyOptimizer
+from soft_min_optimizer import WNumpyOptimizer
 
 
 class RL_Env_History(RL_Env):

@@ -16,7 +16,7 @@ def __uniform_generation(g, pairs, scale=1.0):
     return [(src, dst, scale * np.random.uniform(lower_bound, upper_bound)) for src, dst in pairs]
 
 
-def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
+def __bimodal_generation(_, pairs, percent, big=400, small=150, std=20):
     flows = []
 
     shuffle(pairs)
@@ -32,11 +32,6 @@ def __bimodal_generation(graph, pairs, percent, big=400, small=150, std=20):
 
         flows.append((pair[0], pair[1], f_size_mb))
 
-    return flows
-
-
-def __event_generation(graph, pairs, f_size_mb):
-    flows = [(pair[0], pair[1], f_size_mb) for pair in pairs]
     return flows
 
 
