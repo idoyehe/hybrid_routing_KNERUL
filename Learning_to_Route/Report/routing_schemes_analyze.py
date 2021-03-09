@@ -62,7 +62,7 @@ if __name__ == "__main__":
     temp = np.zeros_like(all_traffic_oblivous)
 
     for idx, load in enumerate(all_traffic_rl):
-        link = net.get_id2edge()[idx]
+        link = net.get_id2edge(idx)
         temp[link] = load
 
     all_traffic_rl = temp

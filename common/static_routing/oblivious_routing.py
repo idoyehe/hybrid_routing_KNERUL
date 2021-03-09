@@ -225,7 +225,7 @@ def calculate_congestion_per_matrices(net: NetworkClass, traffic_matrix_list: li
         assert round(max_congestion, 4) >= current_opt
 
         congestion_ratios.append(round(max_congestion / current_opt, 4))
-        congested_link_histogram[net.get_edge2id()[most_congested_link]] += 1
+        congested_link_histogram[net.get_edge2id(*most_congested_link)] += 1
 
     return congestion_ratios, total_archs_load, congested_link_histogram
 
@@ -241,7 +241,7 @@ def _sorted_congestion_links(congested_link_histogram):
     print("Sorted congestion links")
     congested_link_fractions = list()
     for idx, congestion in enumerate(congested_link_histogram):
-        arch = net.get_id2edge()[idx]
+        arch = net.get_id2edge(idx)
         congested_link_fractions.append((arch, congestion))
 
     congested_link_fractions.sort(key=lambda e: e[1], reverse=True)
@@ -258,7 +258,7 @@ def oblivious_routing_2_probability(oblivious_routing_per_edge, dest_tm, network
     probability_matrix = np.zeros(shape=(network.get_num_nodes, network.get_num_edges))
     for node in range(network.get_num_nodes):
         for out_edge in network.out_edges_by_node(node):
-            arc_id = network.get_edge2id()[out_edge]
+            arc_id = network.get_edge2id(*out_edge)
             probability_matrix[node, arc_id] = flow_per_arch[out_edge]
 
     probability_matrix_nirmol = np.sum(probability_matrix, axis=1)

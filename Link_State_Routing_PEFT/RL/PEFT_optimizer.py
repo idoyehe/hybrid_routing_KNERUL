@@ -31,7 +31,7 @@ class PEFTOptimizer(Optimizer_Abstract):
 
         reduced_directed_graph = nx.DiGraph()
         for edge_index, cost in enumerate(weights_vector):
-            u, v = net_direct.get_id2edge()[edge_index]
+            u, v = net_direct.get_id2edge(edge_index)
             reduced_directed_graph.add_edge(u, v, cost=cost)
 
         assert reduced_directed_graph.number_of_edges() == net_direct.get_num_edges
@@ -40,7 +40,7 @@ class PEFTOptimizer(Optimizer_Abstract):
         for node_dst in net_direct.nodes:
             shortest_paths_to_dest = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight='cost')
             for u, v in net_direct.edges:
-                edge_index = net_direct.get_edge2id()[(u, v)]
+                edge_index = net_direct.get_edge2id(u, v)
                 distance_gap_by_dest_s_t[node_dst][edge_index] = \
                     weights_vector[edge_index] + shortest_paths_to_dest[v] - shortest_paths_to_dest[u]
                 assert distance_gap_by_dest_s_t[node_dst][edge_index] >= 0
@@ -70,7 +70,7 @@ class PEFTOptimizer(Optimizer_Abstract):
                     lp_problem.addConstr(gammas_by_dest_by_u_vars[(t, t)] == 1.0)
                 else:
                     sigma = sum(
-                        exp_h_by_dest_s_t[(t, net_direct.get_edge2id()[u, v])] * gammas_by_dest_by_u_vars[(t, v)]
+                        exp_h_by_dest_s_t[(t, net_direct.get_edge2id(u, v))] * gammas_by_dest_by_u_vars[(t, v)]
                         for _, v in net_direct.out_edges_by_node(u))
                     lp_problem.addConstr(gammas_by_dest_by_u_vars[(t, u)] == sigma)
 
@@ -108,27 +108,27 @@ class PEFTOptimizer(Optimizer_Abstract):
 
         for t in net_direct.nodes:
             for u, v in net_direct.edges:
-                edge_index = net_direct.get_edge2id()[u, v]
+                edge_index = net_direct.get_edge2id(u, v)
                 gamma_px_by_dest_by_u_v[t, edge_index] = gammas_by_dest_by_u[t, v] * exp_h_by_dest_s_t[t, edge_index]
 
         sum_gamma_px_by_dest_by_u = np.zeros((net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64)
         for t in net_direct.nodes:
             for u in net_direct.nodes:
-                sum_gamma_px_by_dest_by_u[t, u] = fsum(gamma_px_by_dest_by_u_v[t, net_direct.get_edge2id()[u, v]]
+                sum_gamma_px_by_dest_by_u[t, u] = fsum(gamma_px_by_dest_by_u_v[t, net_direct.get_edge2id(u, v)]
                                                        for _, v in net_direct.out_edges_by_node(u))
 
         splitting_ratios = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
 
         for t in net_direct.nodes:
             for u, v in net_direct.edges:
-                edge_index = net_direct.get_edge2id()[u, v]
+                edge_index = net_direct.get_edge2id(u, v)
                 splitting_ratios[t, edge_index] = gamma_px_by_dest_by_u_v[t, edge_index] / sum_gamma_px_by_dest_by_u[
                     t, u]
 
         for t in net_direct.nodes:
             for u in net_direct.nodes:
                 assert error_bound(1.0, sum(
-                    splitting_ratios[t, net_direct.get_edge2id()[u, v]] for _, v in net_direct.out_edges_by_node(u)))
+                    splitting_ratios[t, net_direct.get_edge2id(u, v)] for _, v in net_direct.out_edges_by_node(u)))
 
         return splitting_ratios
 
@@ -146,5 +146,5 @@ if __name__ == "__main__":
     total_congestion, max_congestion, total_load_per_arch, most_congested_arch = opt.step(
         [5, 2.5, 100, 100, 100, 2.5], tm, opt_congestion)
     print("Optimizer Congestion: {}".format(max_congestion))
-    print("Optimizer Most Congested Link: {}".format(ecmpNetwork.get_id2edge()[most_congested_arch]))
+    print("Optimizer Most Congested Link: {}".format(ecmpNetwork.get_id2edge(most_congested_arch)))
     print("Congestion Ratio :{}".format(max_congestion / opt_congestion))

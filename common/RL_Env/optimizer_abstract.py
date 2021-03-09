@@ -68,7 +68,7 @@ class Optimizer_Abstract(object):
                 lp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t)
 
                 for out_arch in net_direct.out_edges_by_node(s):
-                    edge_index = net_direct.get_edge2id()[out_arch]
+                    edge_index = net_direct.get_edge2id(out_arch)
                     lp_problem.addConstr(flows_vars_per_per_dest_per_edge[(t,) + out_arch] ==
                                          _collected_flow_in_s_destined_t * splitting_ratios[t, edge_index])
 
@@ -100,7 +100,7 @@ class Optimizer_Abstract(object):
         for u, v in net_direct.edges:
             flows_vars_per_edge_dict[(u, v)] = sum(
                 flows_vars_per_per_dest_per_edge[(t, u, v)] for t in net_direct.nodes)
-            edge_index = net_direct.get_edge2id()[(u, v)]
+            edge_index = net_direct.get_edge2id(u, v)
             total_load_per_link[edge_index] = flows_vars_per_edge_dict[(u, v)]
 
         total_congestion_per_link = total_load_per_link / self._edges_capacities
@@ -129,6 +129,6 @@ class Optimizer_Abstract(object):
                     assert error_bound(_collected_flow_in_s_destined_t, _outgoing_flow_from_s_destined_t)
 
                     for _, v in net_direct.out_edges_by_node(src):
-                        edge_index = net_direct.get_edge2id()[(src, v)]
+                        edge_index = net_direct.get_edge2id(src, v)
                         assert error_bound(flows_vars_per_per_dest_per_edge[dst, src, v],
                                            _collected_flow_in_s_destined_t * splitting_ratios[dst, edge_index])

@@ -174,15 +174,21 @@ class NetworkClass:
                     edge_id += 1
         return ingoing, outgoing, self._capacities
 
-    def get_id2edge(self):
+    def get_id2edge_map(self):
         if self._id2edge_map is None:
             self.build_edges_map()
         return self._id2edge_map
 
-    def get_edge2id(self):
+    def get_edge2id_map(self):
         if self._edge2id_map is None:
             self.build_edges_map()
         return self._edge2id_map
+
+    def get_id2edge(self, id):
+        return self.get_id2edge_map()[id]
+
+    def get_edge2id(self, src, dst):
+        return self.get_edge2id_map()[src, dst]
 
     @property
     def out_edges(self):

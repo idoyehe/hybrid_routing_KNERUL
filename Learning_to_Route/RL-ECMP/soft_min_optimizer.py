@@ -48,7 +48,7 @@ class SoftMinOptimizer(Optimizer_Abstract):
         exp_val = np.sum(np.transpose(exp_val), axis=0)
         net_direct = self._network
         for u in net_direct.nodes:
-            error_bound(1.0, sum(exp_val[net_direct.get_edge2id()[u, v]] for _, v in net_direct.out_edges_by_node(u)))
+            error_bound(1.0, sum(exp_val[net_direct.get_edge2id(u, v)] for _, v in net_direct.out_edges_by_node(u)))
         return exp_val
 
     def _get_cost_given_weights(self, weights_vector, tm, optimal_value):
@@ -61,7 +61,7 @@ class SoftMinOptimizer(Optimizer_Abstract):
 
         reduced_directed_graph = nx.DiGraph()
         for edge_index, cost in enumerate(weights_vector):
-            u, v = net_direct.get_id2edge()[edge_index]
+            u, v = net_direct.get_id2edge(edge_index)
             reduced_directed_graph.add_edge(u, v, cost=cost)
 
         for node_dst in net_direct.nodes:
@@ -83,8 +83,8 @@ class SoftMinOptimizer(Optimizer_Abstract):
                 oblv_congestion = oblv_congestion[0]
 
                 assert np.sum(oblv_congestion_link_histogram) == 1
-                oblv_most_congested_arch = str(self._network.get_id2edge()[np.argmax(oblv_congestion_link_histogram)])
-                rl_most_congested_arch = str(self._network.get_id2edge()[rl_most_congested_link])
+                oblv_most_congested_arch = str(self._network.get_id2edge(np.argmax(oblv_congestion_link_histogram)))
+                rl_most_congested_arch = str(self._network.get_id2edge(rl_most_congested_link))
                 print("Oblivious most congested link: {}".format(oblv_most_congested_arch))
                 rl_oblivious_ratio = np.abs((rl_max_congestion / optimal_value) / oblv_congestion)
 
