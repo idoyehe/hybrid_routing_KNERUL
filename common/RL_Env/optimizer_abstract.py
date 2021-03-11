@@ -68,7 +68,7 @@ class Optimizer_Abstract(object):
                 lp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t)
 
                 for out_arch in net_direct.out_edges_by_node(s):
-                    edge_index = net_direct.get_edge2id(out_arch)
+                    edge_index = net_direct.get_edge2id(*out_arch)
                     lp_problem.addConstr(flows_vars_per_per_dest_per_edge[(t,) + out_arch] ==
                                          _collected_flow_in_s_destined_t * splitting_ratios[t, edge_index])
 

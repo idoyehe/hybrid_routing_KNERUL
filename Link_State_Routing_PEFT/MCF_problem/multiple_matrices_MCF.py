@@ -212,7 +212,7 @@ def _aux_mcf_LP_solver(net: NetworkClass, traffic_matrices_list, gurobi_env, opt
                 for _, v in net_direct.out_edges_by_node(u):
                     splitting_ratios_per_src_dst_edge[src, dst, u, v] = equal_splitting_ratio
 
-    __validate_solution(net_direct, flows, traffic_matrix_list, splitting_ratios_per_src_dst_edge,
+    __validate_solution(net_direct, flows, traffic_matrices_list, splitting_ratios_per_src_dst_edge,
                         flows_per_mtrx_src_dst_per_edge)
 
     necessary_capacity_dict = dict()
@@ -235,17 +235,12 @@ def multiple_matrices_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env.setParam(GRB.Param.FeasibilityTol, 1e-9)
     gb_env.start()
 
-    opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict, src_dst_path_prob = _aux_mcf_LP_solver(
-        net,
-        traffic_matrix_list,
-        gb_env)
+    opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict, src_dst_path_prob = \
+        _aux_mcf_LP_solver(net, traffic_matrix_list, gb_env)
     while True:
         try:
-            opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict, src_dst_path_prob = _aux_mcf_LP_solver(
-                net,
-                traffic_matrix_list,
-                gb_env,
-                opt_ratio_value - 0.001)
+            opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict, src_dst_path_prob = \
+                _aux_mcf_LP_solver(net, traffic_matrix_list, gb_env, opt_ratio_value - 0.001)
             print("****** Gurobi Failure ******")
             opt_ratio_value -= 0.001
         except Exception as e:
