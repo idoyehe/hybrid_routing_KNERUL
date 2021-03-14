@@ -95,7 +95,7 @@ def __extract_values(gurobi_vars_dict):
     return gurobi_vars_dict
 
 
-def _aux_mcf_LP_solver(net: NetworkClass, traffic_matrices_list, gurobi_env, opt_ratio_value=None):
+def _aux_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_env, opt_ratio_value=None):
     """Preparation"""
     mcf_problem = gb.Model(name="MCF problem for mean MCF, given network, TM list and probabilities",
                            env=gurobi_env)
@@ -105,9 +105,6 @@ def _aux_mcf_LP_solver(net: NetworkClass, traffic_matrices_list, gurobi_env, opt
     total_demands = sum(t for _, t in traffic_matrices_list)
 
     flows = extract_flows(total_demands)
-
-    net_direct = net
-    del net
 
     vars_flows_src_dst_per_edge = mcf_problem.addVars(flows, net_direct.edges,
                                                       name="f", lb=0.0, vtype=GRB.CONTINUOUS)

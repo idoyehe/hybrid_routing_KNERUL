@@ -141,11 +141,11 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
         local_path = url
         from platform import system
         if system() == "Linux":
-            local_path = "/home/idoye/PycharmProjects/Research_Implementing" + \
-                         local_path.replace("\\", "/").split("/Research_Implementing")[1]
+            local_path = "/home/idoye/PycharmProjects/Research_Implementing/common/graphs_gmls" + \
+                         local_path.replace("\\", "/").split("/graphs_gmls")[1]
         elif system() == 'Windows':
-            local_path = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing" + \
-                         local_path.replace("/", "\\").split("\\Research_Implementing")[1]
+            local_path = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\graphs_gmls" + \
+                         local_path.replace("/", "\\").split("\\graphs_gmls")[1]
 
 
         else:
