@@ -19,10 +19,10 @@ class PEFTOptimizer(Optimizer_Abstract):
         :return: cost and congestion
         """
         splitting_ratios = self._calculating_splitting_ratios(weights_vector)
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
+        max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
             self._calculating_traffic_distribution(splitting_ratios, traffic_matrix)
 
-        return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
+        return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
 
     def _calculating_exponent_distance_gap(self, weights_vector):
         net_direct = self._network
@@ -143,8 +143,8 @@ if __name__ == "__main__":
     opt = PEFTOptimizer(ecmpNetwork, None)
     opt_congestion, opt_routing_scheme = optimal_load_balancing_LP_solver(net=ecmpNetwork, traffic_matrix=tm)
     print("Optimal Congestion: {}".format(opt_congestion))
-    total_congestion, max_congestion, total_load_per_arch, most_congested_arch = opt.step(
-        [5, 2.5, 100, 100, 100, 2.5], tm, opt_congestion)
+    max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
+        opt.step([5, 2.5, 100, 100, 100, 2.5], tm, opt_congestion)
     print("Optimizer Congestion: {}".format(max_congestion))
-    print("Optimizer Most Congested Link: {}".format(ecmpNetwork.get_id2edge(most_congested_arch)))
+    print("Optimizer Most Congested Link: {}".format(ecmpNetwork.get_id2edge(most_congested_link)))
     print("Congestion Ratio :{}".format(max_congestion / opt_congestion))

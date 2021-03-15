@@ -44,8 +44,8 @@ class RL_Env_History(RL_Env):
         info = dict()
         links_weights = self._modify_action(action)
 
-        total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch = self._process_action_get_cost(
-            links_weights)
+        cost_congestion_ratio, most_congested_link, total_congestion, total_congestion_per_link, \
+        total_load_per_link = self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
         oblivious_value = self._oblivious_values[self._current_observation_index][
@@ -53,13 +53,17 @@ class RL_Env_History(RL_Env):
 
         if self._testing:
             info[ExtraData.LINK_WEIGHTS] = np.array(links_weights)
-            info[ExtraData.LOAD_PER_LINK] = np.array(total_load_per_arch)
-            info[ExtraData.MOST_CONGESTED_LINK] = most_congested_arch
+            info[ExtraData.LOAD_PER_LINK] = np.array(total_load_per_link)
+            info[ExtraData.MOST_CONGESTED_LINK] = most_congested_link
             info[ExtraData.VS_OBLIVIOUS_DATA] = self._optimizer.vs_oblivious_data
 
-        del total_load_per_arch
-        del links_weights
         info[ExtraData.REWARD_OVER_FUTURE] = cost_congestion_ratio
+        del links_weights
+        del cost_congestion_ratio
+        del most_congested_link
+        del total_congestion
+        del total_congestion_per_link
+
         self._diagnostics.append(info)
 
         self._tm_start_index += 1
@@ -78,7 +82,7 @@ class RL_Env_History(RL_Env):
     def _process_action_get_cost(self, links_weights):
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
         optimal_val = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
+        max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
             self.optimizer_step(links_weights, tm, optimal_val)
 
         cost_congestion_ratio = max_congestion / optimal_val
@@ -96,12 +100,12 @@ class RL_Env_History(RL_Env):
         logger.debug("Optimal  Congestion :{}".format(optimal_val))
         logger.debug("Congestion Ratio :{}".format(cost_congestion_ratio))
 
-        return total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch
+        return cost_congestion_ratio, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
 
     def optimizer_step(self, links_weights, tm, optimal_value):
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
+        max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
             self._optimizer.step(links_weights, tm, optimal_value)
-        return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
+        return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
 
     def testing(self, _testing):
         super(RL_Env_History, self).testing(_testing)

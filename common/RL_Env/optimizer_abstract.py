@@ -109,7 +109,7 @@ class Optimizer_Abstract(object):
         max_congestion = total_congestion_per_link[most_congested_link]
         total_congestion = np.sum(total_congestion_per_link)
 
-        return total_congestion, max_congestion, total_congestion_per_link, most_congested_link
+        return max_congestion, most_congested_link, total_congestion,total_congestion_per_link, total_load_per_link
 
     @staticmethod
     def __validate_flow(net_direct, tm, flows_vars_per_per_dest_per_edge, splitting_ratios):

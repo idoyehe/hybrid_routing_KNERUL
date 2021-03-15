@@ -22,10 +22,11 @@ class SoftMinOptimizer(Optimizer_Abstract):
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
-            self._get_cost_given_weights(weights_vector, traffic_matrix, optimal_value)
+        rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, \
+        rl_total_load_per_link = self._get_cost_given_weights(weights_vector, traffic_matrix, optimal_value)
 
-        return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
+        return rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, \
+               rl_total_load_per_link
 
     def __get_edge_cost(self, cost_adj, each_edge_weight):
         cost_to_dst1 = cost_adj * self._graph_adjacency_matrix + each_edge_weight
@@ -55,7 +56,6 @@ class SoftMinOptimizer(Optimizer_Abstract):
         logger.debug("Calculating hop by hop splitting ratios")
         net_direct = self._network
 
-        rl_total_load_per_edge = np.zeros_like(weights_vector, dtype=np.float64)
         splitting_ratios = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
         one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
 
@@ -71,8 +71,8 @@ class SoftMinOptimizer(Optimizer_Abstract):
             q_val = self._soft_min(edge_cost)
             splitting_ratios[node_dst] = q_val
 
-        rl_total_congestion, rl_max_congestion, rl_congestion_per_link, rl_most_congested_link = self._calculating_traffic_distribution(
-            splitting_ratios, tm)
+        rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, \
+        rl_total_load_per_link = self._calculating_traffic_distribution(splitting_ratios, tm)
 
         if self._testing:
             self.vs_oblivious_data = None
@@ -99,7 +99,8 @@ class SoftMinOptimizer(Optimizer_Abstract):
             print("RL most congested link: {}".format(rl_most_congested_link))
             print("RL cost value: {}".format(rl_max_congestion / optimal_value))
 
-        return rl_total_congestion, rl_max_congestion, rl_total_load_per_edge, rl_most_congested_link
+        return rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, \
+               rl_total_load_per_link
 
 
 if __name__ == "__main__":
@@ -112,7 +113,7 @@ if __name__ == "__main__":
     opt = SoftMinOptimizer(network, oblivious_routing_per_edge)
     opt_congestion, opt_routing_scheme = optimal_load_balancing_LP_solver(net=network, traffic_matrix=tm)
     print("Optimal Congestion: {}".format(opt_congestion))
-    total_congestion, max_congestion, total_load_per_arch, most_congested_arch = opt.step(
-        [100, 100, 0.00000001, 100, 0.00000001, 0.00000001], tm, opt_congestion)
+    max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
+        opt.step([100, 100, 0.00000001, 100, 0.00000001, 0.00000001], tm, opt_congestion)
     print("Optimizer Congestion: {}".format(max_congestion))
     print("Congestion Ratio :{}".format(max_congestion / opt_congestion))
