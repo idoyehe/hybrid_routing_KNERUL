@@ -76,23 +76,24 @@ def experiment(traffic_matrix_list, w_u_v, baseline_objective, r_per_mtrx):
 
 
 if __name__ == "__main__":
-    print("Sum of all matrices")
-    options = _getOptions()
-    dumped_path = options.dumped_path
-    loaded_dict = load_dump_file(dumped_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
-    shuffle(loaded_dict["tms"])
+    for _ in range(5):
+        options = _getOptions()
+        dumped_path = options.dumped_path
+        loaded_dict = load_dump_file(dumped_path)
+        net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+        print("Topology Name: {}".format(net.get_name))
+        shuffle(loaded_dict["tms"])
 
-    l = 2
-    p = [0.99] + [(1 - 0.99) / (l - 1)] * (l - 1)
-    traffic_matrix_list = [(p[i], t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
+        l = 2
+        p = [0.99] + [(1 - 0.99) / (l - 1)] * (l - 1)
+        traffic_matrix_list = [(p[i], t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
 
-    baseline_objective, _, r_per_mtrx, _ = multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list)
-    heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = multiple_matrices_mcf_LP_heuristic_solver(
-        net, traffic_matrix_list)
+        baseline_objective, _, r_per_mtrx, _ = multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list)
+        heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = multiple_matrices_mcf_LP_heuristic_solver(
+            net, traffic_matrix_list)
 
-    expected_tm = sum(pr * t for pr, t in traffic_matrix_list)
+        expected_tm = sum(pr * t for pr, t in traffic_matrix_list)
 
-    w_u_v, PEFT_congestion = PEFT_main_loop(net, expected_tm, necessary_capacity_dict)
+        w_u_v, PEFT_congestion = PEFT_main_loop(net, expected_tm, necessary_capacity_dict)
 
-    experiment(traffic_matrix_list, w_u_v, baseline_objective, r_per_mtrx)
+        experiment(traffic_matrix_list, w_u_v, baseline_objective, r_per_mtrx)
