@@ -71,12 +71,13 @@ def __validate_flow_per_matrix(net_direct, tm, flows_per_edge_src_dst, splitting
 def __validate_flow(net_direct, traffic_matrix_list, flows_per_mtrx_src_dst_per_edge,
                     splitting_ratios_edge_src_dst):
     for m_index, (_, tm) in enumerate(traffic_matrix_list):
-        current_matrix_flows_vars_per_dest = dict()
+        current_matrix_flows_per_src_dst_per_edge = dict()
         for key, val in flows_per_mtrx_src_dst_per_edge.items():
             if key[0] == m_index:
-                current_matrix_flows_vars_per_dest[key[1:]] = val
+                current_matrix_flows_per_src_dst_per_edge[key[1:]] = val
 
-        __validate_flow_per_matrix(net_direct, tm, current_matrix_flows_vars_per_dest, splitting_ratios_edge_src_dst)
+        __validate_flow_per_matrix(net_direct, tm, current_matrix_flows_per_src_dst_per_edge,
+                                   splitting_ratios_edge_src_dst)
 
 
 def __validate_solution(net_direct, flows, traffic_matrix_list, splitting_ratios_per_src_dst_edge,
@@ -95,14 +96,124 @@ def __extract_values(gurobi_vars_dict):
     return gurobi_vars_dict
 
 
-def _aux_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_env, opt_ratio_value=None):
+def _aux_mcf_LP_expected_matrix_heuristic_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_env,
+                                                 opt_ratio_value=None):
+    """Preparation"""
+    mcf_problem = gb.Model(name="MCF problem for mean MCF, given network, TM list and probabilities",
+                           env=gurobi_env)
+
+    expected_demands = sum(pr * t for pr, t in traffic_matrices_list)
+
+    flows = extract_flows(expected_demands)
+
+    vars_flows_src_dst_per_edge = mcf_problem.addVars(flows, net_direct.edges,
+                                                      name="f", lb=0.0, vtype=GRB.CONTINUOUS)
+
+    vars_r_total_matrix = mcf_problem.addVar(name="r_total", lb=0.0, vtype=GRB.CONTINUOUS)
+
+    mcf_problem.update()
+    """Building Constraints"""
+    total_objective = vars_r_total_matrix
+
+    if opt_ratio_value is None:
+        mcf_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
+        mcf_problem.setObjective(total_objective)
+    else:
+        mcf_problem.addConstr(total_objective <= opt_ratio_value)
+    mcf_problem.update()
+
+    for u, v in net_direct.edges:
+        capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
+        mtrx_link_load = sum(vars_flows_src_dst_per_edge[src, dst, u, v] for src, dst in flows)
+        mcf_problem.addConstr(mtrx_link_load <= capacity * vars_r_total_matrix)
+
+    for src, dst in flows:
+        # Flow conservation at the source
+        __flow_from_src = sum(
+            vars_flows_src_dst_per_edge[src, dst, src, v] for _, v in net_direct.out_edges_by_node(src))
+        __flow_to_src = sum(
+            vars_flows_src_dst_per_edge[src, dst, u, src] for u, _ in net_direct.in_edges_by_node(src))
+        mcf_problem.addConstr(__flow_from_src == expected_demands[src, dst])
+        mcf_problem.addConstr(__flow_to_src == 0.0)
+
+        # Flow conservation at the destination
+        __flow_from_dst = sum(
+            vars_flows_src_dst_per_edge[src, dst, dst, v] for _, v in net_direct.out_edges_by_node(dst))
+        __flow_to_dst = sum(
+            vars_flows_src_dst_per_edge[src, dst, u, dst] for u, _ in net_direct.in_edges_by_node(dst))
+        mcf_problem.addConstr(__flow_to_dst == expected_demands[src, dst])
+        mcf_problem.addConstr(__flow_from_dst == 0.0)
+
+        for u in net_direct.nodes:
+            if u in (src, dst):
+                continue
+            # Flow conservation at transit node
+            __flow_from_u = sum(
+                vars_flows_src_dst_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
+            __flow_to_u = sum(
+                vars_flows_src_dst_per_edge[src, dst, v, u] for v, _ in net_direct.in_edges_by_node(u))
+            mcf_problem.addConstr(__flow_from_u == __flow_to_u)
+        mcf_problem.update()
+
+    try:
+        logger.info("LP Submit to Solve {}".format(mcf_problem.ModelName))
+        mcf_problem.update()
+        mcf_problem.optimize()
+        assert mcf_problem.Status == GRB.OPTIMAL
+    except AssertionError as e:
+        raise Exception("****Optimize failed****\nAssertion Error:\n{}".format(e))
+
+    except gb.GurobiError as e:
+        raise Exception("****Optimize failed****\nException is:\n{}".format(e))
+
+    if opt_ratio_value is None:
+        opt_ratio_value = round(mcf_problem.objVal, R)
+
+    if logger.level == logging.DEBUG:
+        mcf_problem.printStats()
+        mcf_problem.printQuality()
+
+    flows_src_dst_per_edge = __extract_values(vars_flows_src_dst_per_edge)
+    heuristic_optimal = round(vars_r_total_matrix.x, R)
+    assert heuristic_optimal == opt_ratio_value
+    mcf_problem.close()
+
+    splitting_ratios_per_src_dst_edge = dict()
+    for u in net_direct.nodes:
+        if len(net_direct.out_edges_by_node(u)) == 0:
+            continue
+        for src, dst in flows:
+            flow_from_u_to_dst = sum(
+                flows_src_dst_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
+            if flow_from_u_to_dst > 0:
+                for _, v in net_direct.out_edges_by_node(u):
+                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = flows_src_dst_per_edge[
+                                                                            src, dst, u, v] / flow_from_u_to_dst
+            else:
+                equal_splitting_ratio = 1 / len(net_direct.out_edges_by_node(u))
+                for _, v in net_direct.out_edges_by_node(u):
+                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = equal_splitting_ratio
+
+    __validate_splitting_ratios(net_direct, flows, splitting_ratios_per_src_dst_edge)
+    __validate_flow_per_matrix(net_direct, expected_demands, flows_src_dst_per_edge, splitting_ratios_per_src_dst_edge)
+
+    necessary_capacity_dict = dict()
+    for u, v in net_direct.edges:
+        necessary_capacity_dict[u, v] = 0
+        for src, dst in flows:
+            necessary_capacity_dict[u, v] += flows_src_dst_per_edge[src, dst, u, v]
+
+    return heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict
+
+
+def _aux_mcf_LP_baseline_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_env, expected_objective=None):
     """Preparation"""
     mcf_problem = gb.Model(name="MCF problem for mean MCF, given network, TM list and probabilities",
                            env=gurobi_env)
 
     traffic_matrices_list_length = len(traffic_matrices_list)
 
-    total_demands = sum(t for _, t in traffic_matrices_list)
+    total_demands = sum(t for pr, t in traffic_matrices_list)
 
     flows = extract_flows(total_demands)
 
@@ -119,13 +230,14 @@ def _aux_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_e
     """Building Constraints"""
     total_objective = sum(tm_prb * vars_r_per_mtrx[m_idx] for m_idx, (tm_prb, _) in enumerate(traffic_matrices_list))
 
-    if opt_ratio_value is None:
+    if expected_objective is None:
         mcf_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
         mcf_problem.setObjective(total_objective)
     else:
-        mcf_problem.addConstr(total_objective <= opt_ratio_value)
+        mcf_problem.addConstr(total_objective <= expected_objective)
     mcf_problem.update()
 
+    # extracting s,t flow carried by (u,v) per matrix
     for src, dst in flows:
         for mtrx_idx, (_, tm) in enumerate(traffic_matrices_list):
             assert total_demands[src, dst] > 0
@@ -181,8 +293,8 @@ def _aux_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_e
     except gb.GurobiError as e:
         raise Exception("****Optimize failed****\nException is:\n{}".format(e))
 
-    if opt_ratio_value is None:
-        opt_ratio_value = round(mcf_problem.objVal, R)
+    if expected_objective is None:
+        expected_objective = round(mcf_problem.objVal, R)
 
     if logger.level == logging.DEBUG:
         mcf_problem.printStats()
@@ -212,36 +324,54 @@ def _aux_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_e
     __validate_solution(net_direct, flows, traffic_matrices_list, splitting_ratios_per_src_dst_edge,
                         flows_per_mtrx_src_dst_per_edge)
 
-    necessary_capacity_dict = dict()
+    necessary_capacity_per_matrix_dict = dict()
     for m_index in range(traffic_matrices_list_length):
         for u, v in net_direct.edges:
             necessary_capacity = 0
             for src, dst in flows:
                 necessary_capacity += flows_per_mtrx_src_dst_per_edge[m_index, src, dst, u, v]
-            necessary_capacity_dict[m_index, u, v] = necessary_capacity
+            necessary_capacity_per_matrix_dict[m_index, u, v] = necessary_capacity
 
-    src_dst_path_prob = create_paths_probability(net_direct, flows, splitting_ratios_per_src_dst_edge)
-
-    return opt_ratio_value, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_dict, src_dst_path_prob
+    return expected_objective, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_per_matrix_dict
 
 
-def multiple_matrices_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
+def multiple_matrices_mcf_LP_baseline_solver(net: NetworkClass, traffic_matrix_list):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, 0)
     gb_env.setParam(GRB.Param.NumericFocus, 3)
     gb_env.setParam(GRB.Param.FeasibilityTol, 1e-9)
     gb_env.start()
 
-    opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict, src_dst_path_prob = \
-        _aux_mcf_LP_solver(net, traffic_matrix_list, gb_env)
+    expected_objective, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_per_matrix_dict = \
+        _aux_mcf_LP_baseline_solver(net, traffic_matrix_list, gb_env)
     while True:
         try:
-            opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict, src_dst_path_prob = \
-                _aux_mcf_LP_solver(net, traffic_matrix_list, gb_env, opt_ratio_value - 0.001)
+            expected_objective, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_per_matrix_dict = \
+                _aux_mcf_LP_baseline_solver(net, traffic_matrix_list, gb_env, expected_objective - 0.001)
             print("****** Gurobi Failure ******")
-            opt_ratio_value -= 0.001
+            expected_objective -= 0.001
         except Exception as e:
-            return opt_ratio_value, splitting_ratios_vars_per_dest, r_vars_per_matrix, necessary_capacity_dict, src_dst_path_prob
+            return expected_objective, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_per_matrix_dict
+
+
+def multiple_matrices_mcf_LP_heuristic_solver(net: NetworkClass, traffic_matrix_list):
+    gb_env = gb.Env(empty=True)
+    gb_env.setParam(GRB.Param.OutputFlag, 0)
+    gb_env.setParam(GRB.Param.NumericFocus, 3)
+    gb_env.setParam(GRB.Param.FeasibilityTol, 1e-9)
+    gb_env.start()
+
+    heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = \
+        _aux_mcf_LP_expected_matrix_heuristic_solver(net, traffic_matrix_list, gb_env)
+    while True:
+        try:
+            heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = \
+                _aux_mcf_LP_expected_matrix_heuristic_solver(net, traffic_matrix_list, gb_env,
+                                                             heuristic_optimal - 0.001)
+            print("****** Gurobi Failure ******")
+            heuristic_optimal -= 0.001
+        except Exception as e:
+            return heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict
 
 
 def __create_paths_probability_src_dst(net: NetworkClass, source, dest, splitting_ratios_per_src_dst_edge):
@@ -279,13 +409,17 @@ if __name__ == "__main__":
         topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     from random import shuffle
 
-    shuffle(loaded_dict["tms"])
-    l = 10
+    # shuffle(loaded_dict["tms"])
+    l = 5
     p = [0.99] + [(1 - 0.99) / (l - 1)] * (l - 1)
-    traffic_matrix_list = [(p[i], t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
-    opt_ratio_value, splitting_ratios_per_src_dst_edge, r_vars_per_matrix, necessary_capacity_dict, src_dst_path_prob = \
-        multiple_matrices_mcf_LP_solver(net, traffic_matrix_list)
+    traffic_matrix_list = [(1 / l, t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
+    expected_objective, splitting_ratios_per_src_dst_edge, r_vars_per_matrix, necessary_capacity_per_matrix_dict = \
+        multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list)
 
     for i, t_elem in enumerate(loaded_dict["tms"][0:l]):
         assert r_vars_per_matrix[i] >= t_elem[1] or error_bound(r_vars_per_matrix[i], t_elem[1])
-    pass
+
+    heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = \
+        multiple_matrices_mcf_LP_heuristic_solver(net, traffic_matrix_list)
+
+    print("Heuristic - Expected TM Vs. Optimal ratio: {}".format(heuristic_optimal / expected_objective))
