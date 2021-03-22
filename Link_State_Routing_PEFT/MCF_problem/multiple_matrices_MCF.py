@@ -410,16 +410,20 @@ if __name__ == "__main__":
     from random import shuffle
 
     # shuffle(loaded_dict["tms"])
-    l = 5
+    l = 10
     p = [0.99] + [(1 - 0.99) / (l - 1)] * (l - 1)
     traffic_matrix_list = [(1 / l, t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
     expected_objective, splitting_ratios_per_src_dst_edge, r_vars_per_matrix, necessary_capacity_per_matrix_dict = \
         multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list)
 
-    for i, t_elem in enumerate(loaded_dict["tms"][0:l]):
-        assert r_vars_per_matrix[i] >= t_elem[1] or error_bound(r_vars_per_matrix[i], t_elem[1])
-
-    heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = \
-        multiple_matrices_mcf_LP_heuristic_solver(net, traffic_matrix_list)
-
-    print("Heuristic - Expected TM Vs. Optimal ratio: {}".format(heuristic_optimal / expected_objective))
+    for idx, t_elem in enumerate(loaded_dict["tms"][0:l]):
+        r_vars_per_matrix[idx] = round(r_vars_per_matrix[idx],4)
+        assert r_vars_per_matrix[idx] >= t_elem[1] or error_bound(r_vars_per_matrix[idx], t_elem[1])
+        print("Matrix Number: {}".format(idx))
+        print("Congestion using multiple MCF - LP: {}".format(r_vars_per_matrix[idx]))
+        print("Congestion using LP optimal: {}".format(t_elem[1]))
+        print("Ratio: {}: ".format(r_vars_per_matrix[idx]/t_elem[1]))
+    # heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = \
+    #     multiple_matrices_mcf_LP_heuristic_solver(net, traffic_matrix_list)
+    #
+    # print("Heuristic - Expected TM Vs. Optimal ratio: {}".format(heuristic_optimal / expected_objective))
