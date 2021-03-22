@@ -7,6 +7,7 @@ import gurobipy as gb
 from gurobipy import GRB
 from argparse import ArgumentParser
 from common.utils import load_dump_file, error_bound, extract_flows
+from random import shuffle
 
 R = 10
 
@@ -407,10 +408,9 @@ if __name__ == "__main__":
     loaded_dict = load_dump_file(dump_path)
     net = NetworkClass(
         topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
-    from random import shuffle
 
-    # shuffle(loaded_dict["tms"])
-    l = 10
+    shuffle(loaded_dict["tms"])
+    l = 5
     p = [0.99] + [(1 - 0.99) / (l - 1)] * (l - 1)
     traffic_matrix_list = [(1 / l, t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
     expected_objective, splitting_ratios_per_src_dst_edge, r_vars_per_matrix, necessary_capacity_per_matrix_dict = \
@@ -423,6 +423,7 @@ if __name__ == "__main__":
         print("Congestion using multiple MCF - LP: {}".format(r_vars_per_matrix[idx]))
         print("Congestion using LP optimal: {}".format(t_elem[1]))
         print("Ratio: {}: ".format(r_vars_per_matrix[idx]/t_elem[1]))
+
     # heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = \
     #     multiple_matrices_mcf_LP_heuristic_solver(net, traffic_matrix_list)
     #
