@@ -14,7 +14,7 @@ def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
     parser.add_argument("-topo", "--topology_url", type=str, help="The url to load graph topology from")
     parser.add_argument("-cap", "--default_capacity", type=float, help="The capacity for each edge")
-    parser.add_argument("-obliv", "--oblivious", type=bool, help="Run Oblivious as baseline", default=False)
+    parser.add_argument("-obliv", "--oblivious", type=eval, help="Run Oblivious as baseline", default=False)
     parser.add_argument("-n", "--total_matrices", type=int, help="The number of total matrices", default=20000)
     parser.add_argument("-sp", "--sparsity", type=float, help="The sparsity of the matrix", default=0.3)
     parser.add_argument("-stat_p", "--static_pairs", type=bool, help="Where the pairs with traffic are static",
