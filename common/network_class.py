@@ -38,6 +38,7 @@ class NetworkClass:
         self._total_capacity = 0
         self._flows = None
         self._chosen_pairs = None
+        print("Network {} has been created".format(self.get_name))
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
