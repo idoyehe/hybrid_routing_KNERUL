@@ -8,7 +8,7 @@ Created on 6 Feb 2017
 class Consts:
     ACTION_OBLIVIOUS_PATH = 1
     ACTION_FLOW_PATH = 2
-
+    ZERO = 1e-8
     INCREASE_ACTION = 0
     DECREASE_ACTION = 1
     NAK_ACTION = 2
