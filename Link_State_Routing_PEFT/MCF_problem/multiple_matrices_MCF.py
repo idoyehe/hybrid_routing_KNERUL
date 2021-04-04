@@ -1,4 +1,5 @@
 from common.consts import EdgeConsts
+from common.utils import change_zero_cells
 from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.logger import *
@@ -7,8 +8,10 @@ import gurobipy as gb
 from gurobipy import GRB
 from argparse import ArgumentParser
 from common.utils import load_dump_file, error_bound, extract_flows
+import numpy as np
 from random import shuffle
 from tabulate import tabulate
+from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
 
 R = 10
 
@@ -18,12 +21,13 @@ def __validate_splitting_ratios(net_direct, flows, splitting_ratios_per_src_dst_
         if len(net_direct.out_edges_by_node(u)) == 0:
             continue
         for src, dst in flows:
-            splitting_ratios_sum = 0.0
-            for _, v in net_direct.out_edges_by_node(u):
-                s_r_t_out_arch = splitting_ratios_per_src_dst_edge[src, dst, u, v]
-                assert s_r_t_out_arch >= 0.0
-                splitting_ratios_sum += s_r_t_out_arch
-            assert error_bound(splitting_ratios_sum, 1.0)
+            splitting_ratios_per_src_dst_u_list = [splitting_ratios_per_src_dst_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u)]
+            if all(spt is None for spt in splitting_ratios_per_src_dst_u_list):
+                continue
+            elif all(spt >= 0 for spt in splitting_ratios_per_src_dst_u_list):
+                assert error_bound(sum(splitting_ratios_per_src_dst_u_list), 1.0)
+            else:
+                raise Exception("Splitting ratio are not valid")
 
 
 def __validate_flow_per_matrix(net_direct, tm, flows_per_edge_src_dst, splitting_ratios_per_src_dst_edge):
@@ -49,9 +53,6 @@ def __validate_flow_per_matrix(net_direct, tm, flows_per_edge_src_dst, splitting
                 to_dst = sum(flows_per_edge_src_dst[src, dst, v, u] for v, _ in net_direct.in_edges_by_node(u))
                 assert error_bound(to_dst, tm[src, dst])
 
-                for _, v in net_direct.out_edges_by_node(u):
-                    assert error_bound(flows_per_edge_src_dst[src, dst, u, v],
-                                       from_dst * splitting_ratios_per_src_dst_edge[src, dst, u, v])
 
 
             else:
@@ -59,11 +60,9 @@ def __validate_flow_per_matrix(net_direct, tm, flows_per_edge_src_dst, splitting
                 to_transit_u = sum(flows_per_edge_src_dst[src, dst, v, u] for v, _ in net_direct.in_edges_by_node(u))
                 from_transit_u = sum(flows_per_edge_src_dst[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
                 assert error_bound(to_transit_u, from_transit_u)
-
-                for _, v in net_direct.out_edges_by_node(u):
-                    assert error_bound(flows_per_edge_src_dst[src, dst, u, v],
-                                       from_transit_u * splitting_ratios_per_src_dst_edge[
-                                           src, dst, u, v])
+                if from_transit_u > 0:
+                    for _, v in net_direct.out_edges_by_node(u):
+                        assert error_bound(flows_per_edge_src_dst[src, dst, u, v], from_transit_u * splitting_ratios_per_src_dst_edge[src, dst, u, v])
 
     for key, value in flows_per_edge_src_dst.items():
         if (key[0], key[1]) not in current_flows:
@@ -312,16 +311,13 @@ def _aux_mcf_LP_baseline_solver(net_direct: NetworkClass, traffic_matrices_list,
         if len(net_direct.out_edges_by_node(u)) == 0:
             continue
         for src, dst in flows:
-            flow_from_u_to_dst = sum(
-                flows_src_dst_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
+            flow_from_u_to_dst = sum(flows_src_dst_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
             if flow_from_u_to_dst > 0:
                 for _, v in net_direct.out_edges_by_node(u):
-                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = flows_src_dst_per_edge[
-                                                                            src, dst, u, v] / flow_from_u_to_dst
+                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = flows_src_dst_per_edge[src, dst, u, v] / flow_from_u_to_dst
             else:
-                equal_splitting_ratio = 1 / len(net_direct.out_edges_by_node(u))
                 for _, v in net_direct.out_edges_by_node(u):
-                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = equal_splitting_ratio
+                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = None
 
     __validate_solution(net_direct, flows, traffic_matrices_list, splitting_ratios_per_src_dst_edge,
                         flows_per_mtrx_src_dst_per_edge)
@@ -376,27 +372,6 @@ def multiple_matrices_mcf_LP_heuristic_solver(net: NetworkClass, traffic_matrix_
             return heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict
 
 
-def __create_paths_probability_src_dst(net: NetworkClass, source, dest, splitting_ratios_per_src_dst_edge):
-    all_simple_path = net.all_simple_paths(source, dest)
-    path_prob = dict()
-    for p_i in all_simple_path:
-        key = str(p_i)
-        path_prob[key] = 1.0
-        p_i_edges = [(p_i[i], p_i[1:][i]) for i in range(len(p_i[1:]))]
-        for u, v in p_i_edges:
-            path_prob[key] *= splitting_ratios_per_src_dst_edge[source, dest, u, v]
-    # assert sum(path_prob.values()) == 1.0
-    return path_prob
-
-
-def create_paths_probability(net: NetworkClass, flows, splitting_ratios_per_src_dst_edge):
-    src_dst_path_prob = dict()
-    for src, dst in flows:
-        src_dst_path_prob[src, dst] = __create_paths_probability_src_dst(net, src, dst,
-                                                                         splitting_ratios_per_src_dst_edge)
-    return src_dst_path_prob
-
-
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for dump file")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
@@ -404,22 +379,59 @@ def _getOptions(args=argv[1:]):
     return options
 
 
+def weighted_destination_routing(net_direct: NetworkClass, weight_matrix, splitting_ratios_per_src_dst_edge):
+    splitting_ratios = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
+    for t in net_direct.nodes:
+        for u, v in net_direct.edges:
+            edge_idx = net_direct.get_edge2id(u, v)
+            normalized = 0
+            weighted_sum = 0
+            for s in net_direct.nodes:
+                if s == t:
+                    continue
+                assert (s, t, u, v) in splitting_ratios_per_src_dst_edge.keys()
+                if splitting_ratios_per_src_dst_edge[s, t, u, v] is not None:
+                    weighted_sum += weight_matrix[s, t] * splitting_ratios_per_src_dst_edge[s, t, u, v]
+                    normalized += weight_matrix[s, t]
+            if normalized > 0:
+                splitting_ratios[t, edge_idx] = weighted_sum / normalized
+            else:
+                splitting_ratios[t, edge_idx] = None
+
+    for t in net_direct.nodes:
+        for u in net_direct.nodes:
+            if u == t:
+                assert all(np.isnan(splitting_ratios[t, net_direct.get_edge2id(u, v)]) for _, v in net_direct.out_edges_by_node(u))
+            else:
+                assert error_bound(sum(splitting_ratios[t, net_direct.get_edge2id(u, v)] for _, v in net_direct.out_edges_by_node(u)), 1.0)
+
+    return np.nan_to_num(splitting_ratios)
+
+
+def __create_weighted_traffic_matrices(length, traffic_matrix_list, probability_distribution, shuffling: bool = True):
+    assert error_bound(np.sum(probability_distribution), 1.0)
+    if shuffling:
+        shuffle(traffic_matrix_list)
+    return [(probability_distribution[i], change_zero_cells(t[0])) for i, t in enumerate(traffic_matrix_list[0:length])]
+
+
 if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
     loaded_dict = load_dump_file(dump_path)
-    net = NetworkClass(
-        topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
 
-    shuffle(loaded_dict["tms"])
-    l = 50
-    p = [0.99] + [(1 - 0.99) / (l - 1)] * (l - 1)
-    traffic_matrix_list = [(1/l, t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
+    length = 500
+    # pr = [0.99] + [(1 - 0.99) / (length - 1)] * (length - 1)
+    pr = [1 / length] * length
+
+    traffic_matrix_list = __create_weighted_traffic_matrices(length, loaded_dict["tms"], pr)
+
     expected_objective, splitting_ratios_per_src_dst_edge, r_vars_per_matrix, necessary_capacity_per_matrix_dict = \
         multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list)
 
     data = list()
     headers = ["# Matrix", "Congestion using multiple MCF - LP", "Congestion using LP optimal", "Ratio"]
-    for idx, t_elem in enumerate(loaded_dict["tms"][0:l]):
+    for idx, t_elem in enumerate(loaded_dict["tms"][0:length]):
         r_vars_per_matrix[idx] = round(r_vars_per_matrix[idx], 4)
         assert r_vars_per_matrix[idx] >= t_elem[1] or error_bound(r_vars_per_matrix[idx], t_elem[1])
 
@@ -427,9 +439,26 @@ if __name__ == "__main__":
 
     print(tabulate(data, headers=headers))
 
+    splitting_ratios = weighted_destination_routing(net, sum(pr*t for pr, t in traffic_matrix_list), splitting_ratios_per_src_dst_edge)
 
+    traffic_distribution = PEFTOptimizer(net, None)
 
-    # heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = \
-    #     multiple_matrices_mcf_LP_heuristic_solver(net, traffic_matrix_list)
-    #
-    # print("Heuristic - Expected TM Vs. Optimal ratio: {}".format(heuristic_optimal / expected_objective))
+    data = list()
+    headers = ["# Matrix",
+               "Congestion using LP optimal",
+               "Congestion using heuristic destination routing",
+               "Heuristic Ratio Vs. LP optimal"]
+
+    heuristic_expected_objective = 0
+    expected_cost = 0
+    length = len(loaded_dict["tms"])
+    for idx, t_elem in enumerate(loaded_dict["tms"]):
+        max_congestion, _, _, _, _ = traffic_distribution._calculating_traffic_distribution(splitting_ratios, t_elem[0])
+        data.append([idx, t_elem[1], max_congestion, max_congestion / t_elem[1]])
+        heuristic_expected_objective += 1/length * max_congestion
+        expected_cost += 1/length * (max_congestion / t_elem[1])
+
+    print(tabulate(data, headers=headers))
+    print("Heuristic expected objective: {}".format(heuristic_expected_objective))
+    print("Optimal expected objective: {}".format(expected_objective))
+    print("Expected cost: {}".format(expected_cost))
