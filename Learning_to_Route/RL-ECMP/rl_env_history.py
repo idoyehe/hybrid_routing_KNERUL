@@ -58,12 +58,6 @@ class RL_Env_History(RL_Env):
             info[ExtraData.VS_OBLIVIOUS_DATA] = self._optimizer.vs_oblivious_data
 
         info[ExtraData.REWARD_OVER_FUTURE] = cost_congestion_ratio
-        del links_weights
-        del cost_congestion_ratio
-        del most_congested_link
-        del total_congestion
-        del total_congestion_per_link
-
         self._diagnostics.append(info)
 
         self._tm_start_index += 1
@@ -71,6 +65,11 @@ class RL_Env_History(RL_Env):
 
         reward = cost_congestion_ratio * self._NORM_FACTOR
         done = self._is_terminal
+        del links_weights
+        del cost_congestion_ratio
+        del most_congested_link
+        del total_congestion
+        del total_congestion_per_link
 
         return observation, reward, done, info
 
