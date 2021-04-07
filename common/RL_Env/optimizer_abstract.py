@@ -38,7 +38,8 @@ class Optimizer_Abstract(object):
 
         gb_env = gb.Env(empty=True)
         gb_env.setParam(GRB.Param.OutputFlag, 0)
-        gb_env.setParam(GRB.Param.NumericFocus, 3)
+        gb_env.setParam(GRB.Param.NumericFocus, 2)
+        gb_env.setParam(GRB.Param.FeasibilityTol, 1e-6)
         gb_env.start()
 
         lp_problem = gb.Model(name="LP problem for flows, given network, traffic matrix and splitting_ratios",
@@ -49,28 +50,24 @@ class Optimizer_Abstract(object):
         for s in net_direct.nodes:
             for t in net_direct.nodes:
                 if s == t:
-                    lp_problem.addConstrs(
-                        (flows_vars_per_per_dest_per_edge[(t,) + arch] == 0 for arch in
-                         net_direct.out_edges_by_node(t)))
-                    _collected_flow_in_t_destined_t = sum(
-                        flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in
-                        net_direct.in_edges_by_node(t))
-                    lp_problem.addConstr(_collected_flow_in_t_destined_t == sum(tm[:, t]))
+                    lp_problem.addConstrs((flows_vars_per_per_dest_per_edge[(t,) + arch] == 0 for arch in net_direct.out_edges_by_node(t)),
+                                          name="dst_{}_out_links".format(t))
+                    _collected_flow_in_t_destined_t = sum(flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in net_direct.in_edges_by_node(t))
+                    lp_problem.addConstr(_collected_flow_in_t_destined_t == sum(tm[:, t]), name="dst_{}_in_links".format(t))
                     continue
 
-                _collected_flow_in_s_destined_t = sum(
-                    flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in
-                    net_direct.in_edges_by_node(s)) + tm[s, t]  # all incoming with originated from s to t
+                # all incoming with originated from s to t
+                _collected_flow_in_s_destined_t = sum(flows_vars_per_per_dest_per_edge[(t,) + arch]
+                                                      for arch in net_direct.in_edges_by_node(s)) + tm[s, t]
 
-                _outgoing_flow_from_s_destined_t = sum(
-                    flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in
-                    net_direct.out_edges_by_node(s))
-                lp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t)
+                _outgoing_flow_from_s_destined_t = sum(flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in net_direct.out_edges_by_node(s))
+                lp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t, name="flow_{}_to_{}".format(s, t))
 
                 for out_arch in net_direct.out_edges_by_node(s):
                     edge_index = net_direct.get_edge2id(*out_arch)
-                    lp_problem.addConstr(flows_vars_per_per_dest_per_edge[(t,) + out_arch] ==
-                                         _collected_flow_in_s_destined_t * splitting_ratios[t, edge_index])
+                    lp_problem.addConstr(
+                        flows_vars_per_per_dest_per_edge[(t,) + out_arch] == _collected_flow_in_s_destined_t * splitting_ratios[t, edge_index],
+                        name="dst_{}_sr_({},{})".format(t, *out_arch))
 
         lp_problem.update()
 
@@ -79,7 +76,42 @@ class Optimizer_Abstract(object):
             lp_problem.optimize()
             assert lp_problem.Status == GRB.OPTIMAL
         except AssertionError as e:
-            raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
+            logger_level = logger.level
+            logger.setLevel(logging.DEBUG)
+            if lp_problem.Status == GRB.UNBOUNDED:
+                logger.debug('The model cannot be solved because it is unbounded')
+                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
+
+            if lp_problem.Status != GRB.INF_OR_UNBD and lp_problem.Status != GRB.INFEASIBLE:
+                logger.debug('Optimization was stopped with status {}'.format(lp_problem.Status))
+                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
+
+            orignumvars = lp_problem.NumVars
+            lp_problem.feasRelaxS(0, False, False, True)
+            lp_problem.optimize()
+
+            if lp_problem.Status != GRB.OPTIMAL:
+                tm_file_name = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\tm.npy"
+                tm_file = open(tm_file_name, 'wb')
+                np.save(tm_file, tm)
+                tm_file.close()
+
+                sr_file_name = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\sr.npy"
+                sr_file = open(sr_file_name, 'wb')
+                np.save(sr_file, splitting_ratios)
+                sr_file.close()
+                logger.info('Model is infeasible {}'.format(lp_problem.Status))
+                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
+
+            assert logger.level == logging.DEBUG
+            logger.debug('\nSlack values:')
+            slacks = lp_problem.getVars()[orignumvars:]
+            for sv in slacks:
+                if sv.X > 1e-6:
+                    logger.debug('{} = {}'.format(sv.VarName, sv.X))
+
+            logger.setLevel(logger_level)
+
 
         except gb.GurobiError as e:
             raise Exception("****Optimize failed****\nException is:\n{}".format(e))
@@ -91,6 +123,9 @@ class Optimizer_Abstract(object):
         flows_vars_per_per_dest_per_edge = dict(flows_vars_per_per_dest_per_edge)
         for key in flows_vars_per_per_dest_per_edge.keys():
             flows_vars_per_per_dest_per_edge[key] = flows_vars_per_per_dest_per_edge[key].x
+
+        lp_problem.close()
+        gb_env.close()
 
         self.__validate_flow(net_direct, tm, flows_vars_per_per_dest_per_edge, splitting_ratios)
 
@@ -109,7 +144,7 @@ class Optimizer_Abstract(object):
         max_congestion = total_congestion_per_link[most_congested_link]
         total_congestion = np.sum(total_congestion_per_link)
 
-        return max_congestion, most_congested_link, total_congestion,total_congestion_per_link, total_load_per_link
+        return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
 
     @staticmethod
     def __validate_flow(net_direct, tm, flows_vars_per_per_dest_per_edge, splitting_ratios):
@@ -132,3 +167,13 @@ class Optimizer_Abstract(object):
                         edge_index = net_direct.get_edge2id(src, v)
                         assert error_bound(flows_vars_per_per_dest_per_edge[dst, src, v],
                                            _collected_flow_in_s_destined_t * splitting_ratios[dst, edge_index])
+
+
+if __name__ == "__main__":
+    from common.topologies import topology_zoo_loader
+
+    sr = np.load("C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\sr.npy")
+    tm = np.load("C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\tm.npy")
+    net = NetworkClass(topology_zoo_loader("C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\graphs_gmls\\Abilene.txt"))
+    Optimizer_Abstract(net)._calculating_traffic_distribution(sr, tm)
+    pass
