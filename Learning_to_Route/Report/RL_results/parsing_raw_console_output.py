@@ -9,8 +9,8 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-regex", "--regex", type=str, help="The regex to extract number", default="\-?\d+.?\d+")
     parser.add_argument("-line_rec", "--line_recognizer", type=str, help="The line recognizer",
                         default="ep_rew_mean")
-    parser.add_argument("-scale", "--scale", type=float, help="The scale factor", default=1.0)
-    parser.add_argument("-overwrite", "--rewrite", type=bool, help="The overwrite flag", default=False)
+    parser.add_argument("-scale", "--scale", type=float, help="The scale factor", default=-1.0)
+    parser.add_argument("-overwrite", "--rewrite", type=eval, help="The overwrite flag", default=False)
     options = parser.parse_args(args)
     return options
 
