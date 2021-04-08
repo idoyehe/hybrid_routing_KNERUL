@@ -167,13 +167,3 @@ class Optimizer_Abstract(object):
                         edge_index = net_direct.get_edge2id(src, v)
                         assert error_bound(flows_vars_per_per_dest_per_edge[dst, src, v],
                                            _collected_flow_in_s_destined_t * splitting_ratios[dst, edge_index])
-
-
-if __name__ == "__main__":
-    from common.topologies import topology_zoo_loader
-
-    sr = np.load("C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\sr.npy")
-    tm = np.load("C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\tm.npy")
-    net = NetworkClass(topology_zoo_loader("C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\graphs_gmls\\Abilene.txt"))
-    Optimizer_Abstract(net)._calculating_traffic_distribution(sr, tm)
-    pass
