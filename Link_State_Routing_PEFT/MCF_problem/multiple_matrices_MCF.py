@@ -420,8 +420,7 @@ if __name__ == "__main__":
     loaded_dict = load_dump_file(dump_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
 
-    length = 500
-    # pr = [0.99] + [(1 - 0.99) / (length - 1)] * (length - 1)
+    length = 100
     pr = [1 / length] * length
 
     traffic_matrix_list = __create_weighted_traffic_matrices(length, loaded_dict["tms"], pr)
@@ -430,35 +429,43 @@ if __name__ == "__main__":
         multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list)
 
     data = list()
-    headers = ["# Matrix", "Congestion using multiple MCF - LP", "Congestion using LP optimal", "Ratio"]
+    oblivious_expected_objective = 0
+    calculated_expected_objective = 0
+    headers = ["# Matrix", "Congestion using multiple MCF - LP", "Congestion using LP optimal", "Ratio", "Congestion using Oblivious"]
     for idx, t_elem in enumerate(loaded_dict["tms"][0:length]):
         r_vars_per_matrix[idx] = round(r_vars_per_matrix[idx], 4)
+        oblivious_congestion = t_elem[1] * t_elem[2]
         assert r_vars_per_matrix[idx] >= t_elem[1] or error_bound(r_vars_per_matrix[idx], t_elem[1])
+        data.append([idx, r_vars_per_matrix[idx], t_elem[1], r_vars_per_matrix[idx] / t_elem[1], oblivious_congestion])
 
-        data.append([idx, r_vars_per_matrix[idx], t_elem[1], r_vars_per_matrix[idx] / t_elem[1]])
-
-    print(tabulate(data, headers=headers))
-
-    splitting_ratios = weighted_destination_routing(net, sum(pr*t for pr, t in traffic_matrix_list), splitting_ratios_per_src_dst_edge)
-
-    traffic_distribution = PEFTOptimizer(net, None)
-
-    data = list()
-    headers = ["# Matrix",
-               "Congestion using LP optimal",
-               "Congestion using heuristic destination routing",
-               "Heuristic Ratio Vs. LP optimal"]
-
-    heuristic_expected_objective = 0
-    expected_cost = 0
-    length = len(loaded_dict["tms"])
-    for idx, t_elem in enumerate(loaded_dict["tms"]):
-        max_congestion, _, _, _, _ = traffic_distribution._calculating_traffic_distribution(splitting_ratios, t_elem[0])
-        data.append([idx, t_elem[1], max_congestion, max_congestion / t_elem[1]])
-        heuristic_expected_objective += 1/length * max_congestion
-        expected_cost += 1/length * (max_congestion / t_elem[1])
+        calculated_expected_objective += pr[idx] * r_vars_per_matrix[idx]
+        oblivious_expected_objective += pr[idx] * oblivious_congestion
 
     print(tabulate(data, headers=headers))
-    print("Heuristic expected objective: {}".format(heuristic_expected_objective))
-    print("Optimal expected objective: {}".format(expected_objective))
-    print("Expected cost: {}".format(expected_cost))
+    print("MCF Expected Objective :{}".format(calculated_expected_objective))
+    print("Oblivious Expected Objective :{}".format(oblivious_expected_objective))
+    assert calculated_expected_objective <= oblivious_expected_objective
+
+    # splitting_ratios = weighted_destination_routing(net, sum(pr*t for pr, t in traffic_matrix_list), splitting_ratios_per_src_dst_edge)
+
+    # traffic_distribution = PEFTOptimizer(net, None)
+
+    # data = list()
+    # headers = ["# Matrix",
+    #            "Congestion using LP optimal",
+    #            "Congestion using heuristic destination routing",
+    #            "Heuristic Ratio Vs. LP optimal"]
+    #
+    # heuristic_expected_objective = 0
+    # expected_cost = 0
+    # length = len(loaded_dict["tms"])
+    # for idx, t_elem in enumerate(loaded_dict["tms"]):
+    #     max_congestion, _, _, _, _ = traffic_distribution._calculating_traffic_distribution(splitting_ratios, t_elem[0])
+    #     data.append([idx, t_elem[1], max_congestion, max_congestion / t_elem[1]])
+    #     heuristic_expected_objective += 1/length * max_congestion
+    #     expected_cost += 1/length * (max_congestion / t_elem[1])
+    #
+    # print(tabulate(data, headers=headers))
+    # print("Heuristic expected objective: {}".format(heuristic_expected_objective))
+    # print("Optimal expected objective: {}".format(expected_objective))
+    # print("Expected cost: {}".format(expected_cost))
