@@ -18,7 +18,7 @@ def _getOptions(args=argv[1:]):
 
 
 def __initialize_all_lambadas(net: NetworkClass, number_of_matrices):
-    return np.ones(shape=(number_of_matrices, net.get_num_edges), dtype=np.float64) * 5
+    return np.ones(shape=(number_of_matrices, net.get_num_edges), dtype=np.float64)
 
 
 def _run_single_src_dst_demand(net: NetworkClass, demand_src_dst, weights_src_dst, src: int, dst: int):
@@ -62,7 +62,10 @@ def _update_lambadas(net: NetworkClass, lambadas, current_tms_flows_values, nece
             edge_idx = net.get_edge2id(u, v)
             tm_necessary_capacity[edge_idx] = necessary_capacity_per_matrix_dict[(idx, u, v)]
         current_step_size = 1 / max(tm_necessary_capacity)
-        lambadas[idx] = max(0, lambadas[idx] - current_step_size * (tm_necessary_capacity - current_tms_flows_values[idx]))
+        for u, v in net.edges:
+            edge_idx = net.get_edge2id(u, v)
+            lambadas[idx, edge_idx] = max(0, lambadas[idx, edge_idx] - current_step_size * (
+                        tm_necessary_capacity[edge_idx] - current_tms_flows_values[idx][edge_idx]))
     return lambadas
 
 
