@@ -80,8 +80,34 @@ class PEFTOptimizer(Optimizer_Abstract):
             logger.info("LP Submit to Solve {}".format(lp_problem.ModelName))
             lp_problem.optimize()
             assert lp_problem.Status == GRB.OPTIMAL
+
         except AssertionError as e:
-            raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
+            logger_level = logger.level
+            logger.setLevel(logging.DEBUG)
+            if lp_problem.Status == GRB.UNBOUNDED:
+                logger.debug('The model cannot be solved because it is unbounded')
+                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
+
+            if lp_problem.Status != GRB.INF_OR_UNBD and lp_problem.Status != GRB.INFEASIBLE:
+                logger.debug('Optimization was stopped with status {}'.format(lp_problem.Status))
+                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
+
+            orignumvars = lp_problem.NumVars
+            lp_problem.feasRelaxS(0, False, False, True)
+            lp_problem.optimize()
+
+            if lp_problem.Status != GRB.OPTIMAL:
+                logger.info('Model is infeasible {}'.format(lp_problem.Status))
+                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
+
+            assert logger.level == logging.DEBUG
+            logger.debug('\nSlack values:')
+            slacks = lp_problem.getVars()[orignumvars:]
+            for sv in slacks:
+                if sv.X > 1e-6:
+                    logger.debug('{} = {}'.format(sv.VarName, sv.X))
+
+            logger.setLevel(logger_level)
 
         except gb.GurobiError as e:
             raise Exception("****Optimize failed****\nException is:\n{}".format(e))

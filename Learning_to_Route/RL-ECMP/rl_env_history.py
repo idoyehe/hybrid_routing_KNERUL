@@ -73,11 +73,6 @@ class RL_Env_History(RL_Env):
 
         return observation, reward, done, info
 
-    def reset(self):
-        self._tm_start_index = 0
-        self._current_observation_index = (self._current_observation_index + 1) % self._observations_length
-        return self._get_observation()
-
     def _process_action_get_cost(self, links_weights):
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
         optimal_val = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]

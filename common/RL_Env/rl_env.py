@@ -187,7 +187,9 @@ class RL_Env(Env):
         pass
 
     def reset(self):
-        pass
+        self._tm_start_index = 0
+        self._current_observation_index = (self._current_observation_index + 1) % self._observations_length
+        return self._get_observation()
 
     def step(self, action):
         pass
