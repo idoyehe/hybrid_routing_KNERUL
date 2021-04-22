@@ -41,6 +41,7 @@ class RL_Env(Env):
         self._network = self._network
         self._g_name = self._network.get_name
         self._num_nodes = self._network.get_num_nodes
+        self._num_edges = self._network.get_num_edges
         self._tm_start_index = 0
         self._current_observation_index = -1
 

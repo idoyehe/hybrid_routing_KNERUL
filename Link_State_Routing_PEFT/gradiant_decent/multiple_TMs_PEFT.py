@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from Link_State_Routing_PEFT.MCF_problem.multiple_matrices_MCF import multiple_matrices_mcf_LP_baseline_solver
 from common.network_class import NetworkClass, nx
 from common.topologies import topology_zoo_loader
-from common.utils import load_dump_file, error_bound, extract_flows
+from common.utils import load_dump_file, extract_flows
 from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
 from sys import argv
 from random import shuffle
@@ -18,7 +18,7 @@ def _getOptions(args=argv[1:]):
 
 
 def __initialize_all_lambadas(net: NetworkClass, number_of_matrices):
-    return np.ones(shape=(number_of_matrices, net.get_num_edges), dtype=np.float64)
+    return np.random.rand(number_of_matrices, net.get_num_edges)*10
 
 
 def _run_single_src_dst_demand(net: NetworkClass, demand_src_dst, weights_src_dst, src: int, dst: int):

@@ -30,10 +30,10 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=0)
     parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
                         default=350)
-    parser.add_argument("-s_diag", "--save_diagnostics", type=bool, help="Dump env diagnostics", default=False)
-    parser.add_argument("-s_weights", "--save_links_weights", type=bool, help="Dump links weights", default=False)
-    parser.add_argument("-s_agent", "--save_model_agent", type=bool, help="save the model agent", default=False)
-    parser.add_argument("-s_r_s", "--save_routing_schemes", type=bool, help="Dump Routing Schemes", default=False)
+    parser.add_argument("-s_diag", "--save_diagnostics", type=eval, help="Dump env diagnostics", default=False)
+    parser.add_argument("-s_weights", "--save_links_weights", type=eval, help="Dump links weights", default=False)
+    parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
+    parser.add_argument("-s_r_s", "--save_routing_schemes", type=eval, help="Dump Routing Schemes", default=False)
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
 
     options = parser.parse_args(args)
@@ -72,7 +72,6 @@ if __name__ == "__main__":
     if RL_ENV_HISTORY_GYM_ID not in envs.registry.env_specs:
         register(id=RL_ENV_HISTORY_GYM_ID,
                  entry_point='rl_env_history:RL_Env_History',
-                 # entry_point='rl_env_oblivious:RL_Env_Oblivious',
                  kwargs={
                      'max_steps': episode_length,
                      'history_length': history_length,
