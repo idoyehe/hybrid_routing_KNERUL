@@ -5,11 +5,12 @@ from gurobipy import GRB
 from common.logger import *
 from common.RL_Env.optimizer_abstract import *
 from math import fsum
-from Link_State_Routing_PEFT.MCF_problem.multiple_matrices_MCF import multiple_matrices_mcf_LP_baseline_solver
 from sys import argv
 from argparse import ArgumentParser
 from common.topologies import topology_zoo_loader
 from common.utils import load_dump_file, extract_flows
+from Link_State_Routing_PEFT.MCF_problem.multiple_matrices_MCF import multiple_matrices_mcf_LP_baseline_solver
+from common.RL_Env.rl_env_consts import HistoryConsts
 
 
 def _getOptions(args=argv[1:]):
@@ -19,33 +20,68 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-class BTOptimizer(Optimizer_Abstract):
-    def __init__(self, net: NetworkClass, testing=False):
-        super(BTOptimizer, self).__init__(net, testing)
-        self.static_splitting_ratios = np.zeros(shape=(net.get_num_nodes, net.get_num_edges), dtype=np.float)
-        for u in net.nodes():
-            fraction = 1 / len(net.out_edges_by_node(u))
-            for _, v in net.out_edges_by_node(u):
-                edge_id = net.get_edge2id(u, v)
-                self.static_splitting_ratios[u, edge_id] = fraction
-
-        self._actions = None
-
-    def step(self, actions, traffic_matrix, optimal_value):
+class BT2Optimizer(Optimizer_Abstract):
+    def __init__(self, net: NetworkClass, actions, testing=False):
+        super(BT2Optimizer, self).__init__(net, testing)
         self._actions = actions
-        _, splitting_ratios_per_src_dst_edge, _, _ = multiple_matrices_mcf_LP_baseline_solver(self._network, [(1.0, traffic_matrix)])
+
+    def step(self, weights_vector, traffic_matrix, optimal_value):
+        """
+        :param weights_vector: the weights vector per edge from agent
+        :param traffic_matrix: the traffic matrix to examine
+        :return: cost and congestion
+        """
+        weights_splitting_ratios = self._calculating_splitting_ratios(weights_vector)
+        _, optimal_splitting_ratios_per_src_dst_edge, _, _ = multiple_matrices_mcf_LP_baseline_solver(self._network, [(1.0, traffic_matrix)])
 
         max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
-            self._calculating_traffic_distribution(splitting_ratios_per_src_dst_edge, traffic_matrix)
+            self.__calculating_traffic_distribution(weights_splitting_ratios, optimal_splitting_ratios_per_src_dst_edge, traffic_matrix)
 
         return total_congestion, max_congestion, total_load_per_link, most_congested_link
 
-    def _calculating_traffic_distribution(self, splitting_ratios, tm):
+    def _calculating_splitting_ratios(self, weights_vector):
+        net_direct = self._network
+        splitting_ratios = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
+        one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
+
+        reduced_directed_graph = nx.DiGraph()
+        for edge_index, cost in enumerate(weights_vector):
+            u, v = net_direct.get_id2edge(edge_index)
+            reduced_directed_graph.add_edge(u, v, cost=cost)
+
+        for node_dst in net_direct.nodes:
+            cost_adj = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight='cost')
+            cost_adj = [cost_adj[i] for i in range(self._num_nodes)]
+            edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
+            q_val = self._soft_min(edge_cost)
+            splitting_ratios[node_dst] = q_val
+
+        return splitting_ratios
+
+    def _soft_min(self, weights_vector, alpha=HistoryConsts.SOFTMIN_ALPHA):
+        """
+        :param weights_vector: vector of weights
+        :param alpha: for exponent expression
+        :return: sum over deges
+        """
+
+        exp_val = np.exp(alpha * weights_vector)
+        exp_val[weights_vector == 0] = 0
+        exp_val[np.logical_and(weights_vector != 0, exp_val == 0)] = HistoryConsts.EPSILON
+
+        exp_val = np.transpose(exp_val) / np.sum(exp_val, axis=1)
+        exp_val = np.sum(np.transpose(exp_val), axis=0)
+        net_direct = self._network
+        for u in net_direct.nodes:
+            error_bound(1.0, sum(exp_val[net_direct.get_edge2id(u, v)] for _, v in net_direct.out_edges_by_node(u)))
+        return exp_val
+
+    def __calculating_traffic_distribution(self, weights_splitting_ratios, optimal_splitting_ratios_per_src_dst_edge, tm):
         net_direct = self._network
         total_load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
         for src, dst in extract_flows(tm):
             demand = tm[src, dst]
-            total_load_per_link += self._simulate_demand(splitting_ratios, src, dst, demand)
+            total_load_per_link += self._simulate_demand(weights_splitting_ratios, optimal_splitting_ratios_per_src_dst_edge, src, dst, demand)
 
         total_congestion_per_link = total_load_per_link / self._edges_capacities
 
@@ -55,7 +91,7 @@ class BTOptimizer(Optimizer_Abstract):
 
         return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
 
-    def _simulate_demand(self, splitting_ratios, src, dst, demand):
+    def _simulate_demand(self, weights_splitting_ratios, optimal_splitting_ratios_per_src_dst_edge, src, dst, demand):
         net_direct = self._network
         gb_env = gb.Env(empty=True)
         gb_env.setParam(GRB.Param.OutputFlag, 0)
@@ -88,12 +124,12 @@ class BTOptimizer(Optimizer_Abstract):
 
                 if self._actions[u] == 0:
                     lp_problem.addConstr(
-                        flows_vars_per_edge[out_arch] == _collected_flow_in_u_destined_t * self.static_splitting_ratios[u, edge_index],
+                        flows_vars_per_edge[out_arch] == _collected_flow_in_u_destined_t * weights_splitting_ratios[dst, edge_index],
                         name="dst_{}_sr_({},{})".format(dst, *out_arch))
 
                 else:
                     assert self._actions[u] == 1
-                    spr = splitting_ratios[(src, dst) + out_arch]
+                    spr = optimal_splitting_ratios_per_src_dst_edge[(src, dst) + out_arch]
                     if spr is None:
                         spr = 0
                     lp_problem.addConstr(
@@ -156,15 +192,11 @@ class BTOptimizer(Optimizer_Abstract):
 
         return total_load_per_link
 
-
-
-
-
-
-
-
-
-
+    def __get_edge_cost(self, cost_adj, each_edge_weight):
+        cost_to_dst1 = cost_adj * self._graph_adjacency_matrix + each_edge_weight
+        cost_to_dst2 = np.reshape(cost_to_dst1, [-1])
+        cost_to_dst3 = cost_to_dst2[cost_to_dst2 != 0]
+        return cost_to_dst3 * self._outgoing_edges
 
 
 if __name__ == "__main__":
@@ -172,6 +204,7 @@ if __name__ == "__main__":
     dumped_path = options.dumped_path
     loaded_dict = load_dump_file(dumped_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
-
-    opt = BTOptimizer(net)
-    opt.step(np.ones(shape=(net.get_num_nodes)), loaded_dict["tms"][0][0], loaded_dict["tms"][0][1])
+    actions = np.zeros(shape=(net.get_num_nodes), dtype=np.int)
+    actions[3] = actions[11] = 1
+    opt = BT2Optimizer(net, actions)
+    opt.step(np.ones(shape=(net.get_num_edges)), loaded_dict["tms"][0][0], loaded_dict["tms"][0][1])
