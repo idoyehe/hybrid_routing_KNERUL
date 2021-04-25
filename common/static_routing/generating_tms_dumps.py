@@ -1,5 +1,5 @@
 from common.data_generation.tm_generation import one_sample_tm_base
-from optimal_load_balancing import *
+from optimal_load_balancing import optimal_load_balancing_LP_solver
 from oblivious_routing import *
 from common.logger import logger
 from common.topologies import topology_zoo_loader
@@ -90,16 +90,15 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
 
-        opt_ratio, _ = optimal_load_balancing_LP_solver(net, tm)
+        opt_ratio, _, splitting_ratios_per_src_dst_edge = optimal_load_balancing_LP_solver(net, tm)
         obliv_ratio = None
         if oblivious_routing_per_edge is not None:
             obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],
                                                                   oblivious_routing_per_edge=oblivious_routing_per_edge)
             obliv_ratio = obliv_ratio[0]
 
-        tm_list.append((tm, opt_ratio, obliv_ratio))
+        tm_list.append((tm, opt_ratio, splitting_ratios_per_src_dst_edge, obliv_ratio))
         logger.info("Current TM {} with optimal routing {}".format(index, opt_ratio))
-
     return tm_list
 
 

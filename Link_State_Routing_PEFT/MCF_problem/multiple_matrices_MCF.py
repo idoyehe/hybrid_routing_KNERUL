@@ -11,7 +11,6 @@ from common.utils import load_dump_file, error_bound, extract_flows
 import numpy as np
 from random import shuffle
 from tabulate import tabulate
-from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
 
 R = 10
 
