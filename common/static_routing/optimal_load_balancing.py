@@ -76,6 +76,7 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, 0)
     gb_env.setParam(GRB.Param.NumericFocus, 3)
+    gb_env.setParam(GRB.Param.FeasibilityTol, 1e-9)
     gb_env.start()
     opt_ratio, necessary_capacity_dict, splitting_ratios_per_src_dst_edge = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env)
     while True:
@@ -179,9 +180,12 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
             if flow_from_u_to_dst > 0:
                 for _, v in net_direct.out_edges_by_node(u):
                     splitting_ratios_per_src_dst_edge[src, dst, u, v] = flows_src_dst_per_edge[src, dst, u, v] / flow_from_u_to_dst
+                    assert splitting_ratios_per_src_dst_edge[src, dst, u, v] >= 0
+
             else:
                 for _, v in net_direct.out_edges_by_node(u):
                     splitting_ratios_per_src_dst_edge[src, dst, u, v] = 1 / len(net_direct.out_edges_by_node(u))
+                    assert splitting_ratios_per_src_dst_edge[src, dst, u, v] >= 0
 
     __validate_solution(net_direct, flows, traffic_matrix, splitting_ratios_per_src_dst_edge, flows_src_dst_per_edge)
 
