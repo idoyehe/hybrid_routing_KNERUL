@@ -4,6 +4,7 @@ from oblivious_routing import *
 from common.logger import logger
 from common.topologies import topology_zoo_loader
 from common.consts import TMType
+from common.utils import change_zero_cells
 import os
 from argparse import ArgumentParser
 from sys import argv
@@ -89,6 +90,8 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
                                 tm_type=tm_type,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
+
+        tm = change_zero_cells(tm)
 
         opt_ratio, _, splitting_ratios_per_src_dst_edge = optimal_load_balancing_LP_solver(net, tm)
         obliv_ratio = None

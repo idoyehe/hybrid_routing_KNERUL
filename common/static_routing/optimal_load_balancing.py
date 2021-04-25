@@ -181,7 +181,7 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
                     splitting_ratios_per_src_dst_edge[src, dst, u, v] = flows_src_dst_per_edge[src, dst, u, v] / flow_from_u_to_dst
             else:
                 for _, v in net_direct.out_edges_by_node(u):
-                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = None
+                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = 1 / len(net_direct.out_edges_by_node(u))
 
     __validate_solution(net_direct, flows, traffic_matrix, splitting_ratios_per_src_dst_edge, flows_src_dst_per_edge)
 
