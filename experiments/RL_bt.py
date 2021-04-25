@@ -81,10 +81,10 @@ class RL_Env_BT(RL_Env):
     def _process_action_get_cost(self, links_weights):
         global ERROR_BOUND
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
-        optimal_congestion = self._optimal_values[self._current_observation_index][
-            self._tm_start_index + self._history_length]
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
-            self.optimizer_step(links_weights, tm, optimal_congestion)
+        optimal_congestion = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]
+        optimal_spr = self._spr_values[self._current_observation_index][self._tm_start_index + self._history_length]
+        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights, tm, optimal_spr,
+                                                                                                         optimal_congestion)
 
         cost_congestion_ratio = max_congestion / optimal_congestion
 
@@ -103,9 +103,9 @@ class RL_Env_BT(RL_Env):
 
         return total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch
 
-    def optimizer_step(self, links_weights, tm, optimal_value):
+    def optimizer_step(self, links_weights, tm, optimal_spr, optimal_value):
         total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
-            self._optimizer.step(links_weights, tm, optimal_value)
+            self._optimizer.step(links_weights, tm, optimal_spr, optimal_value)
         return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
 
     def testing(self, _testing):

@@ -25,17 +25,15 @@ class BT2Optimizer(Optimizer_Abstract):
         super(BT2Optimizer, self).__init__(net, testing)
         self._actions = actions
 
-    def step(self, weights_vector, traffic_matrix, optimal_value):
+    def step(self, weights_vector, traffic_matrix, optimal_spr, optimal_value):
         """
         :param weights_vector: the weights vector per edge from agent
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
         weights_splitting_ratios = self._calculating_splitting_ratios(weights_vector)
-        _, optimal_splitting_ratios_per_src_dst_edge, _, _ = multiple_matrices_mcf_LP_baseline_solver(self._network, [(1.0, traffic_matrix)])
-
         max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
-            self.__calculating_traffic_distribution(weights_splitting_ratios, optimal_splitting_ratios_per_src_dst_edge, traffic_matrix)
+            self.__calculating_traffic_distribution(weights_splitting_ratios, optimal_spr, traffic_matrix)
 
         return total_congestion, max_congestion, total_load_per_link, most_congested_link
 
@@ -76,12 +74,15 @@ class BT2Optimizer(Optimizer_Abstract):
             error_bound(1.0, sum(exp_val[net_direct.get_edge2id(u, v)] for _, v in net_direct.out_edges_by_node(u)))
         return exp_val
 
-    def __calculating_traffic_distribution(self, weights_splitting_ratios, optimal_splitting_ratios_per_src_dst_edge, tm):
+    def __calculating_traffic_distribution(self, weights_splitting_ratios, optimal_spr, tm):
         net_direct = self._network
         total_load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
         for src, dst in extract_flows(tm):
             demand = tm[src, dst]
-            total_load_per_link += self._simulate_demand(weights_splitting_ratios, optimal_splitting_ratios_per_src_dst_edge, src, dst, demand)
+            optimal_splitting_ratios_per_src_dst_edge = dict()
+            for u, v in net_direct.edges:
+                optimal_splitting_ratios_per_src_dst_edge[u, v] = optimal_spr[src, dst, u, v]
+            total_load_per_link += self._simulate_demand(weights_splitting_ratios[dst], optimal_splitting_ratios_per_src_dst_edge, src, dst, demand)
 
         total_congestion_per_link = total_load_per_link / self._edges_capacities
 
@@ -96,7 +97,7 @@ class BT2Optimizer(Optimizer_Abstract):
         gb_env = gb.Env(empty=True)
         gb_env.setParam(GRB.Param.OutputFlag, 0)
         gb_env.setParam(GRB.Param.NumericFocus, 2)
-        gb_env.setParam(GRB.Param.FeasibilityTol, 1e-6)
+        gb_env.setParam(GRB.Param.FeasibilityTol, 1e-9)
         gb_env.start()
 
         lp_problem = gb.Model(name="LP problem for flow, given network, source, destination and splitting_ratios",
@@ -123,17 +124,13 @@ class BT2Optimizer(Optimizer_Abstract):
                 edge_index = net_direct.get_edge2id(*out_arch)
 
                 if self._actions[u] == 0:
-                    lp_problem.addConstr(
-                        flows_vars_per_edge[out_arch] == _collected_flow_in_u_destined_t * weights_splitting_ratios[dst, edge_index],
-                        name="dst_{}_sr_({},{})".format(dst, *out_arch))
-
+                    spr = weights_splitting_ratios[edge_index]
                 else:
                     assert self._actions[u] == 1
-                    spr = optimal_splitting_ratios_per_src_dst_edge[(src, dst) + out_arch]
-                    if spr is None:
-                        spr = 0
-                    lp_problem.addConstr(
-                        flows_vars_per_edge[out_arch] == _collected_flow_in_u_destined_t * spr, name="dst_{}_sr_({},{})".format(dst, *out_arch))
+                    spr = optimal_splitting_ratios_per_src_dst_edge[out_arch]
+
+                lp_problem.addConstr(flows_vars_per_edge[out_arch] == _collected_flow_in_u_destined_t * spr,
+                                     name="dst_{}_sr_({},{})".format(dst, *out_arch))
 
         lp_problem.update()
         try:
