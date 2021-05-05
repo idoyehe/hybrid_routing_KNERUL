@@ -52,7 +52,8 @@ class RL_Env_BT(RL_Env):
         info = dict()
         action = self._modify_action(action)
 
-        total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch = self._process_action_get_cost(action)
+        total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch = self._process_action_get_cost(
+            action)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
         # oblivious_value = self._oblivious_values[self._current_observation_index][self._tm_start_index + self._history_length]
@@ -81,9 +82,12 @@ class RL_Env_BT(RL_Env):
     def _process_action_get_cost(self, links_weights):
         global ERROR_BOUND
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
-        optimal_congestion = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]
+        optimal_congestion = self._optimal_values[self._current_observation_index][
+            self._tm_start_index + self._history_length]
         optimal_spr = self._spr_values[self._current_observation_index][self._tm_start_index + self._history_length]
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights, tm, optimal_spr,
+        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights,
+                                                                                                         tm,
+                                                                                                         optimal_spr,
                                                                                                          optimal_congestion)
 
         cost_congestion_ratio = max_congestion / optimal_congestion
@@ -111,5 +115,5 @@ class RL_Env_BT(RL_Env):
     def testing(self, _testing):
         super(RL_Env_BT, self).testing(_testing)
         self._actions = np.zeros(shape=(self._num_edges), dtype=np.int)
-        self._actions[2] = 1
+        self._actions[2] = self._actions[10] = self._actions[11] = 1
         self._optimizer = BT2Optimizer(self._network, self._actions, testing=_testing)
