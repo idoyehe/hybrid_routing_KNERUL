@@ -77,53 +77,43 @@ class RL_Env(Env):
     def _sample_tm(self):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
         tuple_element = random.choice(self._tms)
-        oblv = spr = None
-        if len(tuple_element) == 4:
-            tm, opt, spr, oblv = tuple_element
-        elif len(tuple_element) == 3:
+        oblv = None
+        if len(tuple_element) == 3:
             tm, opt, oblv = tuple_element
         else:
             tm, opt = tuple_element
-        return tm, opt, spr, oblv
+        return tm, opt, oblv
 
     def _init_all_observations(self):
         def __create_episode(_episode_len):
             _episode_tms = list()
             _episode_optimals = list()
             _episode_oblivious = list()
-            _episode_spr = list()
             for _ in range(_episode_len):
-                tm, opt, spr, oblv = self._sample_tm()
+                tm, opt, oblv = self._sample_tm()
                 _episode_tms.append(tm)
                 _episode_optimals.append(opt)
                 _episode_oblivious.append(oblv)
-                _episode_spr.append(spr)
-            return _episode_tms, _episode_optimals, _episode_oblivious, _episode_spr
+            return _episode_tms, _episode_optimals, _episode_oblivious
 
         def __create_observation(_num_observations):
             _observations_episodes = list()
             _observations_episodes_optimals = list()
             _observations_episodes_oblivious = list()
-            _observations_episodes_spr = list()
             for _ in range(_num_observations):
-                _episode_tms, _episode_optimals, _episode_oblivious, _episode_spr = __create_episode(
-                    self._history_length + self._episode_len)
+                _episode_tms, _episode_optimals, _episode_oblivious = __create_episode(self._history_length + self._episode_len)
                 _observations_episodes.append(np.array(_episode_tms))
                 _observations_episodes_optimals.append(np.array(_episode_optimals))
                 _observations_episodes_oblivious.append(np.array(_episode_oblivious))
-                _observations_episodes_spr.append(np.array(_episode_spr))
-            return np.array(_observations_episodes), np.array(_observations_episodes_optimals), np.array(
-                _observations_episodes_oblivious), np.array(_observations_episodes_spr)
+            return np.array(_observations_episodes), np.array(_observations_episodes_optimals), np.array(_observations_episodes_oblivious)
 
         def fix_none_history_episode(observations):
             for ep in observations:
                 ep[0] *= 0
             return observations
 
-        self._train_observations, self._opt_train_observations, self._oblv_train_observations, self._spr_train_observations = \
-            __create_observation(self._num_train_observations)
-        self._test_observations, self._opt_test_observations, self._oblv_test_observations, self._spr_test_observations = \
-            __create_observation(self._num_test_observations)
+        self._train_observations, self._opt_train_observations, self._oblv_train_observations = __create_observation(self._num_train_observations)
+        self._test_observations, self._opt_test_observations, self._oblv_test_observations = __create_observation(self._num_test_observations)
 
         if self._none_history:
             fix_none_history_episode(self._train_observations)
@@ -162,7 +152,6 @@ class RL_Env(Env):
         self._observations_length = self._num_test_observations if self._testing else self._num_train_observations
         self._optimal_values = self._opt_test_observations if self._testing else self._opt_train_observations
         self._oblivious_values = self._oblv_test_observations if self._testing else self._oblv_train_observations
-        self._spr_values = self._spr_test_observations if self._testing else self._spr_train_observations
 
     def _process_action(self, action):
         if self._history_action_type == HistoryConsts.ACTION_W_EPSILON:
