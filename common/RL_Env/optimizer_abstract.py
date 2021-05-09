@@ -4,6 +4,7 @@ import numpy as np
 import gurobipy as gb
 from gurobipy import GRB
 from common.utils import error_bound
+from common.consts import Consts
 
 
 class Optimizer_Abstract(object):
@@ -39,7 +40,7 @@ class Optimizer_Abstract(object):
         gb_env = gb.Env(empty=True)
         gb_env.setParam(GRB.Param.OutputFlag, 0)
         gb_env.setParam(GRB.Param.NumericFocus, 2)
-        gb_env.setParam(GRB.Param.FeasibilityTol, 1e-6)
+        gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
         gb_env.start()
 
         lp_problem = gb.Model(name="LP problem for flows, given network, traffic matrix and splitting_ratios",
@@ -50,23 +51,29 @@ class Optimizer_Abstract(object):
         for s in net_direct.nodes:
             for t in net_direct.nodes:
                 if s == t:
-                    lp_problem.addConstrs((flows_vars_per_per_dest_per_edge[(t,) + arch] == 0 for arch in net_direct.out_edges_by_node(t)),
+                    lp_problem.addConstrs((flows_vars_per_per_dest_per_edge[(t,) + arch] == 0 for arch in
+                                           net_direct.out_edges_by_node(t)),
                                           name="dst_{}_out_links".format(t))
-                    _collected_flow_in_t_destined_t = sum(flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in net_direct.in_edges_by_node(t))
-                    lp_problem.addConstr(_collected_flow_in_t_destined_t == sum(tm[:, t]), name="dst_{}_in_links".format(t))
+                    _collected_flow_in_t_destined_t = sum(
+                        flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in net_direct.in_edges_by_node(t))
+                    lp_problem.addConstr(_collected_flow_in_t_destined_t == sum(tm[:, t]),
+                                         name="dst_{}_in_links".format(t))
                     continue
 
                 # all incoming with originated from s to t
                 _collected_flow_in_s_destined_t = sum(flows_vars_per_per_dest_per_edge[(t,) + arch]
                                                       for arch in net_direct.in_edges_by_node(s)) + tm[s, t]
 
-                _outgoing_flow_from_s_destined_t = sum(flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in net_direct.out_edges_by_node(s))
-                lp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t, name="flow_{}_to_{}".format(s, t))
+                _outgoing_flow_from_s_destined_t = sum(
+                    flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in net_direct.out_edges_by_node(s))
+                lp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t,
+                                     name="flow_{}_to_{}".format(s, t))
 
                 for out_arch in net_direct.out_edges_by_node(s):
                     edge_index = net_direct.get_edge2id(*out_arch)
                     lp_problem.addConstr(
-                        flows_vars_per_per_dest_per_edge[(t,) + out_arch] == _collected_flow_in_s_destined_t * splitting_ratios[t, edge_index],
+                        flows_vars_per_per_dest_per_edge[(t,) + out_arch] == _collected_flow_in_s_destined_t *
+                        splitting_ratios[t, edge_index],
                         name="dst_{}_sr_({},{})".format(t, *out_arch))
 
         lp_problem.update()
@@ -107,7 +114,7 @@ class Optimizer_Abstract(object):
             logger.debug('\nSlack values:')
             slacks = lp_problem.getVars()[orignumvars:]
             for sv in slacks:
-                if sv.X > 1e-6:
+                if sv.X > Consts.FEASIBILITY_TOL:
                     logger.debug('{} = {}'.format(sv.VarName, sv.X))
 
             logger.setLevel(logger_level)

@@ -9,6 +9,7 @@ class Consts:
     ACTION_OBLIVIOUS_PATH = 1
     ACTION_FLOW_PATH = 2
     ZERO = 1e-8
+    FEASIBILITY_TOL = 1e-9
     INCREASE_ACTION = 0
     DECREASE_ACTION = 1
     NAK_ACTION = 2
@@ -19,6 +20,7 @@ class Consts:
     WEIGHT_STR = 'weight'
     CAPACITY_STR = 'capacity'
     TTL_FLOW_STR = 'ttl_flow'
+
 
     # initial weight assignment strategy
     ONE_OVER_CAPACITY = 0
