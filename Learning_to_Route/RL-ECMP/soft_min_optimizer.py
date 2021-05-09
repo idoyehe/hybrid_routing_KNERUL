@@ -111,7 +111,7 @@ if __name__ == "__main__":
     tm = np.array([[0, 10, 0], [0, 0, 0], [0, 0, 0]])
     oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(network)
     opt = SoftMinOptimizer(network, oblivious_routing_per_edge)
-    opt_congestion, opt_routing_scheme = optimal_load_balancing_LP_solver(net=network, traffic_matrix=tm)
+    opt_congestion, necessary_capacity_dict, splitting_ratios_per_src_dst_edge = optimal_load_balancing_LP_solver(net=network, traffic_matrix=tm)
     print("Optimal Congestion: {}".format(opt_congestion))
     max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
         opt.step([100, 100, 0.00000001, 100, 0.00000001, 0.00000001], tm, opt_congestion)
