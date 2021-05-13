@@ -6,7 +6,7 @@ from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 from gym import envs, register
-from stable_baselines3.common.cmd_util import make_vec_env
+from stable_baselines3.common.env_util import make_vec_env
 from common.RL_Env.rl_env_consts import HistoryConsts
 from argparse import ArgumentParser
 from sys import argv
@@ -14,6 +14,7 @@ from collections import defaultdict
 from platform import system
 from experiments.RL_smart_nodes import RL_Smart_Nodes
 from experiments.smart_nodes_multiple_matrices_MCF import *
+from multiprocessing import Pool
 import torch
 import numpy as np
 
@@ -46,6 +47,14 @@ def _getOptions(args=argv[1:]):
     options.total_timesteps = eval(options.total_timesteps)
     options.mlp_architecture = [int(layer_width) for layer_width in options.mlp_architecture.split(",")]
     return options
+
+
+def return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes_sets):
+    params = [(net, traffic_matrix_list, dest_spr, current_smart_nodes) for current_smart_nodes in smart_nodes_sets]
+
+    pool = Pool(processes=len(smart_nodes_sets))
+    results = pool.starmap(func=matrices_mcf_LP_with_smart_nodes_solver, iterable=params)
+    return min(results, key=lambda t: t[0])
 
 
 if __name__ == "__main__":
@@ -123,18 +132,10 @@ if __name__ == "__main__":
         dest_spr = env.get_optimizer.calculating_splitting_ratios(link_weights)
 
         logger.info("Iteration {}, evaluating smart nodes...".format(iter))
+        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes_sets)
+        logger.info("Iteration {}, Chosen smart nodes: {}".format(iter, best_smart_nodes[1]))
 
-        best_smart_nodes = None
-        min_expected_objective = np.inf
-        for current_smart_nodes in smart_nodes_sets:
-            expected_objective, splitting_ratios_per_src_dst_edge, _, _ = \
-                multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list, dest_spr, current_smart_nodes)
-            if expected_objective < min_expected_objective:
-                min_expected_objective = expected_objective
-                best_smart_nodes = (current_smart_nodes, splitting_ratios_per_src_dst_edge)
-
-        logger.info("Iteration {}, setting smart nodes to {}".format(iter, best_smart_nodes[0]))
-        env.set_network_smart_nodes_and_spr(*best_smart_nodes)
+        env.set_network_smart_nodes_and_spr(best_smart_nodes[1], best_smart_nodes[2])
 
     logger.info("Iterations Done!!")
 

@@ -1,16 +1,12 @@
 from common.consts import EdgeConsts, Consts
 from common.utils import change_zero_cells, extract_lp_values
 from common.network_class import NetworkClass
-from common.topologies import topology_zoo_loader
 from common.logger import *
-from sys import argv
 import gurobipy as gb
 from gurobipy import GRB
-from argparse import ArgumentParser
-from common.utils import load_dump_file, error_bound, extract_flows
+from common.utils import error_bound, extract_flows
 import numpy as np
 from random import shuffle
-from tabulate import tabulate
 
 R = 10
 
@@ -86,9 +82,9 @@ def __validate_solution(net_direct, flows, traffic_matrix_list, splitting_ratios
                     splitting_ratios_per_src_dst_edge)
 
 
-def _aux_mcf_LP_baseline_solver(gurobi_env, net_direct: NetworkClass,
-                                traffic_matrices_list, constant_spr, smart_nodes,
-                                expected_objective=None):
+def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
+                                        traffic_matrices_list, constant_spr, smart_nodes,
+                                        expected_objective=None):
     """Preparation"""
     mcf_problem = gb.Model(name="MCF problem for mean MCF, given network, TM list and probabilities",
                            env=gurobi_env)
@@ -202,41 +198,26 @@ def _aux_mcf_LP_baseline_solver(gurobi_env, net_direct: NetworkClass,
     __validate_solution(net_direct, flows, traffic_matrices_list, splitting_ratios_per_src_dst_edge,
                         flows_per_mtrx_src_dst_per_edge)
 
-    necessary_capacity_per_matrix_dict = dict()
-    for m_index in range(traffic_matrices_list_length):
-        for u, v in net_direct.edges:
-            necessary_capacity = 0
-            for src, dst in flows:
-                necessary_capacity += flows_per_mtrx_src_dst_per_edge[m_index, src, dst, u, v]
-            necessary_capacity_per_matrix_dict[m_index, u, v] = necessary_capacity
-
-    return expected_objective, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_per_matrix_dict
+    return expected_objective, splitting_ratios_per_src_dst_edge
 
 
-def multiple_matrices_mcf_LP_baseline_solver(net: NetworkClass, traffic_matrix_list, constant_spr, smart_nodes):
+def matrices_mcf_LP_with_smart_nodes_solver(net: NetworkClass, traffic_matrix_list, constant_spr, smart_nodes):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, 0)
     gb_env.setParam(GRB.Param.NumericFocus, 3)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.start()
 
-    expected_objective, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_per_matrix_dict = \
-        _aux_mcf_LP_baseline_solver(gb_env, net, traffic_matrix_list, constant_spr, smart_nodes)
+    expected_objective, splitting_ratios_per_src_dst_edge = \
+        _aux_mcf_LP_with_smart_nodes_solver(gb_env, net, traffic_matrix_list, constant_spr, smart_nodes)
     while True:
         try:
-            expected_objective, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_per_matrix_dict = \
-                _aux_mcf_LP_baseline_solver(gb_env, net, traffic_matrix_list, constant_spr, smart_nodes, expected_objective - 0.001)
+            expected_objective, splitting_ratios_per_src_dst_edge = \
+                _aux_mcf_LP_with_smart_nodes_solver(gb_env, net, traffic_matrix_list, constant_spr, smart_nodes, expected_objective - 0.001)
             print("****** Gurobi Failure ******")
             expected_objective -= 0.001
         except Exception as e:
-            return expected_objective, splitting_ratios_per_src_dst_edge, r_per_mtrx, necessary_capacity_per_matrix_dict
-
-
-def _getOptions(args=argv[1:]):
-    parser = ArgumentParser(description="Parses path for dump file")
-    parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
-    options = parser.parse_args(args)
-    return options
+            return expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge
 
 
 def create_weighted_traffic_matrices(length, traffic_matrix_list, probability_distribution=None, shuffling: bool = True):
@@ -246,20 +227,3 @@ def create_weighted_traffic_matrices(length, traffic_matrix_list, probability_di
     if shuffling:
         shuffle(traffic_matrix_list)
     return [(probability_distribution[i], change_zero_cells(t[0])) for i, t in enumerate(traffic_matrix_list[0:length])]
-
-
-if __name__ == "__main__":
-    dump_path = _getOptions().dumped_path
-    loaded_dict = load_dump_file(dump_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
-
-    length = 10
-    pr = [1 / length] * length
-
-    traffic_matrix_list = create_weighted_traffic_matrices(length, loaded_dict["tms"], pr)
-    f = open("C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\TMs_DB\\T-lex\\T-lex_tms_12X12_link_wights.npy", "rb")
-    dest_spr = np.load(f)
-    f.close()
-    smart_nodes = [3, 10, 11]
-    expected_objective, splitting_ratios_per_src_dst_edge, r_vars_per_matrix, necessary_capacity_per_matrix_dict = \
-        multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list, dest_spr, smart_nodes)
