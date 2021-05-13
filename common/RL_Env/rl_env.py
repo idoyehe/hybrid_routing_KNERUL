@@ -47,8 +47,6 @@ class RL_Env(Env):
 
         self._history_length = history_length  # number of each state history
         self._none_history = self._history_length == 0
-        if self._none_history:
-            self._history_length = 1
         self._history_action_type = history_action_type
         self._num_train_observations = num_train_observations  # number of different train seniors per sparsity
         self._num_test_observations = num_test_observations  # number of different test seniors per sparsity
@@ -56,6 +54,7 @@ class RL_Env(Env):
         self._action_space = None
 
         # init states spaces and action space
+        self._set_action_space()
         self._set_observation_space()
         self._init_all_observations()
         self._testing = None
@@ -68,11 +67,13 @@ class RL_Env(Env):
         return self._episode_len
 
     def _set_observation_space(self):
-        self._observation_space = spaces.Box(low=0.0, high=np.inf,
-                                             shape=(self._history_length, self._num_nodes, self._num_nodes))
+        if self._none_history:
+            self._observation_space = spaces.Discrete(1)
+        else:
+            self._observation_space = spaces.Box(low=0.0, high=np.inf, shape=(self._history_length, self._num_nodes, self._num_nodes))
 
     def _set_action_space(self):
-        pass
+        self._action_space = spaces.Box(low=0, high=np.inf, shape=(self._num_edges,))
 
     def _sample_tm(self):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
@@ -107,21 +108,9 @@ class RL_Env(Env):
                 _observations_episodes_oblivious.append(np.array(_episode_oblivious))
             return np.array(_observations_episodes), np.array(_observations_episodes_optimals), np.array(_observations_episodes_oblivious)
 
-        def fix_none_history_episode(observations):
-            for ep in observations:
-                ep[0] *= 0
-            return observations
-
         self._train_observations, self._opt_train_observations, self._oblv_train_observations = __create_observation(self._num_train_observations)
         self._test_observations, self._opt_test_observations, self._oblv_test_observations = __create_observation(self._num_test_observations)
-
-        if self._none_history:
-            fix_none_history_episode(self._train_observations)
-            fix_none_history_episode(self._opt_train_observations)
-            fix_none_history_episode(self._test_observations)
-            fix_none_history_episode(self._opt_test_observations)
-        else:
-            self._validate_data()
+        self._validate_data()
 
     def _validate_data(self):
         is_equal_train = np.zeros((self._num_train_observations, self._num_train_observations))
@@ -173,10 +162,12 @@ class RL_Env(Env):
         self.set_data_source()
 
     def _get_observation(self):
-        self._current_history = np.stack(
-            self._observations_tms[self._current_observation_index][
-            self._tm_start_index:self._tm_start_index + self._history_length])
-        return self._current_history
+        if self._none_history:
+            return self._observation_space.sample()
+        else:
+            self._current_history = np.stack(
+                self._observations_tms[self._current_observation_index][self._tm_start_index:self._tm_start_index + self._history_length])
+            return self._current_history
 
     def _modify_action(self, action):
         if self._history_action_type == HistoryConsts.ACTION_W_EPSILON:

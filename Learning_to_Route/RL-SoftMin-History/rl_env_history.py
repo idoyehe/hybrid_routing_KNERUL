@@ -27,18 +27,13 @@ class RL_Env_History(RL_Env):
                                              num_train_observations=num_train_observations,
                                              num_test_observations=num_test_observations, testing=testing)
 
-        self._num_edges = self._network.get_num_edges
-        assert isinstance(self._optimizer, SoftMinOptimizer)
-        self._set_action_space()
 
+        assert isinstance(self._optimizer, SoftMinOptimizer)
         self._diagnostics = list()
 
     @property
     def diagnostics(self):
         return np.array(self._diagnostics)
-
-    def _set_action_space(self):
-        self._action_space = spaces.Box(low=0, high=np.inf, shape=(self._num_edges,))
 
     def step(self, action):
         info = dict()
