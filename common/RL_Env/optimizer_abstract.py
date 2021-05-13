@@ -21,6 +21,10 @@ class Optimizer_Abstract(object):
         self._num_edges = self._network.get_num_edges
         self._initialize()
         self._testing = testing
+        self.gb_env = gb.Env(empty=True)
+        self.gb_env.setParam(GRB.Param.OutputFlag, 0)
+        self.gb_env.setParam(GRB.Param.NumericFocus, 2)
+        self.gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
 
     def _initialize(self):
         logger.debug("Building ingoing and outgoing edges map")

@@ -5,7 +5,7 @@ from pathlib import Path
 import pickle
 import numpy as np
 
-def extract_values(gurobi_vars_dict,R):
+def extract_lp_values(gurobi_vars_dict, R):
     gurobi_vars_dict = dict(gurobi_vars_dict)
 
     for key in gurobi_vars_dict.keys():

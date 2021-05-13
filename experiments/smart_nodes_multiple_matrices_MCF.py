@@ -1,5 +1,5 @@
 from common.consts import EdgeConsts, Consts
-from common.utils import change_zero_cells, extract_values
+from common.utils import change_zero_cells, extract_lp_values
 from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.logger import *
@@ -182,9 +182,9 @@ def _aux_mcf_LP_baseline_solver(gurobi_env, net_direct: NetworkClass,
         mcf_problem.printStats()
         mcf_problem.printQuality()
 
-    flows_src_dst_per_edge = extract_values(vars_flows_src_dst_per_edge, R)
-    flows_per_mtrx_src_dst_per_edge = extract_values(vars_flows_per_mtrx_src_dst_per_edge, R)
-    r_per_mtrx = extract_values(vars_r_per_mtrx, R)
+    flows_src_dst_per_edge = extract_lp_values(vars_flows_src_dst_per_edge, R)
+    flows_per_mtrx_src_dst_per_edge = extract_lp_values(vars_flows_per_mtrx_src_dst_per_edge, R)
+    r_per_mtrx = extract_lp_values(vars_r_per_mtrx, R)
     mcf_problem.close()
 
     splitting_ratios_per_src_dst_edge = np.empty(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_edges))
