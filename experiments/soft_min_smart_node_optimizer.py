@@ -194,11 +194,10 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
                 raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(mcf_problem.Status))
 
             assert logger.level == logging.DEBUG
-            logger.debug('\nSlack values:')
             slacks = mcf_problem.getVars()[orignumvars:]
             for sv in slacks:
                 if sv.X > Consts.FEASIBILITY_TOL:
-                    logger.debug('{} = {}'.format(sv.VarName, sv.X))
+                    logger.debug('Slack value:{} = {}'.format(sv.VarName, sv.X))
 
             logger.setLevel(logger_level)
 

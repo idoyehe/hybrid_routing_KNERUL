@@ -109,7 +109,8 @@ class RL_Env(Env):
 
         self._train_observations, self._opt_train_observations, self._oblv_train_observations = __create_observation(self._num_train_observations)
         self._test_observations, self._opt_test_observations, self._oblv_test_observations = __create_observation(self._num_test_observations)
-        self._validate_data()
+        if not self._none_history:
+            self._validate_data()
 
     def _validate_data(self):
         is_equal_train = np.zeros((self._num_train_observations, self._num_train_observations))
