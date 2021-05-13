@@ -188,7 +188,7 @@ def _aux_mcf_LP_baseline_solver(gurobi_env, net_direct: NetworkClass,
     mcf_problem.close()
 
     splitting_ratios_per_src_dst_edge = np.empty(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_edges))
-    splitting_ratios_per_src_dst_edge[:] = np.nan
+    splitting_ratios_per_src_dst_edge.fill(np.nan)
     for u in net_direct.nodes:
         if len(net_direct.out_edges_by_node(u)) == 0:
             continue
