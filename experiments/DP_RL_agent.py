@@ -16,7 +16,6 @@ from experiments.RL_smart_nodes import RL_Smart_Nodes
 from experiments.smart_nodes_multiple_matrices_MCF import *
 import torch
 import numpy as np
-import itertools
 
 IS_LINUX = system() == "Linux"
 
@@ -39,7 +38,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-s_weights", "--save_links_weights", type=eval, help="Dump links weights", default=False)
     parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
-    parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=5)
+    parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=3)
     parser.add_argument("-smart_per", "--smart_nodes_percent", type=float, help="Percent of smart nodes", default=0.1)
     parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=10)
 
@@ -147,7 +146,7 @@ if __name__ == "__main__":
         _, reward, dones, info = env.step(link_weights)
         diagnostics.extend(info)
         obs = env.reset()
-        rewards_list.append(reward[0] * -1)
+        rewards_list.append(reward * -1)
 
     if save_links_weights:
         link_weights_file_name = "{}_actions_{}.npy".format(args.dumped_path, num_train_observations)
