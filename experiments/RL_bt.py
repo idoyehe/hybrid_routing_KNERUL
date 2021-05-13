@@ -3,15 +3,15 @@ import numpy as np
 from common.RL_Env.rl_env import *
 from common.utils import error_bound
 from common.RL_Env.optimizer_abstract import Optimizer_Abstract
-from experiments.bt_2_optimizer import BT2Optimizer
+from experiments.soft_min_smart_node_optimizer import SoftMinSmartNodesOptimizer
 
 
 class RL_Env_BT(RL_Env):
 
     def __init__(self,
-                 max_steps,
+                 max_steps=1,
                  path_dumped=None,
-                 history_length=None,
+                 history_length=0,
                  history_action_type=None,
                  num_train_observations=None,
                  num_test_observations=None,
@@ -23,8 +23,6 @@ class RL_Env_BT(RL_Env):
                                         num_test_observations=num_test_observations, testing=testing)
 
         assert isinstance(self._optimizer, Optimizer_Abstract)
-        self._set_action_space()
-
         self._diagnostics = list()
 
     @property
@@ -32,63 +30,35 @@ class RL_Env_BT(RL_Env):
         return np.array(self._diagnostics)
 
     def _set_action_space(self):
-        # self._action_space = spaces.Discrete(2 ** self._num_nodes)
         self._action_space = spaces.Box(low=0, high=np.inf, shape=(self._num_edges,))
-
-    def _set_observation_space(self):
-        self._observation_space = spaces.Box(low=0.0, high=np.inf,
-                                             shape=(self._history_length, self._num_nodes, self._num_nodes),
-                                             dtype=np.float64)
-
-    # def _modify_action(self, action):
-    #     action = list(bin(action)[2:])
-    #     action.reverse()
-    #     temp = np.zeros(shape=(self._num_nodes), dtype=np.int)
-    #     for i, b in enumerate(action):
-    #         temp[i] = int(b)
-    #     return np.flip(temp)
 
     def step(self, action):
         info = dict()
         action = self._modify_action(action)
 
-        total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch = self._process_action_get_cost(
-            action)
+        total_congestion, cost_congestion_ratio, total_load_per_link, most_congested_arch = self._process_action_get_cost(action)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
         # oblivious_value = self._oblivious_values[self._current_observation_index][self._tm_start_index + self._history_length]
 
         if self._testing:
             info["actions"] = np.array(action)
-            info["load_per_link"] = np.array(total_load_per_arch)
-            # info["rl_vs_obliv_data"] = self._optimizer.rl_vs_obliv_data
+            info["load_per_link"] = np.array(total_load_per_link)
 
-        del total_load_per_arch
+        del total_load_per_link
         info[ExtraData.REWARD_OVER_FUTURE] = cost_congestion_ratio
         self._diagnostics.append(info)
 
         self._tm_start_index += 1
         observation = self._get_observation()
-
-        # reward = ((0.6 * cost_congestion_ratio) + (0.4 * sum(action))) * self._NORM_FACTOR
         reward = cost_congestion_ratio * self._NORM_FACTOR
-        if self._testing:
-            reward = cost_congestion_ratio * self._NORM_FACTOR
-
         done = self._is_terminal
-
         return observation, reward, done, info
 
     def _process_action_get_cost(self, links_weights):
-        global ERROR_BOUND
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
-        optimal_congestion = self._optimal_values[self._current_observation_index][
-            self._tm_start_index + self._history_length]
-        optimal_spr = self._spr_values[self._current_observation_index][self._tm_start_index + self._history_length]
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights,
-                                                                                                         tm,
-                                                                                                         optimal_spr,
-                                                                                                         optimal_congestion)
+        optimal_congestion = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]
+        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights, tm, optimal_congestion)
 
         cost_congestion_ratio = max_congestion / optimal_congestion
 
@@ -107,13 +77,15 @@ class RL_Env_BT(RL_Env):
 
         return total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch
 
-    def optimizer_step(self, links_weights, tm, optimal_spr, optimal_value):
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
-            self._optimizer.step(links_weights, tm, optimal_spr, optimal_value)
+    def optimizer_step(self, links_weights, tm, optimal_value):
+        total_congestion, max_congestion, \
+        total_load_per_arch, most_congested_arch = self._optimizer.step(links_weights, tm, optimal_value)
         return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
 
     def testing(self, _testing):
         super(RL_Env_BT, self).testing(_testing)
-        self._actions = np.zeros(shape=(self._num_edges), dtype=np.int)
-        self._actions[2] = self._actions[10] = self._actions[11] = 1
-        self._optimizer = BT2Optimizer(self._network, self._actions, testing=_testing)
+        self._optimizer = SoftMinSmartNodesOptimizer(self._network, testing=_testing)
+
+    def set_network_smart_nodes_and_spr(self, smart_nodes, smart_nodes_spr):
+        self._network.set_smart_nodes(smart_nodes)
+        self._network.set__smart_nodes_spr(smart_nodes_spr)
