@@ -38,7 +38,7 @@ class NetworkClass:
         self._total_capacity = 0
         self._flows = None
         self._chosen_pairs = None
-        self._smart_nodes: list = None
+        self._smart_nodes: list = []
         self._smart_nodes_spr: dict = None
         print("Network {} has been created".format(self.get_name))
 
@@ -93,7 +93,6 @@ class NetworkClass:
 
     @property
     def get_smart_nodes(self):
-        assert self._smart_nodes is not None
         return self._smart_nodes
 
     def set_smart_nodes(self, smart_nodes: list):
@@ -103,10 +102,9 @@ class NetworkClass:
 
     @property
     def get_smart_nodes_spr(self):
-        assert self._smart_nodes_spr is not None
         return self._smart_nodes_spr
 
-    def set__smart_nodes_spr(self, _smart_nodes_spr: dict):
+    def set__smart_nodes_spr(self, _smart_nodes_spr):
         self._smart_nodes_spr = _smart_nodes_spr
 
     def get_all_pairs(self):

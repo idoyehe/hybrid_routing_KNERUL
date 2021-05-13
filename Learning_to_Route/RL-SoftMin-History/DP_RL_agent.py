@@ -33,7 +33,6 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-s_diag", "--save_diagnostics", type=eval, help="Dump env diagnostics", default=False)
     parser.add_argument("-s_weights", "--save_links_weights", type=eval, help="Dump links weights", default=False)
     parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
-    parser.add_argument("-s_r_s", "--save_routing_schemes", type=eval, help="Dump Routing Schemes", default=False)
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
 
     options = parser.parse_args(args)
@@ -55,7 +54,6 @@ if __name__ == "__main__":
     num_train_observations = args.number_of_observations
     save_diagnostics = args.save_diagnostics
     save_links_weights = args.save_links_weights
-    save_routing_records = args.save_routing_schemes
     save_model_agent = args.save_model_agent
     load_agent = args.load_agent
 
@@ -77,8 +75,7 @@ if __name__ == "__main__":
                      'history_length': history_length,
                      'path_dumped': dumped_path,
                      'num_train_observations': num_train_observations,
-                     'num_test_observations': num_test_observations,
-                     'history_action_type': HistoryConsts.ACTION_W_EPSILON}
+                     'num_test_observations': num_test_observations}
                  )
     env = make_vec_env(RL_ENV_HISTORY_GYM_ID, n_envs=n_envs)
     if load_agent is None:
@@ -127,27 +124,6 @@ if __name__ == "__main__":
         link_weights_matrix = np.array([step_data["links_weights"] for step_data in diagnostics]).transpose()
         np.save(link_weights_file, link_weights_matrix)
         link_weights_file.close()
-
-    if save_routing_records:
-        routing_records_file_name = "{}_routing_records_{}.npy".format(args.dumped_path, num_test_observations)
-        routing_records_file = open(routing_records_file_name, 'wb')
-        routing_records_array = np.sum([step_data["load_per_link"] for step_data in diagnostics], axis=0)
-        most_congested_link_dict = defaultdict(int)
-
-        total_counter = 0
-        for link in [step_data["most_congested_link"] for step_data in diagnostics]:
-            most_congested_link_dict[link] += 1
-            total_counter += 1
-
-        most_congested_link_list = [(link, (100 * load) / total_counter) for link, load in
-                                    most_congested_link_dict.items()]
-        most_congested_link_list.sort(key=lambda e: e[1], reverse=True)
-
-        for idx, (arch, congestion) in enumerate(most_congested_link_list):
-            print("# {} link {} in most congest in {:.2f}% of the time".format(idx + 1, arch, congestion))
-
-        np.save(routing_records_file, routing_records_array)
-        routing_records_file.close()
 
     rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, num_test_observations)
     rewards_file = open(rewards_file_name, 'wb')

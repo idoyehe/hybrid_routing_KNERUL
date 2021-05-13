@@ -17,16 +17,13 @@ class RL_Env_History(RL_Env):
                  max_steps,
                  path_dumped=None,
                  history_length=None,
-                 history_action_type=None,
                  num_train_observations=None,
                  num_test_observations=None,
                  testing=False):
         super(RL_Env_History, self).__init__(max_steps=max_steps, path_dumped=path_dumped,
                                              history_length=history_length,
-                                             history_action_type=history_action_type,
                                              num_train_observations=num_train_observations,
                                              num_test_observations=num_test_observations, testing=testing)
-
 
         assert isinstance(self._optimizer, SoftMinOptimizer)
         self._diagnostics = list()
@@ -35,16 +32,14 @@ class RL_Env_History(RL_Env):
     def diagnostics(self):
         return np.array(self._diagnostics)
 
-    def step(self, action):
+    def step(self, links_weights):
         info = dict()
-        links_weights = self._modify_action(action)
 
         cost_congestion_ratio, most_congested_link, total_congestion, total_congestion_per_link, \
         total_load_per_link = self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
-        oblivious_value = self._oblivious_values[self._current_observation_index][
-            self._tm_start_index + self._history_length]
+        oblivious_value = self._oblivious_values[self._current_observation_index][self._tm_start_index + self._history_length]
 
         if self._testing:
             info[ExtraData.LINK_WEIGHTS] = np.array(links_weights)

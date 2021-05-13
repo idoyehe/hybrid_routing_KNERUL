@@ -4,13 +4,16 @@ from numpy import round, where, dstack, abs
 from pathlib import Path
 import pickle
 import numpy as np
+import itertools
 
-def extract_lp_values(gurobi_vars_dict, R):
+
+def extract_lp_values(gurobi_vars_dict, R=10):
     gurobi_vars_dict = dict(gurobi_vars_dict)
 
     for key in gurobi_vars_dict.keys():
         gurobi_vars_dict[key] = round(gurobi_vars_dict[key].x, R)
     return gurobi_vars_dict
+
 
 def norm_func(x, norm_val=1. * SizeConsts.ONE_Mb):
     return x / norm_val
@@ -39,5 +42,9 @@ def load_dump_file(file_name: str):
 def change_zero_cells(tm):
     assert tm.shape[0] == tm.shape[1]
     tm[tm == 0] = Consts.ZERO
-    np.fill_diagonal(tm,0)
+    np.fill_diagonal(tm, 0)
     return tm
+
+
+def find_nodes_subsets(_set, size):
+    return list(itertools.combinations(_set, size))

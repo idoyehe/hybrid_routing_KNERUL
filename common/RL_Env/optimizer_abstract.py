@@ -21,6 +21,8 @@ class Optimizer_Abstract(object):
         self._num_edges = self._network.get_num_edges
         self._initialize()
         self._testing = testing
+
+    def _initialize_gurobi_env(self):
         self.gb_env = gb.Env(empty=True)
         self.gb_env.setParam(GRB.Param.OutputFlag, 0)
         self.gb_env.setParam(GRB.Param.NumericFocus, 2)
@@ -40,15 +42,10 @@ class Optimizer_Abstract(object):
 
     def _calculating_traffic_distribution(self, splitting_ratios, tm):
         net_direct = self._network
+        self._initialize_gurobi_env()
+        self.gb_env.start()
 
-        gb_env = gb.Env(empty=True)
-        gb_env.setParam(GRB.Param.OutputFlag, 0)
-        gb_env.setParam(GRB.Param.NumericFocus, 2)
-        gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
-        gb_env.start()
-
-        lp_problem = gb.Model(name="LP problem for flows, given network, traffic matrix and splitting_ratios",
-                              env=gb_env)
+        lp_problem = gb.Model(name="LP problem for flows, given network, traffic matrix and splitting_ratios", env=self.gb_env)
         flows_vars_per_per_dest_per_edge = lp_problem.addVars(net_direct.nodes, net_direct.edges, name="f", lb=0.0,
                                                               vtype=GRB.CONTINUOUS)
 
@@ -136,7 +133,7 @@ class Optimizer_Abstract(object):
             flows_vars_per_per_dest_per_edge[key] = flows_vars_per_per_dest_per_edge[key].x
 
         lp_problem.close()
-        gb_env.close()
+        self.gb_env.close()
 
         self.__validate_flow(net_direct, tm, flows_vars_per_per_dest_per_edge, splitting_ratios)
 

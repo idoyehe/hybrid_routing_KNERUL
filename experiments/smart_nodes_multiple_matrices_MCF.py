@@ -239,7 +239,9 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def __create_weighted_traffic_matrices(length, traffic_matrix_list, probability_distribution, shuffling: bool = True):
+def create_weighted_traffic_matrices(length, traffic_matrix_list, probability_distribution=None, shuffling: bool = True):
+    if probability_distribution is None:
+        probability_distribution = [1 / length] * length
     assert error_bound(np.sum(probability_distribution), 1.0)
     if shuffling:
         shuffle(traffic_matrix_list)
@@ -254,11 +256,10 @@ if __name__ == "__main__":
     length = 10
     pr = [1 / length] * length
 
-    traffic_matrix_list = __create_weighted_traffic_matrices(length, loaded_dict["tms"], pr)
+    traffic_matrix_list = create_weighted_traffic_matrices(length, loaded_dict["tms"], pr)
     f = open("C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\TMs_DB\\T-lex\\T-lex_tms_12X12_link_wights.npy", "rb")
-    constant_spr = np.load(f)
+    dest_spr = np.load(f)
     f.close()
     smart_nodes = [3, 10, 11]
     expected_objective, splitting_ratios_per_src_dst_edge, r_vars_per_matrix, necessary_capacity_per_matrix_dict = \
-        multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list, constant_spr, smart_nodes)
-    pass
+        multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list, dest_spr, smart_nodes)

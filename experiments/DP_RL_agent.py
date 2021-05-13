@@ -1,41 +1,47 @@
 from common.logger import logger
+from common.utils import load_dump_file, find_nodes_subsets
+from common.network_class import NetworkClass
+from common.topologies import topology_zoo_loader
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
-from stable_baselines3.common.cmd_util import make_vec_env
 from gym import envs, register
+from stable_baselines3.common.cmd_util import make_vec_env
 from common.RL_Env.rl_env_consts import HistoryConsts
 from argparse import ArgumentParser
 from sys import argv
-import torch
-import numpy as np
 from collections import defaultdict
 from platform import system
-from experiments.RL_bt import RL_Env_BT
+from experiments.RL_smart_nodes import RL_Smart_Nodes
+from experiments.smart_nodes_multiple_matrices_MCF import *
+import torch
+import numpy as np
+import itertools
 
-if system() == "Linux":
+IS_LINUX = system() == "Linux"
+
+if IS_LINUX:
     assert torch.cuda.is_available()
 
-RL_ENV_HISTORY_GYM_ID: str = 'rl-env-history-v0'
+RL_ENV_SMART_NODES_GYM_ID: str = 'rl-smart_nodes-v0'
 
 
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path of the dumped file")
-    parser.add_argument("-arch", "--mlp_architecture", type=str, help="The architecture of the neural network")
+    parser.add_argument("-arch", "--mlp_architecture", type=str, help="The architecture of the neural network", default="1")
     parser.add_argument("-gamma", "--gamma", type=float, help="Gamma Value", default=0)
-    parser.add_argument("-n_envs", "--number_of_envs", type=int, help="Number of vectorized environments", default=1)
     parser.add_argument("-n_steps", "--number_of_steps", type=int, help="Number of steps per ppo agent", default=100)
     parser.add_argument("-tts", "--total_timesteps", type=str, help="Agent Total timesteps", default="1000")
     parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=0)
-    parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
-                        default=350)
-    parser.add_argument("-s_diag", "--save_diagnostics", type=eval, help="Dump env diagnostics", default=False)
+    parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load", default=350)
     parser.add_argument("-s_weights", "--save_links_weights", type=eval, help="Dump links weights", default=False)
     parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
-    parser.add_argument("-s_r_s", "--save_routing_schemes", type=eval, help="Dump Routing Schemes", default=False)
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
+    parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=5)
+    parser.add_argument("-smart_per", "--smart_nodes_percent", type=float, help="Percent of smart nodes", default=0.1)
+    parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=10)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -48,42 +54,51 @@ if __name__ == "__main__":
     mlp_arch = args.mlp_architecture
     gamma = args.gamma
     dumped_path = args.dumped_path
-    n_envs = args.number_of_envs
     n_steps = args.number_of_steps
     total_timesteps = args.total_timesteps
     episode_length = args.episode_length
     history_length = args.history_length
     num_train_observations = args.number_of_observations
-    save_diagnostics = args.save_diagnostics
     save_links_weights = args.save_links_weights
-    save_routing_records = args.save_routing_schemes
     save_model_agent = args.save_model_agent
     load_agent = args.load_agent
+    num_of_iterations = args.number_of_iterations
+    smart_nodes_percent = args.smart_nodes_percent
+    tms_sample_size = args.tms_sample_size
 
     num_test_observations = min(num_train_observations * 2, 20000)
 
-    checkpoint_callback = CheckpointCallback(save_freq=1000,
-                                             save_path='/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/logs/',
-                                             name_prefix='rl_agent')
+    callback_perfix_path = '/home/idoye/PycharmProjects/Research_Implementing/experiments/callbacks/' \
+        if IS_LINUX else "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\experiments\\callbacks\\"
 
     logger.info("Data loaded from: {}".format(dumped_path))
     logger.info("Architecture is: {}".format(mlp_arch))
     logger.info("gamma is: {}".format(gamma))
 
-    if RL_ENV_HISTORY_GYM_ID not in envs.registry.env_specs:
-        register(id=RL_ENV_HISTORY_GYM_ID,
+    if RL_ENV_SMART_NODES_GYM_ID not in envs.registry.env_specs:
+        register(id=RL_ENV_SMART_NODES_GYM_ID,
                  # entry_point='rl_env_history:RL_Env_History',
-                 entry_point='RL_bt:RL_Env_BT',
+                 entry_point='RL_smart_nodes:RL_Smart_Nodes',
                  kwargs={
                      'max_steps': episode_length,
                      'history_length': history_length,
                      'path_dumped': dumped_path,
                      'num_train_observations': num_train_observations,
-                     'num_test_observations': num_test_observations,
-                     'history_action_type': HistoryConsts.ACTION_W_EPSILON}
+                     'num_test_observations': num_test_observations}
                  )
-    env = make_vec_env(RL_ENV_HISTORY_GYM_ID, n_envs=n_envs)
-    if load_agent is None:
+    envs = make_vec_env(RL_ENV_SMART_NODES_GYM_ID)
+    env = envs.envs[0].env
+
+    loaded_dict = load_dump_file(dumped_path)
+    net = env.get_network
+    num_smart_nodes = int(np.floor(net.get_num_nodes * smart_nodes_percent))
+    smart_nodes_sets = find_nodes_subsets(net.nodes, num_smart_nodes)
+
+    if load_agent is not None:
+        model = PPO.load(load_agent, envs)
+
+    else:
+        assert load_agent is None
         policy_kwargs = [{"pi": mlp_arch, "vf": mlp_arch}]
 
 
@@ -93,63 +108,53 @@ if __name__ == "__main__":
                 super(CustomMLPPolicy, self).__init__(*args, **kwargs, net_arch=policy_kwargs)
 
 
-        model = PPO(CustomMLPPolicy, env, verbose=1, gamma=gamma, n_steps=n_steps)
+        model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps)
 
+    for iter in range(num_of_iterations):
+        logger.info("Iteration {} Starts, model is learning...".format(iter))
+        env.testing(False)
+        callback_path = callback_perfix_path + "iteration_{}".format(iter) + ("/" if IS_LINUX else "\\")
+        checkpoint_callback = CheckpointCallback(save_freq=n_steps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
 
-        env_diagnostics = env.envs[0].env.diagnostics
-        if save_diagnostics:
-            diag_dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, num_train_observations)
-            diag_dump_file = open(diag_dump_file_name, 'wb')
-            np.save(diag_dump_file, env_diagnostics)
-            diag_dump_file.close()
+        logger.info("Iteration {}, model is predicting...".format(iter))
+        env.testing(True)
+        link_weights, _ = model.predict(env.reset(), deterministic=True)
+        traffic_matrix_list = create_weighted_traffic_matrices(tms_sample_size, loaded_dict["tms"])  # create a samples from the tms distribution
+        dest_spr = env.get_optimizer.calculating_splitting_ratios(link_weights)
 
-    if save_model_agent and load_agent is None:
-        save_path = "{}_model_agent_{}".format(dumped_path, num_train_observations)
-        model.save(path=save_path)
+        logger.info("Iteration {}, evaluating smart nodes...".format(iter))
 
-    if load_agent is not None:
-        model = PPO.load(load_agent, env)
+        best_smart_nodes = None
+        min_expected_objective = np.inf
+        for current_smart_nodes in smart_nodes_sets:
+            expected_objective, splitting_ratios_per_src_dst_edge, _, _ = \
+                multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list, dest_spr, current_smart_nodes)
+            if expected_objective < min_expected_objective:
+                min_expected_objective = expected_objective
+                best_smart_nodes = (current_smart_nodes, splitting_ratios_per_src_dst_edge)
 
-    logger.info("Testing Part")
-    env.envs[0].env.testing(True)
+        logger.info("Iteration {}, setting smart nodes to {}".format(iter, best_smart_nodes[0]))
+        env.set_network_smart_nodes_and_spr(*best_smart_nodes)
+
+    logger.info("Iterations Done!!")
+
     obs = env.reset()
     rewards_list = list()
     diagnostics = list()
     for _ in range(num_test_observations):
-        action, _states = model.predict(obs)
-        obs, reward, dones, info = env.step(action)
+        link_weights, _ = model.predict(env.reset(), deterministic=True)
+        _, reward, dones, info = env.step(link_weights)
         diagnostics.extend(info)
-        env.reset()
+        obs = env.reset()
         rewards_list.append(reward[0] * -1)
 
     if save_links_weights:
         link_weights_file_name = "{}_actions_{}.npy".format(args.dumped_path, num_train_observations)
         link_weights_file = open(link_weights_file_name, 'wb')
-        link_weights_matrix = np.array([step_data["actions"] for step_data in diagnostics]).transpose()
+        link_weights_matrix = np.array([step_data["links_weights"] for step_data in diagnostics]).transpose()
         np.save(link_weights_file, link_weights_matrix)
         link_weights_file.close()
-
-    if save_routing_records:
-        routing_records_file_name = "{}_routing_records_{}.npy".format(args.dumped_path, num_test_observations)
-        routing_records_file = open(routing_records_file_name, 'wb')
-        routing_records_array = np.sum([step_data["load_per_link"] for step_data in diagnostics], axis=0)
-        most_congested_link_dict = defaultdict(int)
-
-        total_counter = 0
-        for link in [step_data["most_congested_link"] for step_data in diagnostics]:
-            most_congested_link_dict[link] += 1
-            total_counter += 1
-
-        most_congested_link_list = [(link, (100 * load) / total_counter) for link, load in
-                                    most_congested_link_dict.items()]
-        most_congested_link_list.sort(key=lambda e: e[1], reverse=True)
-
-        for idx, (arch, congestion) in enumerate(most_congested_link_list):
-            print("# {} link {} in most congest in {:.2f}% of the time".format(idx + 1, arch, congestion))
-
-        np.save(routing_records_file, routing_records_array)
-        routing_records_file.close()
 
     rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, num_test_observations)
     rewards_file = open(rewards_file_name, 'wb')

@@ -18,7 +18,6 @@ class RL_Env(Env):
                  max_steps,
                  path_dumped=None,
                  history_length=None,
-                 history_action_type=None,
                  num_train_observations=None,
                  num_test_observations=None,
                  testing=False):
@@ -47,11 +46,11 @@ class RL_Env(Env):
 
         self._history_length = history_length  # number of each state history
         self._none_history = self._history_length == 0
-        self._history_action_type = history_action_type
         self._num_train_observations = num_train_observations  # number of different train seniors per sparsity
         self._num_test_observations = num_test_observations  # number of different test seniors per sparsity
         self._observation_space = None
         self._action_space = None
+        self._optimizer = None
 
         # init states spaces and action space
         self._set_action_space()
@@ -73,7 +72,7 @@ class RL_Env(Env):
             self._observation_space = spaces.Box(low=0.0, high=np.inf, shape=(self._history_length, self._num_nodes, self._num_nodes))
 
     def _set_action_space(self):
-        self._action_space = spaces.Box(low=0, high=np.inf, shape=(self._num_edges,))
+        self._action_space = spaces.Box(low=HistoryConsts.EPSILON, high=np.inf, shape=(self._num_edges,))
 
     def _sample_tm(self):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
@@ -142,13 +141,6 @@ class RL_Env(Env):
         self._optimal_values = self._opt_test_observations if self._testing else self._opt_train_observations
         self._oblivious_values = self._oblv_test_observations if self._testing else self._oblv_train_observations
 
-    def _process_action(self, action):
-        if self._history_action_type == HistoryConsts.ACTION_W_EPSILON:
-            action[action <= 0] = HistoryConsts.EPSILON
-        elif self._history_action_type == HistoryConsts.ACTION_W_INFTY:
-            action[action <= 0] = HistoryConsts.INFTY
-        return action
-
     @property
     def observation_space(self):
         return self._observation_space
@@ -169,13 +161,6 @@ class RL_Env(Env):
                 self._observations_tms[self._current_observation_index][self._tm_start_index:self._tm_start_index + self._history_length])
             return self._current_history
 
-    def _modify_action(self, action):
-        if self._history_action_type == HistoryConsts.ACTION_W_EPSILON:
-            action[action <= 0] = HistoryConsts.EPSILON
-        elif self._history_action_type == HistoryConsts.ACTION_W_INFTY:
-            action[action <= 0] = HistoryConsts.INFTY
-        return action
-
     def render(self, mode='human'):
         pass
 
@@ -186,3 +171,11 @@ class RL_Env(Env):
 
     def step(self, action):
         pass
+
+    @property
+    def get_network(self) -> NetworkClass:
+        return self._network
+
+    @property
+    def get_optimizer(self):
+        return self._optimizer

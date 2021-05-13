@@ -13,11 +13,7 @@ class HistoryConsts:
     ZERO = 0.0
 
     ACTION_SPLITTINT_RATIOS = "splitting"
-    ACTION_W_EPSILON = "w_eps"
-    ACTION_W_INFTY = "w_inf"
     ACTION_TM = "tm"
-
-    ACTIONS_W = [ACTION_W_EPSILON, ACTION_W_INFTY]
 
     DYNAMIC_LINK = "dynamic"
     STD_LINK_VALUE = "std"
