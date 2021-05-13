@@ -149,7 +149,7 @@ if __name__ == "__main__":
         rewards_list.append(reward * -1)
 
     if save_links_weights:
-        link_weights_file_name = "{}_actions_{}.npy".format(args.dumped_path, num_train_observations)
+        link_weights_file_name = "{}_links_weights_{}.npy".format(args.dumped_path, num_train_observations)
         link_weights_file = open(link_weights_file_name, 'wb')
         link_weights_matrix = np.array([step_data["links_weights"] for step_data in diagnostics]).transpose()
         np.save(link_weights_file, link_weights_matrix)
