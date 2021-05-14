@@ -166,7 +166,27 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
         mcf_problem.optimize()
         assert mcf_problem.Status == GRB.OPTIMAL
     except AssertionError as e:
-        raise Exception("****Optimize failed****\nAssertion Error:\n{}".format(e))
+        logger_level = logger.level
+        logger.setLevel(logging.DEBUG)
+        if mcf_problem.Status == GRB.UNBOUNDED:
+            logger.debug('The model cannot be solved because it is unbounded')
+            raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(mcf_problem.Status))
+
+        if mcf_problem.Status != GRB.INF_OR_UNBD and mcf_problem.Status != GRB.INFEASIBLE:
+            logger.debug('Optimization was stopped with status {}'.format(mcf_problem.Status))
+            raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(mcf_problem.Status))
+
+        orignumvars = mcf_problem.NumVars
+        mcf_problem.feasRelaxS(0, False, False, True)
+        mcf_problem.optimize()
+
+        assert logger.level == logging.DEBUG
+        slacks = mcf_problem.getVars()[orignumvars:]
+        for sv in slacks:
+            if sv.X > Consts.FEASIBILITY_TOL:
+                logger.debug('Slack value:{} = {}'.format(sv.VarName, sv.X))
+
+        logger.setLevel(logger_level)
 
     except gb.GurobiError as e:
         raise Exception("****Optimize failed****\nException is:\n{}".format(e))
