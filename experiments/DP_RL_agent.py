@@ -1,16 +1,12 @@
-from common.logger import logger
-from common.utils import load_dump_file, find_nodes_subsets
+from common.utils import load_dump_file
 from common.network_class import NetworkClass
-from common.topologies import topology_zoo_loader
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 from gym import envs, register
 from stable_baselines3.common.env_util import make_vec_env
-from common.RL_Env.rl_env_consts import HistoryConsts
 from argparse import ArgumentParser
 from sys import argv
-from collections import defaultdict
 from platform import system
 from experiments.RL_smart_nodes import RL_Smart_Nodes
 from experiments.smart_nodes_multiple_matrices_MCF import *
@@ -39,8 +35,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-s_weights", "--save_links_weights", type=eval, help="Dump links weights", default=False)
     parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
-    parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=3)
-    parser.add_argument("-smart_per", "--smart_nodes_percent", type=float, help="Percent of smart nodes", default=0.1)
+    parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
     parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=10)
 
     options = parser.parse_args(args)
@@ -49,10 +44,16 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes_sets):
-    params = [(net, traffic_matrix_list, dest_spr, current_smart_nodes) for current_smart_nodes in smart_nodes_sets]
+def return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, current_smart_nodes):
+    smart_nodes_set = []
+    for node in net.nodes:
+        if node in current_smart_nodes:
+            continue
+        else:
+            smart_nodes_set.append(current_smart_nodes + (node,))
+    params = [(net, traffic_matrix_list, dest_spr, smart_nodes) for smart_nodes in smart_nodes_set]
 
-    pool = Pool(processes=len(smart_nodes_sets))
+    pool = Pool(processes=len(smart_nodes_set))
     results = pool.starmap(func=matrices_mcf_LP_with_smart_nodes_solver, iterable=params)
     return min(results, key=lambda t: t[0])
 
@@ -71,7 +72,6 @@ if __name__ == "__main__":
     save_model_agent = args.save_model_agent
     load_agent = args.load_agent
     num_of_iterations = args.number_of_iterations
-    smart_nodes_percent = args.smart_nodes_percent
     tms_sample_size = args.tms_sample_size
 
     num_test_observations = min(num_train_observations * 2, 20000)
@@ -99,8 +99,6 @@ if __name__ == "__main__":
 
     loaded_dict = load_dump_file(dumped_path)
     net = env.get_network
-    num_smart_nodes = int(np.floor(net.get_num_nodes * smart_nodes_percent))
-    smart_nodes_sets = find_nodes_subsets(net.nodes, num_smart_nodes)
 
     if load_agent is not None:
         model = PPO.load(load_agent, envs)
@@ -117,13 +115,14 @@ if __name__ == "__main__":
 
 
         model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps)
-
+    current_smart_nodes = tuple()
     for iter in range(num_of_iterations):
         logger.info("Iteration {} Starts, model is learning...".format(iter))
         env.testing(False)
-        callback_path = callback_perfix_path + "iteration_{}".format(iter) + ("/" if IS_LINUX else "\\")
-        checkpoint_callback = CheckpointCallback(save_freq=n_steps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
-        model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
+        # callback_path = callback_perfix_path + "iteration_{}".format(iter) + ("/" if IS_LINUX else "\\")
+        # checkpoint_callback = CheckpointCallback(save_freq=n_steps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
+        # model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
+        model.learn(total_timesteps=total_timesteps)
 
         logger.info("Iteration {}, model is predicting...".format(iter))
         env.testing(True)
@@ -132,10 +131,10 @@ if __name__ == "__main__":
         dest_spr = env.get_optimizer.calculating_splitting_ratios(link_weights)
 
         logger.info("Iteration {}, evaluating smart nodes...".format(iter))
-        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes_sets)
+        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, current_smart_nodes)
         logger.info("Iteration {}, Chosen smart nodes: {}".format(iter, best_smart_nodes[1]))
-
-        env.set_network_smart_nodes_and_spr(best_smart_nodes[1], best_smart_nodes[2])
+        current_smart_nodes = best_smart_nodes[1]
+        env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
 
     logger.info("Iterations Done!!")
 

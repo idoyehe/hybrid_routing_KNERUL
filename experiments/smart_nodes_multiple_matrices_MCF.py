@@ -230,14 +230,7 @@ def matrices_mcf_LP_with_smart_nodes_solver(net: NetworkClass, traffic_matrix_li
 
     expected_objective, splitting_ratios_per_src_dst_edge = \
         _aux_mcf_LP_with_smart_nodes_solver(gb_env, net, traffic_matrix_list, constant_spr, smart_nodes)
-    while True:
-        try:
-            expected_objective, splitting_ratios_per_src_dst_edge = \
-                _aux_mcf_LP_with_smart_nodes_solver(gb_env, net, traffic_matrix_list, constant_spr, smart_nodes, expected_objective - 0.001)
-            print("****** Gurobi Failure ******")
-            expected_objective -= 0.001
-        except Exception as e:
-            return expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge
+    return expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge
 
 
 def create_weighted_traffic_matrices(length, traffic_matrix_list, probability_distribution=None, shuffling: bool = True):
