@@ -102,6 +102,8 @@ if __name__ == "__main__":
 
     if load_agent is not None:
         model = PPO.load(load_agent, envs)
+        logger.info("Iteration 0 Starts, model is loaded...")
+
 
     else:
         assert load_agent is None
@@ -115,26 +117,33 @@ if __name__ == "__main__":
 
 
         model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps)
-    current_smart_nodes = tuple()
-    for iter in range(num_of_iterations):
-        logger.info("Iteration {} Starts, model is learning...".format(iter))
-        env.testing(False)
-        # callback_path = callback_perfix_path + "iteration_{}".format(iter) + ("/" if IS_LINUX else "\\")
-        # checkpoint_callback = CheckpointCallback(save_freq=n_steps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
-        # model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
-        model.learn(total_timesteps=total_timesteps)
 
-        logger.info("Iteration {}, model is predicting...".format(iter))
+        logger.info("Iteration 0 Starts, model is learning...")
+        env.testing(False)
+        callback_path = callback_perfix_path + "iteration_{}".format(0) + ("/" if IS_LINUX else "\\")
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
+        model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
+
+    current_smart_nodes = tuple()
+    for i in range(num_of_iterations):
+        logger.info("Iteration {}, model is predicting...".format(i))
         env.testing(True)
         link_weights, _ = model.predict(env.reset(), deterministic=True)
         traffic_matrix_list = create_weighted_traffic_matrices(tms_sample_size, loaded_dict["tms"])  # create a samples from the tms distribution
         dest_spr = env.get_optimizer.calculating_splitting_ratios(link_weights)
 
-        logger.info("Iteration {}, evaluating smart nodes...".format(iter))
+        logger.info("Iteration {}, evaluating smart nodes...".format(i))
         best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, current_smart_nodes)
-        logger.info("Iteration {}, Chosen smart nodes: {}".format(iter, best_smart_nodes[1]))
+        logger.info("Iteration {}, Chosen smart nodes: {}".format(i, best_smart_nodes[1]))
         current_smart_nodes = best_smart_nodes[1]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
+        total_timesteps /= 2
+        logger.info("Iteration {}, model is learning...".format(i + 1))
+        env.testing(False)
+
+        callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
+        model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
 
     logger.info("Iterations Done!!")
 
