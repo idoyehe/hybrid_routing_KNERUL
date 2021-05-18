@@ -36,7 +36,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
-    parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=10)
+    parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=50)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -137,6 +137,10 @@ if __name__ == "__main__":
         logger.info("Iteration {}, Chosen smart nodes: {}".format(i, best_smart_nodes[1]))
         current_smart_nodes = best_smart_nodes[1]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
+
+        env.get_network.store_network_object(callback_path)
+
+
         total_timesteps /= 2
         logger.info("Iteration {}, model is learning...".format(i + 1))
         env.testing(False)

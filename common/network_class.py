@@ -12,6 +12,7 @@ from common.logger import logger
 import matplotlib.pyplot as plt
 from common.utils import *
 from random import shuffle
+import pickle
 
 
 class NetworkClass:
@@ -288,6 +289,12 @@ class NetworkClass:
             deg_list.append(self.get_node_degree(node))
 
         return deg_list
+
+    def store_network_object(self, file_path):
+        file_path += "{}_object.pkl".format(self.get_name)
+        output = open(file_path, 'wb')
+        pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
+        output.close()
 
 
 if __name__ == "__main__":
