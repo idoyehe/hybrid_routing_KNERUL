@@ -154,6 +154,7 @@ if __name__ == "__main__":
     obs = env.reset()
     rewards_list = list()
     diagnostics = list()
+    link_weights = None
     for _ in range(num_test_observations):
         link_weights, _ = model.predict(env.reset(), deterministic=True)
         _, reward, dones, info = env.step(link_weights)
@@ -164,8 +165,7 @@ if __name__ == "__main__":
     if save_links_weights:
         link_weights_file_name = "{}_links_weights_{}.npy".format(args.dumped_path, num_train_observations)
         link_weights_file = open(link_weights_file_name, 'wb')
-        link_weights_matrix = np.array([step_data["links_weights"] for step_data in diagnostics]).transpose()
-        np.save(link_weights_file, link_weights_matrix)
+        np.save(link_weights_file, link_weights)
         link_weights_file.close()
 
     rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, num_test_observations)
