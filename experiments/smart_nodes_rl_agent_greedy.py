@@ -25,16 +25,19 @@ RL_ENV_SMART_NODES_GYM_ID: str = 'rl-smart_nodes-v0'
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path of the dumped file")
-    parser.add_argument("-arch", "--mlp_architecture", type=str, help="The architecture of the neural network", default="1")
+    parser.add_argument("-arch", "--mlp_architecture", type=str, help="The architecture of the neural network",
+                        default="1")
     parser.add_argument("-gamma", "--gamma", type=float, help="Gamma Value", default=0)
     parser.add_argument("-n_steps", "--number_of_steps", type=int, help="Number of steps per ppo agent", default=100)
     parser.add_argument("-tts", "--total_timesteps", type=str, help="Agent Total timesteps", default="1000")
     parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=0)
-    parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load", default=350)
+    parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
+                        default=350)
     parser.add_argument("-s_weights", "--save_links_weights", type=eval, help="Dump links weights", default=False)
     parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
+    parser.add_argument("-l_net", "--load_network", type=str, help="Load a dumped Network object", default=None)
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
     parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=50)
 
@@ -45,16 +48,23 @@ def _getOptions(args=argv[1:]):
 
 
 def return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, current_smart_nodes):
-    smart_nodes_set = []
+    smart_nodes_set = [current_smart_nodes]
     for node in net.nodes:
         if node in current_smart_nodes:
             continue
         else:
             smart_nodes_set.append(current_smart_nodes + (node,))
     params = [(net, traffic_matrix_list, dest_spr, smart_nodes) for smart_nodes in smart_nodes_set]
+    results = list()
+    stride = 5
+    i = 0
+    while i < len(params):
+        t = min(i + stride, len(params))
+        s = i
+        pool = Pool(processes=t - s)
+        results += pool.starmap(func=matrices_mcf_LP_with_smart_nodes_solver, iterable=params[s:t])
+        i += stride
 
-    pool = Pool(processes=len(smart_nodes_set))
-    results = pool.starmap(func=matrices_mcf_LP_with_smart_nodes_solver, iterable=params)
     return min(results, key=lambda t: t[0])
 
 
@@ -71,40 +81,45 @@ if __name__ == "__main__":
     save_links_weights = args.save_links_weights
     save_model_agent = args.save_model_agent
     load_agent = args.load_agent
+    load_network = args.load_network
     num_of_iterations = args.number_of_iterations
     tms_sample_size = args.tms_sample_size
 
     num_test_observations = min(num_train_observations * 2, 20000)
-
-    callback_perfix_path = '/home/idoye/PycharmProjects/Research_Implementing/experiments/callbacks/' \
-        if IS_LINUX else "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\experiments\\callbacks\\"
 
     logger.info("Data loaded from: {}".format(dumped_path))
     logger.info("Architecture is: {}".format(mlp_arch))
     logger.info("gamma is: {}".format(gamma))
 
     if RL_ENV_SMART_NODES_GYM_ID not in envs.registry.env_specs:
-        register(id=RL_ENV_SMART_NODES_GYM_ID,
-                 # entry_point='rl_env_history:RL_Env_History',
-                 entry_point='RL_smart_nodes:RL_Smart_Nodes',
-                 kwargs={
-                     'max_steps': episode_length,
-                     'history_length': history_length,
-                     'path_dumped': dumped_path,
-                     'num_train_observations': num_train_observations,
-                     'num_test_observations': num_test_observations}
-                 )
+        pass
     envs = make_vec_env(RL_ENV_SMART_NODES_GYM_ID)
     env = envs.envs[0].env
 
     loaded_dict = load_dump_file(dumped_path)
-    net = env.get_network
+    if load_network is None:
+        net: NetworkClass = env.get_network
+    else:
+        net: NetworkClass = NetworkClass.load_network_object(load_network)
+        env.set_network_smart_nodes_and_spr(net.get_smart_nodes,net.get_smart_nodes_spr)
+
+    callback_perfix_path = '/home/idoye/PycharmProjects/Research_Implementing/experiments/{}_callbacks_greedy/'.format(net.get_name) \
+        if IS_LINUX else "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\experiments\\{}_callbacks_greedy\\".format(net.get_name)
+
+    register(id=RL_ENV_SMART_NODES_GYM_ID,
+             # entry_point='rl_env_history:RL_Env_History',
+             entry_point='RL_smart_nodes:RL_Smart_Nodes',
+             kwargs={
+                 'max_steps': episode_length,
+                 'history_length': history_length,
+                 'path_dumped': dumped_path,
+                 'num_train_observations': num_train_observations,
+                 'num_test_observations': num_test_observations}
+             )
 
     if load_agent is not None:
         model = PPO.load(load_agent, envs)
         logger.info("Iteration 0 Starts, model is loaded...")
-
-
     else:
         assert load_agent is None
         policy_kwargs = [{"pi": mlp_arch, "vf": mlp_arch}]
@@ -121,11 +136,13 @@ if __name__ == "__main__":
         logger.info("Iteration 0 Starts, model is learning...")
         env.testing(False)
         callback_path = callback_perfix_path + "iteration_{}".format(0) + ("/" if IS_LINUX else "\\")
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
+                                                 name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
+        env.get_network.store_network_object(callback_path)
 
     current_smart_nodes = tuple()
-    for i in range(num_of_iterations):
+    for i in range(1, num_of_iterations + 1):
         logger.info("Iteration {}, model is predicting...".format(i))
         env.testing(True)
         link_weights, _ = model.predict(env.reset(), deterministic=True)
@@ -138,12 +155,12 @@ if __name__ == "__main__":
         current_smart_nodes = best_smart_nodes[1]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
 
-
-        logger.info("Iteration {}, model is learning...".format(i + 1))
+        logger.info("Iteration {}, model is learning...".format(i))
         env.testing(False)
 
         callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
+                                                 name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
 

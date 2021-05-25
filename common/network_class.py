@@ -296,6 +296,13 @@ class NetworkClass:
         pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
         output.close()
 
+    @staticmethod
+    def load_network_object(file_path):
+        input = open(file_path, 'rb')
+        net = pickle.load(input)
+        input.close()
+        return net
+
 
 if __name__ == "__main__":
     def get_base_graph():
