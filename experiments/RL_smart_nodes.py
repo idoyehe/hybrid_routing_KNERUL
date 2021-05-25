@@ -52,21 +52,14 @@ class RL_Smart_Nodes(RL_Env):
     def _process_action_get_cost(self, links_weights):
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
         optimal_congestion = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]
+        oblivious_congestion = self._oblivious_values[self._current_observation_index][self._tm_start_index + self._history_length]
         total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights, tm, optimal_congestion)
 
-        cost_congestion_ratio = max_congestion / optimal_congestion
+        cost_congestion_ratio = max_congestion / oblivious_congestion
 
-        if cost_congestion_ratio < 1.0:
-            try:
-                assert error_bound(cost_congestion_ratio, optimal_congestion, ERROR_BOUND)
-            except Exception as _:
-                logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
-                            "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion,
-                                                                                optimal_congestion))
-
-        cost_congestion_ratio = max(cost_congestion_ratio, 1.0)
-        logger.debug("Cost  Congestion :{}".format(max_congestion))
-        logger.debug("optimal  Congestion :{}".format(optimal_congestion))
+        logger.debug("optimal Congestion :{}".format(optimal_congestion))
+        logger.debug("Cost Congestion :{}".format(max_congestion))
+        logger.debug("oblivious Congestion :{}".format(oblivious_congestion))
         logger.debug("Congestion Ratio :{}".format(cost_congestion_ratio))
 
         return total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch
