@@ -8,8 +8,6 @@ from common.utils import error_bound, extract_flows
 import numpy as np
 from random import shuffle
 
-R = 10
-
 
 def __validate_splitting_ratios(net_direct, flows, splitting_ratios_per_src_dst_edge):
     for u in net_direct.nodes():
@@ -192,15 +190,18 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
         raise Exception("****Optimize failed****\nException is:\n{}".format(e))
 
     if expected_objective is None:
-        expected_objective = round(mcf_problem.objVal, R)
+        expected_objective = round(mcf_problem.objVal, Consts.ROUND)
 
     if logger.level == logging.DEBUG:
         mcf_problem.printStats()
         mcf_problem.printQuality()
 
-    flows_src_dst_per_edge = extract_lp_values(vars_flows_src_dst_per_edge, R)
-    flows_per_mtrx_src_dst_per_edge = extract_lp_values(vars_flows_per_mtrx_src_dst_per_edge, R)
-    r_per_mtrx = extract_lp_values(vars_r_per_mtrx, R)
+    flows_src_dst_per_edge = extract_lp_values(vars_flows_src_dst_per_edge, Consts.ROUND)
+    flows_per_mtrx_src_dst_per_edge = extract_lp_values(vars_flows_per_mtrx_src_dst_per_edge, Consts.ROUND)
+    for key, value in flows_src_dst_per_edge.items():
+        if flows_src_dst_per_edge[key] < 0:
+            print(key)
+
     mcf_problem.close()
 
     splitting_ratios_per_src_dst_edge = np.empty(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_edges))
