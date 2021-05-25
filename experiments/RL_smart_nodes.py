@@ -55,7 +55,20 @@ class RL_Smart_Nodes(RL_Env):
         oblivious_congestion = self._oblivious_values[self._current_observation_index][self._tm_start_index + self._history_length]
         total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights, tm, optimal_congestion)
 
-        cost_congestion_ratio = max_congestion / oblivious_congestion
+        if self._testing:
+            cost_congestion_ratio = max_congestion / oblivious_congestion
+        else:
+            cost_congestion_ratio = max_congestion / optimal_congestion
+
+            if cost_congestion_ratio < 1.0:
+                try:
+                    assert error_bound(cost_congestion_ratio, optimal_congestion, ERROR_BOUND)
+                except Exception as _:
+                    logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
+                                "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion,
+                                                                                    optimal_congestion))
+
+            cost_congestion_ratio = max(cost_congestion_ratio, 1.0)
 
         logger.debug("optimal Congestion :{}".format(optimal_congestion))
         logger.debug("Cost Congestion :{}".format(max_congestion))
