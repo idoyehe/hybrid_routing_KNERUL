@@ -130,7 +130,6 @@ if __name__ == "__main__":
         model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps)
 
         logger.info("Iteration 0 Starts, model is learning...")
-        env.testing(False)
         callback_path = callback_perfix_path + "iteration_{}".format(0) + ("/" if IS_LINUX else "\\")
         checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
@@ -140,7 +139,7 @@ if __name__ == "__main__":
     current_smart_nodes = tuple()
     for i in range(1, num_of_iterations + 1):
         logger.info("Iteration {}, model is predicting...".format(i))
-        env.testing(True)
+
         link_weights, _ = model.predict(env.reset(), deterministic=True)
         traffic_matrix_list = create_weighted_traffic_matrices(tms_sample_size, loaded_dict["tms"])  # create a samples from the tms distribution
         dest_spr = env.get_optimizer.calculating_splitting_ratios(link_weights)
@@ -152,7 +151,6 @@ if __name__ == "__main__":
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
 
         logger.info("Iteration {}, model is learning...".format(i))
-        env.testing(False)
 
         callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
         checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
@@ -162,6 +160,7 @@ if __name__ == "__main__":
 
     logger.info("Iterations Done!!")
 
+    env.testing(True)
     obs = env.reset()
     rewards_list = list()
     diagnostics = list()
