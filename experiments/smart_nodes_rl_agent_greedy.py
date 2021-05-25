@@ -92,7 +92,16 @@ if __name__ == "__main__":
     logger.info("gamma is: {}".format(gamma))
 
     if RL_ENV_SMART_NODES_GYM_ID not in envs.registry.env_specs:
-        pass
+        register(id=RL_ENV_SMART_NODES_GYM_ID,
+                 # entry_point='rl_env_history:RL_Env_History',
+                 entry_point='RL_smart_nodes:RL_Smart_Nodes',
+                 kwargs={
+                     'max_steps': episode_length,
+                     'history_length': history_length,
+                     'path_dumped': dumped_path,
+                     'num_train_observations': num_train_observations,
+                     'num_test_observations': num_test_observations}
+                 )
     envs = make_vec_env(RL_ENV_SMART_NODES_GYM_ID)
     env = envs.envs[0].env
 
@@ -101,21 +110,10 @@ if __name__ == "__main__":
         net: NetworkClass = env.get_network
     else:
         net: NetworkClass = NetworkClass.load_network_object(load_network)
-        env.set_network_smart_nodes_and_spr(net.get_smart_nodes,net.get_smart_nodes_spr)
+        env.set_network_smart_nodes_and_spr(net.get_smart_nodes, net.get_smart_nodes_spr)
 
     callback_perfix_path = '/home/idoye/PycharmProjects/Research_Implementing/experiments/{}_callbacks_greedy/'.format(net.get_name) \
         if IS_LINUX else "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\experiments\\{}_callbacks_greedy\\".format(net.get_name)
-
-    register(id=RL_ENV_SMART_NODES_GYM_ID,
-             # entry_point='rl_env_history:RL_Env_History',
-             entry_point='RL_smart_nodes:RL_Smart_Nodes',
-             kwargs={
-                 'max_steps': episode_length,
-                 'history_length': history_length,
-                 'path_dumped': dumped_path,
-                 'num_train_observations': num_train_observations,
-                 'num_test_observations': num_test_observations}
-             )
 
     if load_agent is not None:
         model = PPO.load(load_agent, envs)
