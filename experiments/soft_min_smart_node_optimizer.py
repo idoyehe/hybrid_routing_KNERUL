@@ -133,8 +133,8 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
             # Flow conservation at the dst
             __flow_from_dst = sum(flows_vars_src2dest_per_edge[src, dst, dst, v] for _, v in net_direct.out_edges_by_node(dst))
             __flow_to_dst = sum(flows_vars_src2dest_per_edge[src, dst, u, dst] for u, _ in net_direct.in_edges_by_node(dst))
-            mcf_problem.addConstr(__flow_to_dst == tm[src, dst])
-            mcf_problem.addConstr(__flow_from_dst == 0.0)
+            mcf_problem.addLConstr(__flow_to_dst == tm[src, dst])
+            mcf_problem.addLConstr(__flow_from_dst == 0.0)
 
             for u in net_direct.nodes:
                 if u == dst:
@@ -143,9 +143,9 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
                 __flow_from_u = sum(flows_vars_src2dest_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
                 __flow_to_u = sum(flows_vars_src2dest_per_edge[src, dst, v, u] for v, _ in net_direct.in_edges_by_node(u))
                 if u == src:
-                    mcf_problem.addConstr(__flow_from_u == __flow_to_u + tm[src, dst])
+                    mcf_problem.addLConstr(__flow_from_u == __flow_to_u + tm[src, dst])
                 else:
-                    mcf_problem.addConstr(__flow_from_u == __flow_to_u)
+                    mcf_problem.addLConstr(__flow_from_u == __flow_to_u)
 
                 for _u, v in net_direct.out_edges_by_node(u):
                     assert u == _u
@@ -157,7 +157,7 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
                         src_dst_spr = smart_nodes_spr[src, dst, u_v_idx]
                         spr = src_dst_spr if not np.isnan(src_dst_spr) else spr
 
-                    mcf_problem.addConstr(__flow_from_u * spr == flows_vars_src2dest_per_edge[src, dst, u, v])
+                    mcf_problem.addLConstr(__flow_from_u * spr == flows_vars_src2dest_per_edge[src, dst, u, v])
 
             mcf_problem.update()
 

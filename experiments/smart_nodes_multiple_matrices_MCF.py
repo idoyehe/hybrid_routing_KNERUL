@@ -110,7 +110,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
         mcf_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
         mcf_problem.setObjective(total_objective)
     else:
-        mcf_problem.addConstr(total_objective <= expected_objective)
+        mcf_problem.addLConstr(total_objective, GRB.LESS_EQUAL, expected_objective)
     mcf_problem.update()
 
     # extracting s,t flow carried by (u,v) per matrix
@@ -128,14 +128,14 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
             capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
             mtrx_link_load = sum(
                 vars_flows_per_mtrx_src_dst_per_edge[mtrx_idx, src, dst, u, v] for src, dst in flows)
-            mcf_problem.addConstr(mtrx_link_load <= capacity * vars_r_per_mtrx[mtrx_idx])
+            mcf_problem.addLConstr(mtrx_link_load <= capacity * vars_r_per_mtrx[mtrx_idx])
 
     for src, dst in flows:
         # Flow conservation at the dst
         __flow_from_dst = sum(vars_flows_src_dst_per_edge[src, dst, dst, v] for _, v in net_direct.out_edges_by_node(dst))
         __flow_to_dst = sum(vars_flows_src_dst_per_edge[src, dst, u, dst] for u, _ in net_direct.in_edges_by_node(dst))
-        mcf_problem.addConstr(__flow_to_dst == total_demands[src, dst])
-        mcf_problem.addConstr(__flow_from_dst == 0.0)
+        mcf_problem.addLConstr(__flow_to_dst == total_demands[src, dst])
+        mcf_problem.addLConstr(__flow_from_dst == 0.0)
 
         for u in net_direct.nodes:
             if u == dst:
@@ -144,9 +144,9 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
             __flow_from_u = sum(vars_flows_src_dst_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
             __flow_to_u = sum(vars_flows_src_dst_per_edge[src, dst, v, u] for v, _ in net_direct.in_edges_by_node(u))
             if u == src:
-                mcf_problem.addConstr(__flow_from_u == __flow_to_u + total_demands[src, dst])
+                mcf_problem.addLConstr(__flow_from_u == __flow_to_u + total_demands[src, dst])
             else:
-                mcf_problem.addConstr(__flow_from_u == __flow_to_u)
+                mcf_problem.addLConstr(__flow_from_u == __flow_to_u)
 
             for _u, v in net_direct.out_edges_by_node(u):
                 assert u == _u
@@ -154,7 +154,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
                 u_v_idx = net_direct.get_edge2id(u, v)
                 if u not in smart_nodes:
                     spr = constant_spr[dst, u_v_idx]
-                    mcf_problem.addConstr(__flow_from_u * spr == vars_flows_src_dst_per_edge[src, dst, u, v])
+                    mcf_problem.addLConstr(__flow_from_u * spr == vars_flows_src_dst_per_edge[src, dst, u, v])
 
         mcf_problem.update()
 
