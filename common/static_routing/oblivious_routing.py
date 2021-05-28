@@ -1,6 +1,6 @@
 from common.utils import error_bound, load_dump_file
 from common.network_class import NetworkClass
-from common.consts import EdgeConsts
+from common.consts import EdgeConsts, Consts
 from common.logger import *
 from common.topologies import topology_zoo_loader
 from argparse import ArgumentParser
@@ -46,7 +46,8 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
 def oblivious_routing(net: NetworkClass):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, 0)
-    gb_env.setParam(GRB.Param.NumericFocus, 3)
+    gb_env.setParam(GRB.Param.NumericFocus, 2)
+    gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.start()
     prev_obliv_ratio, prev_per_arch_flow_fraction, prev_per_flow_routing_scheme = aux_oblivious_routing(net, gb_env)
     while True:
@@ -88,7 +89,7 @@ def aux_oblivious_routing(net: NetworkClass, gurobi_env, oblivious_ratio=None):
             pi_e_h = pi_edges_dict[_e + _h]
             cap_h = net_directed.get_edge_key(_h, EdgeConsts.CAPACITY_STR)
             _e_h_sum += cap_h * pi_e_h
-        obliv_lp_problem.addConstr(_e_h_sum, GRB.LESS_EQUAL, obliv_ratio, "SUM(cap(h)*pi_e_(h)<=r;{})".format(_e))
+        obliv_lp_problem.addLConstr(_e_h_sum, GRB.LESS_EQUAL, obliv_ratio, "SUM(cap(h)*pi_e_(h)<=r;{})".format(_e))
 
     obliv_lp_problem.setObjectiveN(sum(dict(pi_edges_dict).values()), objective_index)
     objective_index += 1
@@ -112,8 +113,8 @@ def aux_oblivious_routing(net: NetworkClass, gurobi_env, oblivious_ratio=None):
                     pe_edges_dict[_e + (i, j)] = 0
                     f_arch_dict[(i, j) + _e] = 0
                 else:
-                    obliv_lp_problem.addConstr(f_i_j_e, GRB.LESS_EQUAL, _capacity_arch * p_e_i_j,
-                                               "f_ij({})/cap(e)<=p_{}(i,j)".format(_e, _e))
+                    obliv_lp_problem.addLConstr(f_i_j_e, GRB.LESS_EQUAL, _capacity_arch * p_e_i_j,
+                                                "f_ij({})/cap(e)<=p_{}(i,j)".format(_e, _e))
 
     obliv_lp_problem.update()
     obliv_lp_problem.setObjectiveN(sum(dict(pe_edges_dict).values()), objective_index)
@@ -125,9 +126,8 @@ def aux_oblivious_routing(net: NetworkClass, gurobi_env, oblivious_ratio=None):
     for _e in net_directed.edges:
         for i in net_directed.nodes:
             for j, k in net_directed.edges:
-                obliv_lp_problem.addConstr((pi_edges_dict[_e + (j, k)] +
-                                            pe_edges_dict[_e + (i, j)] -
-                                            pe_edges_dict[_e + (i, k)]), GRB.GREATER_EQUAL, 0.0)
+                obliv_lp_problem.addLConstr((pi_edges_dict[_e + (j, k)] +
+                                             pe_edges_dict[_e + (i, j)] - pe_edges_dict[_e + (i, k)]), GRB.GREATER_EQUAL, 0.0)
 
     # flow constrains
     for src, dst in net_directed.get_all_pairs():
@@ -251,7 +251,6 @@ def _sorted_congestion_links(congested_link_histogram):
 
 if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
-    save_path = "/".join(dump_path.split("/")[0:-1]) + "/"
     loaded_dict = load_dump_file(dump_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
     oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(net)
@@ -271,8 +270,3 @@ if __name__ == "__main__":
     congested_link_histogram = 100 * congested_link_histogram / np.sum(congested_link_histogram)
 
     _sorted_congestion_links(congested_link_histogram)
-
-    oblivious_routing_scheme_name = "{}oblivious_total_load.npy".format(save_path)
-    oblivious_routing_scheme_file = open(oblivious_routing_scheme_name, 'wb')
-    np.save(oblivious_routing_scheme_file, total_archs_load)
-    oblivious_routing_scheme_file.close()
