@@ -133,7 +133,7 @@ def _triangle():
     return g
 
 
-def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / SizeConsts.ONE_Mb):
+def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / SizeConsts.ONE_Mb, units=SizeConsts.ONE_Mb):
     CAPACITY_LABEL_DEFAULT: str = "LinkSpeedRaw"
     if url.startswith("http"):
         gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
@@ -150,7 +150,6 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
 
         else:
             raise Exception("Unknown OS")
-
 
         gml_file = open(local_path, "r")
         gml = "".join(gml_file.readlines())
@@ -171,14 +170,13 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
             parsed_g.add_edge(u_of_edge=edge[0], v_of_edge=edge[1])
             parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] = 0
         if CAPACITY_LABEL_DEFAULT in raw_g.edges[raw_edge]:
-            raw_capacity = int(raw_g.edges[raw_edge][CAPACITY_LABEL_DEFAULT]) / SizeConsts.ONE_Mb
+            raw_capacity = int(raw_g.edges[raw_edge][CAPACITY_LABEL_DEFAULT]) / units
         else:
             raw_capacity = default_capacity
         try:
             parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] += raw_capacity
         except Exception as _:
             parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] = raw_capacity
-
 
     parsed_g.graph["Name"] = raw_g.graph["Network"]
     return parsed_g

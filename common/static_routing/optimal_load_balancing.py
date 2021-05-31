@@ -1,4 +1,4 @@
-from common.consts import EdgeConsts
+from common.consts import EdgeConsts,Consts
 from common.utils import extract_flows, error_bound
 from common.network_class import NetworkClass
 from collections import defaultdict
@@ -7,14 +7,11 @@ import numpy as np
 import gurobipy as gb
 from gurobipy import GRB
 
-R = 10
-
-
 def __extract_values(gurobi_vars_dict):
     gurobi_vars_dict = dict(gurobi_vars_dict)
 
     for key in gurobi_vars_dict.keys():
-        gurobi_vars_dict[key] = round(gurobi_vars_dict[key].x, R)
+        gurobi_vars_dict[key] = round(gurobi_vars_dict[key].x, Consts.ROUND)
     return gurobi_vars_dict
 
 
@@ -84,7 +81,7 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
             opt_ratio, necessary_capacity_dict, splitting_ratios_per_src_dst_edge = \
                 aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, opt_ratio)
             print("****** Gurobi Failure ******")
-            opt_ratio -= 0.0001
+            opt_ratio -= 0.001
         except Exception as e:
             return opt_ratio, necessary_capacity_dict, splitting_ratios_per_src_dst_edge
 
@@ -112,20 +109,19 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
 
     opt_lp_problem.update()
 
-    opt_lp_problem.setObjectiveN(sum(dict(vars_flows_src_dst_per_edge).values()), 1)
-
     if opt_ratio_value is None:
-        opt_ratio = opt_lp_problem.addVar(lb=0.0, name="opt_ratio", vtype=GRB.CONTINUOUS)
+        congestion_var = opt_lp_problem.addVar(lb=0.0, name="opt_ratio", vtype=GRB.CONTINUOUS)
 
-        opt_lp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
-        opt_lp_problem.setObjectiveN(opt_ratio, 0, 1)
-        opt_lp_problem.update()
     else:
-        opt_ratio = opt_ratio_value
+        congestion_var = opt_ratio_value
+
+    opt_lp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
+    opt_lp_problem.setObjective(congestion_var + Consts.LP_LOOP_FREE_FACTOR * sum(dict(vars_flows_src_dst_per_edge).values()))
+    opt_lp_problem.update()
 
     for _arch in net_direct.edges:
         _arch_capacity = net_direct.get_edge_key(_arch, key=EdgeConsts.CAPACITY_STR)
-        opt_lp_problem.addConstr(sum(arch_all_vars[_arch]) <= _arch_capacity * opt_ratio)
+        opt_lp_problem.addConstr(sum(arch_all_vars[_arch]) <= _arch_capacity * congestion_var)
 
     opt_lp_problem.update()
 
@@ -161,7 +157,7 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
         raise Exception("Optimize failed due to non-convexity")
 
     if opt_ratio_value is None:
-        opt_ratio = opt_lp_problem.objVal
+        opt_ratio_value = congestion_var.x
 
     if logger.level == logging.DEBUG:
         opt_lp_problem.printStats()
@@ -199,5 +195,5 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
         link_capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
         max_congested_link = max(max_congested_link, necessary_capacity_dict[u, v] / link_capacity)
 
-    assert error_bound(max_congested_link, opt_ratio)
+    assert error_bound(max_congested_link, opt_ratio_value)
     return round(max_congested_link, 4), necessary_capacity_dict, splitting_ratios_per_src_dst_edge

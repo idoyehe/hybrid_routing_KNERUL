@@ -14,6 +14,7 @@ class Consts:
     INCREASE_ACTION = 0
     DECREASE_ACTION = 1
     NAK_ACTION = 2
+    LP_LOOP_FREE_FACTOR = 0.01
 
     SRC_META_POS = 0
     DST_META_POS = 1
