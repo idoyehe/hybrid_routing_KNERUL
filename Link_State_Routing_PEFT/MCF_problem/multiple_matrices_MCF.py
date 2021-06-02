@@ -417,7 +417,7 @@ def __create_weighted_traffic_matrices(length, traffic_matrix_list, probability_
 if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
     loaded_dict = load_dump_file(dump_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
 
     length = 100
     pr = [1 / length] * length

@@ -100,7 +100,7 @@ if __name__ == "__main__":
     options = _getOptions()
     dumped_path = options.dumped_path
     loaded_dict = load_dump_file(dumped_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
     shuffle(loaded_dict["tms"])
 
     l = 2

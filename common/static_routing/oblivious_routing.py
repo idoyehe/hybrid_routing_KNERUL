@@ -252,7 +252,7 @@ def _sorted_congestion_links(congested_link_histogram):
 if __name__ == "__main__":
     dump_path = _getOptions().dumped_path
     loaded_dict = load_dump_file(dump_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
     oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(net)
     print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
 

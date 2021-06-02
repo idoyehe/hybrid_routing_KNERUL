@@ -71,7 +71,7 @@ if __name__ == "__main__":
     dumped_path = args.dumped_path
     k = args.average_k
     loaded_dict = load_dump_file(dumped_path)
-    net = NetworkClass(topology_zoo_loader(loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
     n = args.number_of_matrices
     assert n <= len(loaded_dict["tms"])
     shuffle(loaded_dict["tms"])

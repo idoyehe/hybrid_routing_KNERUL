@@ -133,7 +133,7 @@ def _triangle():
     return g
 
 
-def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / SizeConsts.ONE_Mb, units=SizeConsts.ONE_Mb):
+def topology_zoo_loader(url: str, units=SizeConsts.ONE_Mb):
     CAPACITY_LABEL_DEFAULT: str = "LinkSpeedRaw"
     if url.startswith("http"):
         gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
@@ -172,7 +172,7 @@ def topology_zoo_loader(url: str, default_capacity: int = SizeConsts.ONE_Gb / Si
         if CAPACITY_LABEL_DEFAULT in raw_g.edges[raw_edge]:
             raw_capacity = int(raw_g.edges[raw_edge][CAPACITY_LABEL_DEFAULT]) / units
         else:
-            raw_capacity = default_capacity
+            raise Exception("No Raw Capacity label")
         try:
             parsed_g.edges[edge][EdgeConsts.CAPACITY_STR] += raw_capacity
         except Exception as _:

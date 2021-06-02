@@ -14,7 +14,6 @@ import pickle
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
     parser.add_argument("-topo", "--topology_url", type=str, help="The url to load graph topology from")
-    parser.add_argument("-cap", "--default_capacity", type=float, help="The capacity for each edge")
     parser.add_argument("-obliv", "--oblivious", type=eval, help="Run Oblivious as baseline", default=False)
     parser.add_argument("-n", "--total_matrices", type=int, help="The number of total matrices", default=20000)
     parser.add_argument("-sp", "--sparsity", type=float, help="The sparsity of the matrix", default=0.3)
@@ -28,7 +27,7 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matrix_sparsity: float, tm_type,
+def _dump_tms_and_opt(net: NetworkClass, matrix_sparsity: float, tm_type,
                       oblivious_routing_per_edge, oblivious_routing_per_flow,
                       static_pairs: bool, elephant_percentage: float, network_elephant, network_mice,
                       total_matrices: int):
@@ -47,7 +46,6 @@ def _dump_tms_and_opt(net: NetworkClass, default_capacity: float, url: str, matr
             "per_edge": oblivious_routing_per_edge,
             "per_flow": oblivious_routing_per_flow
         },
-        "capacity": default_capacity,
         "tms_sparsity": matrix_sparsity,
         "tms_type": tm_type, }
 
@@ -107,7 +105,7 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
 
 if __name__ == "__main__":
     args = _getOptions()
-    net = NetworkClass(topology_zoo_loader(args.topology_url, default_capacity=args.default_capacity))
+    net = NetworkClass(topology_zoo_loader(args.topology_url))
 
     oblivious_routing_per_edge = None
     oblivious_routing_per_flow = None
@@ -116,7 +114,7 @@ if __name__ == "__main__":
         oblivious_ratio, oblivious_routing_per_edge, oblivious_routing_per_flow = oblivious_routing(net)
         print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
 
-    filename: str = _dump_tms_and_opt(net=net, default_capacity=args.default_capacity, url=args.topology_url,
+    filename: str = _dump_tms_and_opt(net=net, url=args.topology_url,
                                       matrix_sparsity=args.sparsity,
                                       tm_type=args.tm_type,
                                       oblivious_routing_per_edge=oblivious_routing_per_edge,
