@@ -27,11 +27,9 @@ class RL_Env(Env):
         self._episode_len = max_steps
 
         loaded_dict = load_dump_file(file_name=path_dumped)
-        self._network = NetworkClass(
-            topology_zoo_loader(url=loaded_dict["url"], default_capacity=loaded_dict["capacity"]))
+        self._network = NetworkClass(topology_zoo_loader(url=loaded_dict["url"]))
         self._tms = loaded_dict["tms"]
         self._tm_type = loaded_dict["tms_type"]
-        self._tm_sparsity = loaded_dict["tms_sparsity"]  # percentage of participating pairs, assumed to be a list
         if "oblivious_routing" in loaded_dict.keys():
             self._oblivious_routing_per_edge = loaded_dict["oblivious_routing"]["per_edge"]
             self._oblivious_routing_per_flow = loaded_dict["oblivious_routing"]["per_flow"]
