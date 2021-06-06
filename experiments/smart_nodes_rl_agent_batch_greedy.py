@@ -39,7 +39,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
     parser.add_argument("-l_net", "--load_network", type=str, help="Load a dumped Network object", default=None)
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
-    parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=50)
+    parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=100)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
