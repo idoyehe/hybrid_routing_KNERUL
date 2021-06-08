@@ -13,6 +13,7 @@ from experiments.smart_nodes_multiple_matrices_MCF import *
 from multiprocessing import Pool
 import torch
 import numpy as np
+from functools import partial
 
 IS_LINUX = system() == "Linux"
 
@@ -40,6 +41,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-l_net", "--load_network", type=str, help="Load a dumped Network object", default=None)
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
     parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=50)
+    parser.add_argument("-s_nodes", "--smart_nodes", type=int, help="Number of smart nodes", default=1)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -47,25 +49,25 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, current_smart_nodes):
-    smart_nodes_set = [current_smart_nodes]
-    for node in net.nodes:
-        if node in current_smart_nodes:
-            continue
-        else:
-            smart_nodes_set.append(current_smart_nodes + (node,))
-    params = [(net, traffic_matrix_list, dest_spr, smart_nodes) for smart_nodes in smart_nodes_set]
-    results = list()
-    stride = 5
-    i = 0
-    while i < len(params):
-        t = min(i + stride, len(params))
-        s = i
-        pool = Pool(processes=t - s)
-        results += pool.starmap(func=matrices_mcf_LP_with_smart_nodes_solver, iterable=params[s:t])
-        i += stride
+def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_spr, s_nodes):
+    matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net, traffic_matrix_list=traffic_matrix_list,
+                                                              destination_based_spr=destination_based_spr)
+    smart_nodes_set = tuple()
+    best_util = np.inf
+    best_spr = None
+    b = None
 
-    return min(results, key=lambda t: t[0])
+    while len(smart_nodes_set) < s_nodes:
+        for s_n in net.nodes:
+            if s_n in smart_nodes_set:
+                continue
+            expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge = matrices_mcf_LP_with_smart_nodes_solver_wrapper(smart_nodes_set + (s_n,))
+            if expected_objective < best_util:
+                b = smart_nodes
+                best_util = expected_objective
+                best_spr = splitting_ratios_per_src_dst_edge
+        smart_nodes_set = b
+    return best_util, smart_nodes_set, best_spr
 
 
 if __name__ == "__main__":
@@ -84,6 +86,7 @@ if __name__ == "__main__":
     load_network = args.load_network
     num_of_iterations = args.number_of_iterations
     tms_sample_size = args.tms_sample_size
+    smart_nodes = args.smart_nodes
 
     num_test_observations = min(num_train_observations * 2, 20000)
 
@@ -143,10 +146,10 @@ if __name__ == "__main__":
         logger.info("Iteration {}, model is predicting...".format(i))
         link_weights, _ = model.predict(env.reset(), deterministic=True)
         traffic_matrix_list = create_weighted_traffic_matrices(tms_sample_size, loaded_dict["tms"])  # create a samples from the tms distribution
-        dest_spr = env.get_optimizer.calculating_splitting_ratios(link_weights)
+        dest_spr = env.get_optimizer.calculating_destination_based_spr(link_weights)
 
         logger.info("Iteration {}, evaluating smart nodes...".format(i))
-        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, current_smart_nodes)
+        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes)
         logger.info("Iteration {}, Chosen smart nodes: {}".format(i, best_smart_nodes[1]))
         current_smart_nodes = best_smart_nodes[1]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
