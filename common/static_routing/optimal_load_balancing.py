@@ -1,4 +1,4 @@
-from common.consts import EdgeConsts,Consts
+from common.consts import EdgeConsts, Consts
 from common.utils import extract_flows, error_bound
 from common.network_class import NetworkClass
 from collections import defaultdict
@@ -6,6 +6,7 @@ from common.logger import *
 import numpy as np
 import gurobipy as gb
 from gurobipy import GRB
+
 
 def __extract_values(gurobi_vars_dict):
     gurobi_vars_dict = dict(gurobi_vars_dict)
@@ -20,8 +21,8 @@ def __validate_splitting_ratios(net_direct, flows, splitting_ratios_per_src_dst_
         if len(net_direct.out_edges_by_node(u)) == 0:
             continue
         for src, dst in flows:
-            splitting_ratios_per_src_dst_u_list = [splitting_ratios_per_src_dst_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u)]
-            if all(spt is None for spt in splitting_ratios_per_src_dst_u_list):
+            splitting_ratios_per_src_dst_u_list = [splitting_ratios_per_src_dst_edge[src, dst, net_direct.get_edge2id(u, v)] for _, v in net_direct.out_edges_by_node(u)]
+            if all(np.isnan(spt) for spt in splitting_ratios_per_src_dst_u_list):
                 continue
             elif all(spt >= 0 for spt in splitting_ratios_per_src_dst_u_list):
                 assert error_bound(sum(splitting_ratios_per_src_dst_u_list), 1.0)
@@ -41,7 +42,7 @@ def __validate_flows(net_direct, tm, flows_per_edge_src_dst, splitting_ratios_pe
                 assert error_bound(to_src)
 
                 for _, v in net_direct.out_edges_by_node(u):
-                    assert error_bound(flows_per_edge_src_dst[src, dst, u, v], from_src * splitting_ratios_per_src_dst_edge[src, dst, u, v])
+                    assert error_bound(flows_per_edge_src_dst[src, dst, u, v], from_src * splitting_ratios_per_src_dst_edge[src, dst, net_direct.get_edge2id(u, v)])
 
             elif u == dst:
                 from_dst = sum(flows_per_edge_src_dst[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
@@ -57,7 +58,7 @@ def __validate_flows(net_direct, tm, flows_per_edge_src_dst, splitting_ratios_pe
                 assert error_bound(to_transit_u, from_transit_u)
                 if from_transit_u > 0:
                     for _, v in net_direct.out_edges_by_node(u):
-                        assert error_bound(flows_per_edge_src_dst[src, dst, u, v], from_transit_u * splitting_ratios_per_src_dst_edge[src, dst, u, v])
+                        assert error_bound(flows_per_edge_src_dst[src, dst, u, v], from_transit_u * splitting_ratios_per_src_dst_edge[src, dst, net_direct.get_edge2id(u, v)])
 
     for key, value in flows_per_edge_src_dst.items():
         if (key[0], key[1]) not in current_flows:
@@ -73,7 +74,7 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, 0)
     gb_env.setParam(GRB.Param.NumericFocus, 3)
-    gb_env.setParam(GRB.Param.FeasibilityTol, 1e-9)
+    gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.start()
     opt_ratio, necessary_capacity_dict, splitting_ratios_per_src_dst_edge = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env)
     while True:
@@ -104,24 +105,25 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
         assert traffic_matrix[flow] > 0
         for _arch in net_direct.edges:
             g_var = vars_flows_src_dst_per_edge[flow + _arch]
-            opt_lp_problem.addConstr(g_var <= traffic_matrix[flow])
+            opt_lp_problem.addLConstr(g_var, GRB.LESS_EQUAL, traffic_matrix[flow])
             arch_all_vars[_arch].append(g_var)
 
     opt_lp_problem.update()
 
     if opt_ratio_value is None:
         congestion_var = opt_lp_problem.addVar(lb=0.0, name="opt_ratio", vtype=GRB.CONTINUOUS)
+        opt_lp_problem.setObjectiveN(congestion_var, index=1, priority=2)
 
     else:
         congestion_var = opt_ratio_value
 
     opt_lp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
-    opt_lp_problem.setObjective(congestion_var + Consts.LP_LOOP_FREE_FACTOR * sum(dict(vars_flows_src_dst_per_edge).values()))
+    opt_lp_problem.setObjectiveN(vars_flows_src_dst_per_edge.sum(), index=2, priority=1)
     opt_lp_problem.update()
 
     for _arch in net_direct.edges:
         _arch_capacity = net_direct.get_edge_key(_arch, key=EdgeConsts.CAPACITY_STR)
-        opt_lp_problem.addConstr(sum(arch_all_vars[_arch]) <= _arch_capacity * congestion_var)
+        opt_lp_problem.addLConstr(sum(arch_all_vars[_arch]), GRB.LESS_EQUAL, _arch_capacity * congestion_var)
 
     opt_lp_problem.update()
 
@@ -130,14 +132,14 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
         # Flow conservation at the source
         from_its_src = sum(vars_flows_src_dst_per_edge[flow + out_arch] for out_arch in net_direct.out_edges_by_node(src))
         to_its_src = sum(vars_flows_src_dst_per_edge[flow + in_arch] for in_arch in net_direct.in_edges_by_node(src))
-        opt_lp_problem.addConstr(from_its_src == traffic_matrix[flow])
-        opt_lp_problem.addConstr(to_its_src == 0)
+        opt_lp_problem.addLConstr(from_its_src, GRB.EQUAL, traffic_matrix[flow])
+        opt_lp_problem.addLConstr(to_its_src, GRB.EQUAL, 0)
 
         # Flow conservation at the destination
         from_its_dst = sum(vars_flows_src_dst_per_edge[flow + out_arch] for out_arch in net_direct.out_edges_by_node(dst))
         to_its_dst = sum(vars_flows_src_dst_per_edge[flow + in_arch] for in_arch in net_direct.in_edges_by_node(dst))
-        opt_lp_problem.addConstr(to_its_dst == traffic_matrix[flow])
-        opt_lp_problem.addConstr(from_its_dst == 0)
+        opt_lp_problem.addLConstr(to_its_dst, GRB.EQUAL, traffic_matrix[flow])
+        opt_lp_problem.addLConstr(from_its_dst, GRB.EQUAL, 0)
 
         for u in net_direct.nodes:
             if u in flow:
@@ -145,7 +147,7 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
             # Flow conservation at transit node
             from_some_u = sum(vars_flows_src_dst_per_edge[flow + out_arch] for out_arch in net_direct.out_edges_by_node(u))
             to_some_u = sum(vars_flows_src_dst_per_edge[flow + in_arch] for in_arch in net_direct.in_edges_by_node(u))
-            opt_lp_problem.addConstr(from_some_u == to_some_u)
+            opt_lp_problem.addLConstr(from_some_u, GRB.EQUAL, to_some_u)
         opt_lp_problem.update()
 
     try:
@@ -167,7 +169,8 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
     del vars_flows_src_dst_per_edge
     opt_lp_problem.close()
 
-    splitting_ratios_per_src_dst_edge = dict()
+    splitting_ratios_per_src_dst_edge = np.empty(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_edges))
+    splitting_ratios_per_src_dst_edge.fill(np.nan)
     for u in net_direct.nodes:
         if len(net_direct.out_edges_by_node(u)) == 0:
             continue
@@ -175,13 +178,9 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
             flow_from_u_to_dst = sum(flows_src_dst_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
             if flow_from_u_to_dst > 0:
                 for _, v in net_direct.out_edges_by_node(u):
-                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = flows_src_dst_per_edge[src, dst, u, v] / flow_from_u_to_dst
-                    assert splitting_ratios_per_src_dst_edge[src, dst, u, v] >= 0
-
-            else:
-                for _, v in net_direct.out_edges_by_node(u):
-                    splitting_ratios_per_src_dst_edge[src, dst, u, v] = 1 / len(net_direct.out_edges_by_node(u))
-                    assert splitting_ratios_per_src_dst_edge[src, dst, u, v] >= 0
+                    edge_id = net_direct.get_edge2id(u, v)
+                    splitting_ratios_per_src_dst_edge[src, dst, edge_id] = flows_src_dst_per_edge[src, dst, u, v] / flow_from_u_to_dst
+                    assert 0 <= splitting_ratios_per_src_dst_edge[src, dst, edge_id] <= 1.0
 
     __validate_solution(net_direct, flows, traffic_matrix, splitting_ratios_per_src_dst_edge, flows_src_dst_per_edge)
 
@@ -196,4 +195,4 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
         max_congested_link = max(max_congested_link, necessary_capacity_dict[u, v] / link_capacity)
 
     assert error_bound(max_congested_link, opt_ratio_value)
-    return round(max_congested_link, 4), necessary_capacity_dict, splitting_ratios_per_src_dst_edge
+    return round(max_congested_link, Consts.ROUND), necessary_capacity_dict, splitting_ratios_per_src_dst_edge

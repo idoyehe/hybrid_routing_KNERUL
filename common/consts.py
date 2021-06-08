@@ -8,13 +8,13 @@ Created on 6 Feb 2017
 class Consts:
     ACTION_OBLIVIOUS_PATH = 1
     ACTION_FLOW_PATH = 2
-    ZERO = 1e-5
-    FEASIBILITY_TOL = 1e-7
+    ZERO = 1e-2
+    ERROR_BOUND = 1e-3
+    FEASIBILITY_TOL = 1e-9
     ROUND = 4
     INCREASE_ACTION = 0
     DECREASE_ACTION = 1
     NAK_ACTION = 2
-    LP_LOOP_FREE_FACTOR = 0.01
 
     SRC_META_POS = 0
     DST_META_POS = 1

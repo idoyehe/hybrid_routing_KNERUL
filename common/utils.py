@@ -27,8 +27,8 @@ def extract_flows(traffic_matrix):
     return list(map(lambda f: tuple(f), dstack(where(traffic_matrix > 0.0))[0]))
 
 
-def error_bound(x, y=0, ERROR_BOUND=Consts.ZERO):
-    return abs(x - y) <= ERROR_BOUND
+def error_bound(x, y=0, error_bound=Consts.ERROR_BOUND):
+    return abs(x - y) <= error_bound
 
 
 def load_dump_file(file_name: str):
