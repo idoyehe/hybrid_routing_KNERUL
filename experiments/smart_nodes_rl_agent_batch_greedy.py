@@ -175,12 +175,12 @@ if __name__ == "__main__":
         rewards_list.append(reward * -1)
 
     if save_links_weights:
-        link_weights_file_name = "{}_links_weights_{}.npy".format(callback_perfix_path, num_train_observations)
+        link_weights_file_name = "{}links_weights_{}.npy".format(callback_perfix_path, num_train_observations)
         link_weights_file = open(link_weights_file_name, 'wb')
         np.save(link_weights_file, link_weights)
         link_weights_file.close()
 
-    rewards_file_name = "{}_agent_rewards_{}.npy".format(callback_perfix_path, num_test_observations)
+    rewards_file_name = "{}agent_rewards_{}.npy".format(callback_perfix_path, num_test_observations)
     rewards_file = open(rewards_file_name, 'wb')
     rewards_list = np.array(rewards_list)
     np.save(rewards_file, rewards_list)
