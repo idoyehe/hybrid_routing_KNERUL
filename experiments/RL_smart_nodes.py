@@ -90,3 +90,4 @@ class RL_Smart_Nodes(RL_Env):
     def set_network_smart_nodes_and_spr(self, smart_nodes, smart_nodes_spr):
         self._network.set_smart_nodes(smart_nodes)
         self._network.set__smart_nodes_spr(smart_nodes_spr)
+        self._optimizer = SoftMinSmartNodesOptimizer(self._network, testing=self._testing)
