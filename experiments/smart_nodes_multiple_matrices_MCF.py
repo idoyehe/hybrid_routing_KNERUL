@@ -78,7 +78,7 @@ def __validate_solution(net_direct, flows, traffic_matrix_list, splitting_ratios
 
 
 def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
-                                        traffic_matrices_list, constant_spr, smart_nodes,
+                                        traffic_matrices_list, destination_based_spr, smart_nodes,
                                         expected_objective=None):
     """Preparation"""
     mcf_problem = gb.Model(name="MCF problem for mean MCF, given network, TM list and probabilities",
@@ -147,7 +147,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
                 del _u
                 u_v_idx = net_direct.get_edge2id(u, v)
                 if u not in smart_nodes:  # route by given destination routing
-                    spr = constant_spr[dst, u_v_idx]
+                    spr = destination_based_spr[dst, u_v_idx]
                     mcf_problem.addLConstr(__flow_from_u * spr, GRB.EQUAL, vars_flows_src_dst_per_edge[src, dst, u, v])
 
         mcf_problem.update()
@@ -215,7 +215,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
     return expected_objective, splitting_ratios_per_src_dst_edge
 
 
-def matrices_mcf_LP_with_smart_nodes_solver(net: NetworkClass, traffic_matrix_list, constant_spr, smart_nodes):
+def matrices_mcf_LP_with_smart_nodes_solver(net: NetworkClass, traffic_matrix_list, destination_based_spr, smart_nodes):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, 0)
     gb_env.setParam(GRB.Param.NumericFocus, 3)
@@ -223,7 +223,7 @@ def matrices_mcf_LP_with_smart_nodes_solver(net: NetworkClass, traffic_matrix_li
     gb_env.start()
 
     expected_objective, splitting_ratios_per_src_dst_edge = \
-        _aux_mcf_LP_with_smart_nodes_solver(gb_env, net, traffic_matrix_list, constant_spr, smart_nodes)
+        _aux_mcf_LP_with_smart_nodes_solver(gb_env, net, traffic_matrix_list, destination_based_spr, smart_nodes)
     return expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge
 
 
