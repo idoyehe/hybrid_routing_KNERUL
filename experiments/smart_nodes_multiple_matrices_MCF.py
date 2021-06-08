@@ -184,7 +184,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
         raise Exception("****Optimize failed****\nException is:\n{}".format(e))
 
     if expected_objective is None:
-        expected_objective = round(mcf_problem.objVal, Consts.ROUND)
+        expected_objective = round(sum(tm_prb * vars_r_per_mtrx[m_idx].X for m_idx, (tm_prb, _) in enumerate(traffic_matrices_list)), Consts.ROUND)
 
     if logger.level == logging.DEBUG:
         mcf_problem.printStats()
@@ -215,7 +215,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
     return expected_objective, splitting_ratios_per_src_dst_edge
 
 
-def matrices_mcf_LP_with_smart_nodes_solver(net: NetworkClass, traffic_matrix_list, destination_based_spr, smart_nodes):
+def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traffic_matrix_list, destination_based_spr):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, 0)
     gb_env.setParam(GRB.Param.NumericFocus, 3)
