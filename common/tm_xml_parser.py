@@ -79,6 +79,8 @@ if __name__ == "__main__":
     oblivious_ratio, oblivious_routing_per_edge, oblivious_routing_per_flow = oblivious_routing(net)
     print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
 
+
+
     tm_list = __parsing_single_directory(net, dir_path)
     tms = _generate_traffic_matrix_baseline(net, tm_list, oblivious_routing_per_edge)
 
@@ -91,8 +93,8 @@ if __name__ == "__main__":
         },
         "tms_type": "database", }
 
-    folder_name: str = os.getcwd() + "\\TMs_DB\\{}".format(net.get_name)
-    file_name: str = os.getcwd() + "\\TMs_DB\\{}\\{}_tms_{}X{}_length_{}_database".format(net.get_name,
+    folder_name: str = os.getcwd() + "/TMs_DB/{}".format(net.get_name)
+    file_name: str = os.getcwd() + "/TMs_DB/{}/{}_tms_{}X{}_length_{}_database".format(net.get_name,
                                                                                           net.get_name,
                                                                                           net.get_num_nodes,
                                                                                           net.get_num_nodes,
