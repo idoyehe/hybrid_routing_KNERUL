@@ -57,7 +57,7 @@ def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
     best_spr = None
     b = None
 
-    while len(smart_nodes_set) < s_nodes:
+    for _ in range(s_nodes):
         for s_n in net.nodes:
             if s_n in smart_nodes_set:
                 continue
