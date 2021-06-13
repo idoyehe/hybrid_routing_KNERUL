@@ -101,11 +101,12 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
     total_objective = sum(tm_prb * vars_r_per_mtrx[m_idx] for m_idx, (tm_prb, _) in enumerate(traffic_matrices_list))
 
     if expected_objective is None:
-        mcf_problem.setObjectiveN(total_objective, index=1, priority=2)
+        # mcf_problem.setObjectiveN(total_objective, index=1, priority=2)
+        mcf_problem.setObjective(total_objective)
     else:
         mcf_problem.addLConstr(total_objective, GRB.LESS_EQUAL, expected_objective)
 
-    mcf_problem.setObjectiveN(vars_flows_src_dst_per_edge.sum(), index=2, priority=1)
+    # mcf_problem.setObjectiveN(vars_flows_src_dst_per_edge.sum(), index=2, priority=1)
     mcf_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
     mcf_problem.update()
 
