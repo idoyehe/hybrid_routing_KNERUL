@@ -57,6 +57,7 @@ class RL_Smart_Nodes(RL_Env):
 
         if self._testing:
             cost_congestion_ratio = max_congestion / (oblivious_congestion * optimal_congestion)
+            # cost_congestion_ratio = max_congestion
         else:
             cost_congestion_ratio = max_congestion / optimal_congestion
 
