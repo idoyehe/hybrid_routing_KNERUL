@@ -28,6 +28,7 @@ class RL_Env(Env):
 
         loaded_dict = load_dump_file(file_name=path_dumped)
         self._network = NetworkClass(topology_zoo_loader(url=loaded_dict["url"]))
+        # self._network = NetworkClass(topology_zoo_loader(url=loaded_dict["url"],units=SizeConsts.ONE_Kb))
         self._tms = loaded_dict["tms"]
         self._tm_type = loaded_dict["tms_type"]
         if "oblivious_routing" in loaded_dict.keys():
