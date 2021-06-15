@@ -54,7 +54,7 @@ def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
         if len(net.out_edges_by_node(n)) > 1:
             nodes_set.append(n)
 
-    smart_nodes_set = find_nodes_subsets(nodes_set, nodes_set)
+    smart_nodes_set = find_nodes_subsets(nodes_set, s_nodes)
     smart_nodes_set.append(tuple())
     matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net, traffic_matrix_list=traffic_matrix_list,
                                                               destination_based_spr=destination_based_spr)
