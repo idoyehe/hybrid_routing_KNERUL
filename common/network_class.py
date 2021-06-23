@@ -15,7 +15,7 @@ from random import shuffle
 import pickle
 
 
-class NetworkClass:
+class NetworkClass(object):
 
     def __init__(self, topo):
         logger.info("Creating Network Class")
@@ -234,8 +234,8 @@ class NetworkClass:
     def print_network(self):
         g = self.get_graph
         pos = nx.spring_layout(g)
-        edge_labels = dict([((u, v,), d[EdgeConsts.CAPACITY_STR]) for u, v, d in g.edges(data=True)])
-        nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels)
+        # edge_labels = dict([((u, v,), d[EdgeConsts.CAPACITY_STR]) for u, v, d in g.edges(data=True)])
+        # nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels)
         values = [node for node in g.nodes()]
         nx.draw(g, pos, node_color=values, with_labels=True)
         plt.show()

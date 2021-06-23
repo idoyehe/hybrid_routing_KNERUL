@@ -34,7 +34,8 @@ def __validate_flow_per_matrix(net_direct, tm, flows_per_edge_src_dst, splitting
                 to_src = sum(flows_per_edge_src_dst[src, dst, v, u] for v, _ in net_direct.in_edges_by_node(u))
                 assert error_bound(from_src, to_src + tm[src, dst])
                 for _, v in net_direct.out_edges_by_node(u):
-                    assert error_bound(flows_per_edge_src_dst[src, dst, u, v], from_src * splitting_ratios_per_src_dst_edge[src, dst, net_direct.get_edge2id(u, v)])
+                    assert error_bound(flows_per_edge_src_dst[src, dst, u, v],
+                                       from_src * splitting_ratios_per_src_dst_edge[src, dst, net_direct.get_edge2id(u, v)])
 
             elif u == dst:
                 from_dst = sum(flows_per_edge_src_dst[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
@@ -50,7 +51,8 @@ def __validate_flow_per_matrix(net_direct, tm, flows_per_edge_src_dst, splitting
                 assert error_bound(to_transit_u, from_transit_u)
                 if from_transit_u > 0:
                     for _, v in net_direct.out_edges_by_node(u):
-                        assert error_bound(flows_per_edge_src_dst[src, dst, u, v], from_transit_u * splitting_ratios_per_src_dst_edge[src, dst, net_direct.get_edge2id(u, v)])
+                        assert error_bound(flows_per_edge_src_dst[src, dst, u, v],
+                                           from_transit_u * splitting_ratios_per_src_dst_edge[src, dst, net_direct.get_edge2id(u, v)])
 
     for key, value in flows_per_edge_src_dst.items():
         if (key[0], key[1]) not in current_flows:
@@ -92,7 +94,8 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
 
     vars_flows_src_dst_per_edge = mcf_problem.addVars(flows, net_direct.edges, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
 
-    vars_flows_per_mtrx_src_dst_per_edge = mcf_problem.addVars(traffic_matrices_list_length, flows, net_direct.edges, name="f_m", lb=0.0, vtype=GRB.CONTINUOUS)
+    vars_flows_per_mtrx_src_dst_per_edge = mcf_problem.addVars(traffic_matrices_list_length, flows, net_direct.edges, name="f_m", lb=0.0,
+                                                               vtype=GRB.CONTINUOUS)
 
     vars_r_per_mtrx = mcf_problem.addVars(traffic_matrices_list_length, name="r", lb=0.0, vtype=GRB.CONTINUOUS)
 
@@ -117,7 +120,8 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
             demand_ratio = tm[src, dst] / total_demands[src, dst]
             assert 0 <= demand_ratio <= 1
             for u, v in net_direct.edges:
-                mcf_problem.addLConstr(vars_flows_per_mtrx_src_dst_per_edge[mtrx_idx, src, dst, u, v], GRB.EQUAL, demand_ratio * vars_flows_src_dst_per_edge[src, dst, u, v])
+                mcf_problem.addLConstr(vars_flows_per_mtrx_src_dst_per_edge[mtrx_idx, src, dst, u, v], GRB.EQUAL,
+                                       demand_ratio * vars_flows_src_dst_per_edge[src, dst, u, v])
 
     for mtrx_idx in range(traffic_matrices_list_length):
         for u, v in net_direct.edges:
@@ -213,7 +217,12 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
 
     __validate_solution(net_direct, flows, traffic_matrices_list, splitting_ratios_per_src_dst_edge, flows_per_mtrx_src_dst_per_edge)
 
-    return expected_objective, splitting_ratios_per_src_dst_edge
+    in_node_traffic = np.zeros(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_nodes))
+    for u in net_direct.nodes:
+        for src, dst in flows:
+            in_node_traffic[u, src, dst] += sum(flows_src_dst_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
+
+    return expected_objective, splitting_ratios_per_src_dst_edge, in_node_traffic
 
 
 def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traffic_matrix_list, destination_based_spr):
@@ -223,9 +232,9 @@ def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traf
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.start()
 
-    expected_objective, splitting_ratios_per_src_dst_edge = \
+    expected_objective, splitting_ratios_per_src_dst_edge, in_node_traffic = \
         _aux_mcf_LP_with_smart_nodes_solver(gb_env, net, traffic_matrix_list, destination_based_spr, smart_nodes)
-    return expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge
+    return expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge, in_node_traffic
 
 
 def create_weighted_traffic_matrices(length, traffic_matrix_list, probability_distribution=None, shuffling: bool = True):
