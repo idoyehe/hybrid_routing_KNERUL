@@ -43,7 +43,7 @@ def __const_generation(_, pairs, const_value):
 def __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs=False, elephant_percentage=0.2, big=400,
                   small=150):
     if flow_generation_type == TMType.CONST:
-        const_value = np.mean(graph.get_edges_capacities()) / 2
+        const_value = np.mean(graph.get_edges_capacities()) / 10
         get_flows = partial(__const_generation, const_value=const_value)
     elif flow_generation_type == TMType.BIMODAL:
         get_flows = partial(__bimodal_generation, percent=elephant_percentage, big=big, small=small)
