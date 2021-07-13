@@ -41,6 +41,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
     parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Batch Size", default=200)
     parser.add_argument("-s_nodes", "--smart_nodes", type=int, help="Number of smart nodes", default=1)
+    parser.add_argument("-prcs", "--processes", type=int, help="Number of Processes", default=2)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -48,7 +49,7 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_spr, s_nodes):
+def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_spr, s_nodes, processes):
     nodes_set = list()
     for n in net.nodes:
         if len(net.out_edges_by_node(n)) > 1:
@@ -59,13 +60,17 @@ def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
     matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net, traffic_matrix_list=traffic_matrix_list,
                                                               destination_based_spr=destination_based_spr)
     results = list()
-    stride = 5
+    stride = processes
     i = 0
     while i < len(smart_nodes_set):
-        t = min(i + stride, len(smart_nodes_set))
-        s = i
-        pool = Pool(processes=t - s)
-        results += pool.map(func=matrices_mcf_LP_with_smart_nodes_solver_wrapper, iterable=smart_nodes_set[s:t])
+        if stride > 1:
+            t = min(i + stride, len(smart_nodes_set))
+            s = i
+            pool = Pool(processes=t - s)
+            results += pool.map(func=matrices_mcf_LP_with_smart_nodes_solver_wrapper, iterable=smart_nodes_set[s:t])
+        else:
+            assert stride == 1
+            results.append(matrices_mcf_LP_with_smart_nodes_solver_wrapper(smart_nodes_set[i]))
         i += stride
 
     return min(results, key=lambda t: t[0])
@@ -88,6 +93,7 @@ if __name__ == "__main__":
     num_of_iterations = args.number_of_iterations
     tms_sample_size = args.tms_sample_size
     smart_nodes = args.smart_nodes
+    processes = args.processes
 
     num_test_observations = min(num_train_observations * 2, 20000)
 
@@ -153,7 +159,7 @@ if __name__ == "__main__":
         dest_spr = env.get_optimizer.calculating_destination_based_spr(link_weights)
 
         logger.info("Iteration {}, evaluating smart nodes...".format(i))
-        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes)
+        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes, processes)
         logger.info("Iteration {}, Chosen smart nodes: {}".format(i, best_smart_nodes[1]))
         current_smart_nodes = best_smart_nodes[1]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
