@@ -1,4 +1,5 @@
 graph [
+  Network "ScaleFree28Nodes"
   node [
     id 0
     label "0"
