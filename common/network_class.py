@@ -38,10 +38,11 @@ class NetworkClass(object):
         self._capacity_map = None
         self._total_capacity = 0
         self._flows = None
+        self._title = None
         self._chosen_pairs = None
         self._smart_nodes: list = []
         self._smart_nodes_spr: dict = None
-        print("Network {} has been created".format(self.get_name))
+        print("Network {} has been created".format(self.get_title))
 
     def _set_adjacency(self):
         logger.debug("Set adjacent node indicators")
@@ -70,10 +71,13 @@ class NetworkClass(object):
         return self.get_graph.nodes
 
     @property
-    def get_name(self):
-        if "Name" in self.get_graph.graph:
+    def get_title(self):
+        if self._title is None and "Name" in self.get_graph.graph:
             return self.get_graph.graph["Name"]
-        return ""
+        return self._title
+
+    def set_title(self, title):
+        self._title = title
 
     def get_edges_capacities(self):
         if self._capacities is None:  # for happens only once

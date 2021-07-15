@@ -1,3 +1,5 @@
+import os
+
 import networkx as nx
 from common.consts import EdgeConsts
 import urllib.request
@@ -182,9 +184,12 @@ def topology_zoo_loader(url: str, units=SizeConsts.ONE_Mb):
     return parsed_g
 
 
-def store_graph(graph):
-    file_path = "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/graphs_gmls/{}.txt".format(
-        graph.name)
+def store_graph(graph, title):
+    from platform import system
+    if system() == "Linux":
+        file_path = "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/graphs_gmls/{}.txt".format(title)
+    else:
+        file_path = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\graphs_gmls\\{}.txt".format(title)
     nx.write_gml(graph, file_path)
 
 
@@ -194,7 +199,7 @@ def create_random_connected_graph(nodes, edge_prob, seed, LinkSpeedRaw):
     if nx.is_connected(graph):
         for edge in graph.edges:
             graph.edges[edge]["LinkSpeedRaw"] = LinkSpeedRaw
-        store_graph(graph)
+        store_graph(graph, graph.name)
 
         return
     else:
