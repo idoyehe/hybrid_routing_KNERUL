@@ -122,8 +122,8 @@ if __name__ == "__main__":
         net: NetworkClass = NetworkClass.load_network_object(load_network)
         env.set_network_smart_nodes_and_spr(net.get_smart_nodes, net.get_smart_nodes_spr)
 
-    callback_perfix_path = '/home/idoye/PycharmProjects/Research_Implementing/experiments/{}_callbacks_batch/'.format(net.get_name) \
-        if IS_LINUX else "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\experiments\\{}_callbacks_batch\\".format(net.get_name)
+    callback_perfix_path = '/home/idoye/PycharmProjects/Research_Implementing/experiments/{}_callbacks_batch/'.format(net.get_title) \
+        if IS_LINUX else "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\experiments\\{}_callbacks_batch\\".format(net.get_title)
 
     if load_agent is not None:
         model = PPO.load(load_agent, envs)

@@ -254,7 +254,7 @@ if __name__ == "__main__":
     loaded_dict = load_dump_file(dump_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
     oblivious_ratio, oblivious_routing_per_edge, per_flow_routing_scheme = oblivious_routing(net)
-    print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
+    print("The oblivious ratio for {} is {}".format(net.get_title, oblivious_ratio))
 
     traffic_matrix_list = loaded_dict["tms"]
 

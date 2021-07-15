@@ -295,7 +295,7 @@ class NetworkClass(object):
         return deg_list
 
     def store_network_object(self, file_path):
-        file_path += "{}_object.pkl".format(self.get_name)
+        file_path += "{}_object.pkl".format(self.get_title)
         output = open(file_path, 'wb')
         pickle.dump(self, output, pickle.HIGHEST_PROTOCOL)
         output.close()

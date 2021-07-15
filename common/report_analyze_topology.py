@@ -52,7 +52,7 @@ if __name__ == "__main__":
     dumped_path = args.dumped_path
     loaded_dict = load_dump_file(dumped_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
-    print("Topology Name: {}".format(net.get_name))
+    print("Topology Name: {}".format(net.get_title))
     print("Number of Nodes: {}".format(net.get_num_nodes))
     print("Number of Edges: {}".format(net.get_num_edges))
     print("Maximum of degree: {}".format(get_max_degree(net)))

@@ -37,7 +37,7 @@ class RL_Env(Env):
         else:
             self._oblivious_routing_per_edge = self._oblivious_routing_per_flow = None
         self._network = self._network
-        self._g_name = self._network.get_name
+        self._g_name = self._network.get_title
         self._num_nodes = self._network.get_num_nodes
         self._num_edges = self._network.get_num_edges
         self._tm_start_index = 0

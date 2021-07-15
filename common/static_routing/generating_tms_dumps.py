@@ -49,9 +49,9 @@ def _dump_tms_and_opt(net: NetworkClass,url, matrix_sparsity: float, tm_type,
         "tms_sparsity": matrix_sparsity,
         "tms_type": tm_type, }
 
-    folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_name)
-    file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_name,
-                                                                                                    net.get_name,
+    folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_title)
+    file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_title,
+                                                                                                    net.get_title,
                                                                                                     net.get_num_nodes,
                                                                                                     net.get_num_nodes,
                                                                                                     total_matrices,
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
     if args.oblivious:
         oblivious_ratio, oblivious_routing_per_edge, oblivious_routing_per_flow = oblivious_routing(net)
-        print("The oblivious ratio for {} is {}".format(net.get_name, oblivious_ratio))
+        print("The oblivious ratio for {} is {}".format(net.get_title, oblivious_ratio))
 
     filename: str = _dump_tms_and_opt(net=net, url=args.topology_url,
                                       matrix_sparsity=args.sparsity,
