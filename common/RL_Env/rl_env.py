@@ -2,6 +2,7 @@
 Created on 14 Oct 2020
 @author: Ido Yehezkel
 """
+import numpy as np
 from gym import Env, spaces
 from common.network_class import *
 from common.RL_Env.rl_env_consts import HistoryConsts, ExtraData
@@ -66,7 +67,7 @@ class RL_Env(Env):
 
     def _set_observation_space(self):
         if self._none_history:
-            self._observation_space = spaces.Discrete(1)
+            self._observation_space = spaces.Box(low=0.0, high=np.inf, shape=(self._num_nodes, self._num_nodes))
         else:
             self._observation_space = spaces.Box(low=0.0, high=np.inf, shape=(self._history_length, self._num_nodes, self._num_nodes))
 
@@ -153,13 +154,16 @@ class RL_Env(Env):
         self._testing = _testing
         self.set_data_source()
 
-    def _get_observation(self):
+    def _get_observation(self, by_env_reset: bool = False):
         if self._none_history:
-            return self._observation_space.sample()
+            if by_env_reset:
+                self._current_history = np.zeros(shape=(self._num_nodes, self._num_nodes))
+            else:
+                self._current_history = self._observations_tms[self._current_observation_index][0]
         else:
             self._current_history = np.stack(
                 self._observations_tms[self._current_observation_index][self._tm_start_index:self._tm_start_index + self._history_length])
-            return self._current_history
+        return self._current_history
 
     def render(self, mode='human'):
         pass
@@ -167,7 +171,7 @@ class RL_Env(Env):
     def reset(self):
         self._tm_start_index = 0
         self._current_observation_index = (self._current_observation_index + 1) % self._observations_length
-        return self._get_observation()
+        return self._get_observation(True)
 
     def step(self, action):
         pass
