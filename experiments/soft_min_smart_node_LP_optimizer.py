@@ -2,10 +2,7 @@
 Created on 13 May 2021
 @author:: Ido Yehezkel
 """
-import numpy as np
-
 from common.RL_Env.rl_env_consts import HistoryConsts
-from common.static_routing.oblivious_routing import calculate_congestion_per_matrices, oblivious_routing
 from common.RL_Env.optimizer_abstract import *
 from common.utils import extract_flows, extract_lp_values
 

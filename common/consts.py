@@ -10,7 +10,8 @@ class Consts:
     ACTION_FLOW_PATH = 2
     ZERO = 1e-2
     ERROR_BOUND = 1e-3
-    FEASIBILITY_TOL = 1e-9
+    FEASIBILITY_TOL = 1e-6
+    NumericFocus = 2
     PREC_DEMAND = 0.99999
     MAX_ITER = 500
     ROUND = 4
