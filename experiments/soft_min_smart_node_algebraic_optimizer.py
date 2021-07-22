@@ -96,10 +96,11 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
                 for u, v in net_direct.out_edges_by_node(node):
                     assert u == node
                     u_v_idx = net_direct.get_edge2id(u, v)
+                    src_dst_spr = np.nan
                     if node in smart_nodes_set:
                         src_dst_spr = smart_nodes_spr[src, dst, u_v_idx]
-                        if not np.isnan(src_dst_spr):
-                            src_dst_splitting_ratios[(src, dst)][u, v] = src_dst_spr
+                    if not np.isnan(src_dst_spr):
+                        src_dst_splitting_ratios[(src, dst)][u, v] = src_dst_spr
                     else:
                         src_dst_splitting_ratios[(src, dst)][u, v] = dst_splitting_ratios[dst][u_v_idx]
 
@@ -158,7 +159,14 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
             for node in net_direct.nodes:
                 _flow_to_node = sum(flows_src2dest_per_node[src, dst][u] * current_spr[u, v] if u != dst else 0 for u, v in
                                     net_direct.in_edges_by_node(node))
+                _flow_from_node = sum(flows_src2dest_per_node[src, dst][u] * current_spr[u, v] if u != dst else 0 for u, v in
+                                    net_direct.out_edges_by_node(node))
+
                 if node == src:
                     assert error_bound(flows_src2dest_per_node[src, dst][node], _flow_to_node + tm[src, dst])
+                    assert error_bound(flows_src2dest_per_node[src, dst][node], _flow_from_node)
+                elif node == dst:
+                    assert error_bound(_flow_from_node,0)
                 else:
                     assert error_bound(flows_src2dest_per_node[src, dst][node], _flow_to_node)
+                    assert error_bound(_flow_from_node, _flow_to_node)
