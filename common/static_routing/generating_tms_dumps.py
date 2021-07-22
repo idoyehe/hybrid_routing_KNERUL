@@ -106,7 +106,7 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
 
 if __name__ == "__main__":
     args = _getOptions()
-    net = NetworkClass(topology_zoo_loader(args.topology_url,SizeConsts.ONE_Gb))
+    net = NetworkClass(topology_zoo_loader(args.topology_url))
 
     oblivious_routing_per_edge = None
     oblivious_routing_per_flow = None

@@ -135,7 +135,7 @@ def _triangle():
     return g
 
 
-def topology_zoo_loader(url: str, units=SizeConsts.ONE_Gb):
+def topology_zoo_loader(url: str, units=SizeConsts.ONE_Mb):
     CAPACITY_LABEL_DEFAULT: str = "LinkSpeedRaw"
     if url.startswith("http"):
         gml = urllib.request.urlopen(str(url)).read().decode("utf-8")
