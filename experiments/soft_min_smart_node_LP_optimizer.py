@@ -19,7 +19,6 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         """
         rl_max_congestion, rl_most_congested_link, rl_total_congestion, \
         rl_total_congestion_per_link, rl_total_load_per_link = self._get_cost_given_weights(weights_vector, traffic_matrix, optimal_value)
-        self._get_cost_given_weights(weights_vector, traffic_matrix, optimal_value)
 
         return rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, rl_total_load_per_link
 
