@@ -47,46 +47,23 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
             error_bound(1.0, sum(exp_val[net_direct.get_edge2id(u, v)] for _, v in net_direct.out_edges_by_node(u)))
         return exp_val
 
-    @staticmethod
-    def __validate_flow(net_direct: NetworkClass, tm, flows_vars_src2dest_per_edge, all_splitting_ratios):
-        splitting_ratios, smart_nodes_spr = all_splitting_ratios
+    def _get_cost_given_weights(self, weights_vector, tm, optimal_value):
         flows = extract_flows(tm)
-        smart_nodes = net_direct.get_smart_nodes
+        src_dst_splitting_ratios = self.calculating_src_dst_spr(weights_vector, flows)
 
-        for src, dst in flows:
-            # Flow conservation at the dst
-            __flow_from_dst = sum(flows_vars_src2dest_per_edge[src, dst, dst, v] for _, v in net_direct.out_edges_by_node(dst))
-            __flow_to_dst = sum(flows_vars_src2dest_per_edge[src, dst, u, dst] for u, _ in net_direct.in_edges_by_node(dst))
-            error_bound(__flow_to_dst, tm[src, dst])
-            error_bound(__flow_from_dst)
+        rl_max_congestion, rl_most_congested_link, rl_total_congestion, \
+        rl_total_congestion_per_link, rl_total_load_per_link = self._calculating_traffic_distribution(src_dst_splitting_ratios, tm)
+        if self._testing:
+            logger.info("RL most congested link: {}".format(rl_most_congested_link))
+            logger.info("RL MLU: {}".format(rl_max_congestion))
+            logger.info("RL MLU Vs. Optimal: {}".format(optimal_value))
 
-            for u in net_direct.nodes:
-                if u == dst:
-                    continue
-                # Flow conservation at src / transit node
-                __flow_from_u = sum(flows_vars_src2dest_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
-                __flow_to_u = sum(flows_vars_src2dest_per_edge[src, dst, v, u] for v, _ in net_direct.in_edges_by_node(u))
-                if u == src:
-                    error_bound(__flow_from_u, __flow_to_u + tm[src, dst])
-                else:
-                    error_bound(__flow_from_u, __flow_to_u)
-
-                for _u, v in net_direct.out_edges_by_node(u):
-                    assert u == _u
-                    del _u
-                    u_v_idx = net_direct.get_edge2id(u, v)
-
-                    spr = splitting_ratios[dst, u_v_idx]  # default assignments
-                    if u in smart_nodes:
-                        src_dst_spr = smart_nodes_spr[src, dst, u_v_idx]
-                        spr = src_dst_spr if not np.isnan(src_dst_spr) else spr
-                    error_bound(__flow_from_u * spr, flows_vars_src2dest_per_edge[src, dst, u, v])
+        return rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, rl_total_load_per_link
 
     def calculating_destination_based_spr(self, weights_vector):
         logger.debug("Calculating hop by hop splitting ratios")
         net_direct = self._network
-
-        splitting_ratios = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
+        dst_splitting_ratios = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
         one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
 
         reduced_directed_graph = nx.DiGraph()
@@ -99,25 +76,29 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
             cost_adj = [cost_adj[i] for i in net_direct.nodes]
             edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
             q_val = self._soft_min(edge_cost)
-            splitting_ratios[node_dst] = q_val
-        return splitting_ratios
+            dst_splitting_ratios[node_dst] = q_val
+        return dst_splitting_ratios
 
-    def _get_cost_given_weights(self, weights_vector, tm, optimal_value):
-        destination_based_spr = self.calculating_destination_based_spr(weights_vector)
-
-        rl_max_congestion, rl_most_congested_link, rl_total_congestion, \
-        rl_total_congestion_per_link, rl_total_load_per_link = self._calculating_traffic_distribution(destination_based_spr, tm)
-
-        if self._testing:
-            logger.info("RL most congested link: {}".format(rl_most_congested_link))
-            logger.info("RL MLU: {}".format(rl_max_congestion))
-
-        return rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, rl_total_load_per_link
-
-    def _calculating_traffic_distribution(self, destination_based_spr, tm):
+    def calculating_src_dst_spr(self, weights_vector, flows):
+        logger.debug("Calculating hop by hop splitting ratios")
         net_direct = self._network
-        smart_nodes = net_direct.get_smart_nodes
         smart_nodes_spr = net_direct.get_smart_nodes_spr
+
+        src_dst_splitting_ratios = dict()
+        dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
+        for src, dst in flows:
+            src_dst_splitting_ratios[(src, dst)] = np.copy(dst_splitting_ratios[dst])
+            for s_n in net_direct.get_smart_nodes:
+                for _, v in net_direct.out_edges_by_node(s_n):
+                    u_v_idx = net_direct.get_edge2id(s_n, v)
+                    src_dst_spr = smart_nodes_spr[src, dst, u_v_idx]
+                    if not np.isnan(src_dst_spr):
+                        src_dst_splitting_ratios[(src, dst)][u_v_idx] = src_dst_spr
+
+        return src_dst_splitting_ratios
+
+    def _calculating_traffic_distribution(self, src_dst_splitting_ratios, tm):
+        net_direct = self._network
 
         self._initialize_gurobi_env()
         self.gb_env.start()
@@ -125,39 +106,20 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         mcf_problem = gb.Model(name="LP problem for flows, given network, traffic matrix and splitting_ratios", env=self.gb_env)
         flows = extract_flows(tm)
 
-        flows_vars_src2dest_per_edge = mcf_problem.addVars(flows, net_direct.edges, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
-        mcf_problem.setObjective(flows_vars_src2dest_per_edge.sum(), sense=GRB.MINIMIZE)
+        flows_vars_src2dest_per_node = mcf_problem.addVars(flows, net_direct.nodes, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
+        mcf_problem.update()
 
         for src, dst in flows:
-            # Flow conservation at the dst
-            __flow_from_dst = sum(flows_vars_src2dest_per_edge[src, dst, dst, v] for _, v in net_direct.out_edges_by_node(dst))
-            __flow_to_dst = sum(flows_vars_src2dest_per_edge[src, dst, u, dst] for u, _ in net_direct.in_edges_by_node(dst))
-            mcf_problem.addLConstr(__flow_to_dst, GRB.EQUAL, tm[src, dst])
-            mcf_problem.addLConstr(__flow_from_dst, GRB.EQUAL, 0.0)
-
-            for u in net_direct.nodes:
-                if u == dst:
-                    continue
-                # Flow conservation at src / transit node
-                __flow_from_u = sum(flows_vars_src2dest_per_edge[src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
-                __flow_to_u = sum(flows_vars_src2dest_per_edge[src, dst, v, u] for v, _ in net_direct.in_edges_by_node(u))
-                if u == src:
-                    mcf_problem.addLConstr(__flow_from_u, GRB.EQUAL, __flow_to_u + tm[src, dst])
+            current_spr = src_dst_splitting_ratios[src, dst]
+            mcf_problem.addLConstr(flows_vars_src2dest_per_node[src, dst, dst], GRB.EQUAL, tm[src, dst])  # Flow conservation at the dst
+            for node in net_direct.nodes:
+                _flow_to_node = sum(
+                    flows_vars_src2dest_per_node[src, dst, u] * current_spr[net_direct.get_edge2id(u, v)] if u != dst else 0 for u, v in
+                    net_direct.in_edges_by_node(node))
+                if node == src:
+                    mcf_problem.addLConstr(_flow_to_node + tm[src, dst], GRB.EQUAL, flows_vars_src2dest_per_node[src, dst, node])
                 else:
-                    mcf_problem.addLConstr(__flow_from_u, GRB.EQUAL, __flow_to_u)
-
-                for _u, v in net_direct.out_edges_by_node(u):
-                    assert u == _u
-                    del _u
-                    u_v_idx = net_direct.get_edge2id(u, v)
-
-                    spr = destination_based_spr[dst, u_v_idx]  # default assignments
-                    if u in smart_nodes:
-                        src_dst_spr = smart_nodes_spr[src, dst, u_v_idx]
-                        spr = src_dst_spr if not np.isnan(src_dst_spr) else spr
-
-                    mcf_problem.addLConstr(__flow_from_u * spr, GRB.EQUAL, flows_vars_src2dest_per_edge[src, dst, u, v])
-
+                    mcf_problem.addLConstr(_flow_to_node, GRB.EQUAL, flows_vars_src2dest_per_node[src, dst, node])
             mcf_problem.update()
 
         try:
@@ -179,19 +141,6 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
             mcf_problem.feasRelaxS(0, False, False, True)
             mcf_problem.optimize()
 
-            if mcf_problem.Status != GRB.OPTIMAL:
-                tm_file_name = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\tm.npy"
-                tm_file = open(tm_file_name, 'wb')
-                np.save(tm_file, tm)
-                tm_file.close()
-
-                sr_file_name = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\sr.npy"
-                sr_file = open(sr_file_name, 'wb')
-                np.save(sr_file, destination_based_spr)
-                sr_file.close()
-                logger.info('Model is infeasible {}'.format(mcf_problem.Status))
-                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(mcf_problem.Status))
-
             assert logger.level == logging.DEBUG
             slacks = mcf_problem.getVars()[orignumvars:]
             for sv in slacks:
@@ -207,17 +156,18 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
             mcf_problem.printStats()
             mcf_problem.printQuality()
 
-        flows_vars_src2dest_per_edge = extract_lp_values(flows_vars_src2dest_per_edge)
+        flows_src2dest_per_node = extract_lp_values(flows_vars_src2dest_per_node)
         mcf_problem.close()
         self.gb_env.close()
 
-        self.__validate_flow(net_direct, tm, flows_vars_src2dest_per_edge, (destination_based_spr, smart_nodes_spr))
+        self.__validate_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
 
         flows_vars_per_edge_dict = dict()
         total_load_per_link = np.zeros((net_direct.get_num_edges), dtype=np.float64)
 
         for u, v in net_direct.edges:
-            flows_vars_per_edge_dict[(u, v)] = sum(flows_vars_src2dest_per_edge[(src, dst, u, v)] for src, dst in flows)
+            flows_vars_per_edge_dict[(u, v)] = sum(
+                flows_src2dest_per_node[(src, dst, u)] * src_dst_splitting_ratios[src, dst][net_direct.get_edge2id(u, v)] for src, dst in flows)
             edge_index = net_direct.get_edge2id(u, v)
             total_load_per_link[edge_index] = flows_vars_per_edge_dict[(u, v)]
 
@@ -229,99 +179,17 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
 
         return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
 
-    # def step_tms(self, weights_vector_list, traffic_matrix_list):
-    #     destination_based_spr_list = list()
-    #     for w in weights_vector_list:
-    #         destination_based_spr_list.append(self.calculating_destination_based_spr(w))
-    #
-    #     return self._calculating_traffic_distribution_tms(destination_based_spr_list, traffic_matrix_list)
-    #
-    # def _calculating_traffic_distribution_tms(self, destination_based_spr_list, traffic_matrix_list):
-    #     net_direct = self._network
-    #     smart_nodes = net_direct.get_smart_nodes
-    #     smart_nodes_spr = net_direct.get_smart_nodes_spr
-    #
-    #     self._initialize_gurobi_env()
-    #     self.gb_env.start()
-    #
-    #     mcf_problem = gb.Model(name="LP problem for flows, given network, traffic matrix and splitting_ratios", env=self.gb_env)
-    #     flows_list = [extract_flows(tm) for tm in traffic_matrix_list]
-    #
-    #     flows_vars_src2dest_per_edge_list = list()
-    #     for flows in flows_list:
-    #         flows_vars_src2dest_per_edge = mcf_problem.addVars(flows, net_direct.edges, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
-    #         # mcf_problem.setObjective(flows_vars_src2dest_per_edge.sum(), sense=GRB.MINIMIZE)
-    #         flows_vars_src2dest_per_edge_list.append(flows_vars_src2dest_per_edge)
-    #
-    #     for i, flows in enumerate(flows_list):
-    #         for src, dst in flows:
-    #             # Flow conservation at the dst
-    #             __flow_from_dst = sum(flows_vars_src2dest_per_edge_list[i][src, dst, dst, v] for _, v in net_direct.out_edges_by_node(dst))
-    #             __flow_to_dst = sum(flows_vars_src2dest_per_edge_list[i][src, dst, u, dst] for u, _ in net_direct.in_edges_by_node(dst))
-    #             mcf_problem.addLConstr(__flow_to_dst, GRB.EQUAL, traffic_matrix_list[i][src, dst])
-    #             mcf_problem.addLConstr(__flow_from_dst, GRB.EQUAL, 0.0)
-    #
-    #             for u in net_direct.nodes:
-    #                 if u == dst:
-    #                     continue
-    #                 # Flow conservation at src / transit node
-    #                 __flow_from_u = sum(flows_vars_src2dest_per_edge_list[i][src, dst, u, v] for _, v in net_direct.out_edges_by_node(u))
-    #                 __flow_to_u = sum(flows_vars_src2dest_per_edge_list[i][src, dst, v, u] for v, _ in net_direct.in_edges_by_node(u))
-    #                 if u == src:
-    #                     mcf_problem.addLConstr(__flow_from_u, GRB.EQUAL, __flow_to_u + traffic_matrix_list[i][src, dst])
-    #                 else:
-    #                     mcf_problem.addLConstr(__flow_from_u, GRB.EQUAL, __flow_to_u)
-    #
-    #                 for _u, v in net_direct.out_edges_by_node(u):
-    #                     assert u == _u
-    #                     del _u
-    #                     u_v_idx = net_direct.get_edge2id(u, v)
-    #
-    #                     spr = destination_based_spr_list[i][dst, u_v_idx]  # default assignments
-    #                     if u in smart_nodes:
-    #                         src_dst_spr = smart_nodes_spr[src, dst, u_v_idx]
-    #                         spr = src_dst_spr if not np.isnan(src_dst_spr) else spr
-    #
-    #                     mcf_problem.addLConstr(__flow_from_u * spr, GRB.EQUAL, flows_vars_src2dest_per_edge_list[i][src, dst, u, v])
-    #
-    #             mcf_problem.update()
-    #
-    #     try:
-    #         logger.debug("LP Submit to Solve {}".format(mcf_problem.ModelName))
-    #         mcf_problem.optimize()
-    #         assert mcf_problem.Status == GRB.OPTIMAL
-    #     except AssertionError as e:
-    #         logger_level = logger.level
-    #         logger.setLevel(logging.DEBUG)
-    #         if mcf_problem.Status == GRB.UNBOUNDED:
-    #             logger.debug('The model cannot be solved because it is unbounded')
-    #             raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(mcf_problem.Status))
-    #
-    #         if mcf_problem.Status != GRB.INF_OR_UNBD and mcf_problem.Status != GRB.INFEASIBLE:
-    #             logger.debug('Optimization was stopped with status {}'.format(mcf_problem.Status))
-    #             raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(mcf_problem.Status))
-    #
-    #         orignumvars = mcf_problem.NumVars
-    #         mcf_problem.feasRelaxS(0, False, False, True)
-    #         mcf_problem.optimize()
-    #
-    #         assert logger.level == logging.DEBUG
-    #         slacks = mcf_problem.getVars()[orignumvars:]
-    #         for sv in slacks:
-    #             if sv.X > Consts.FEASIBILITY_TOL:
-    #                 logger.debug('Slack value:{} = {}'.format(sv.VarName, sv.X))
-    #
-    #         logger.setLevel(logger_level)
-    #
-    #     except gb.GurobiError as e:
-    #         raise Exception("****Optimize failed****\nException is:\n{}".format(e))
-    #
-    #     if logger.level == logging.DEBUG:
-    #         mcf_problem.printStats()
-    #         mcf_problem.printQuality()
-    #
-    #     flows_vars_src2dest_per_edge_list = list()
-    #     for flows_vars_src2dest_per_edge in flows_vars_src2dest_per_edge_list:
-    #         flows_vars_src2dest_per_edge_list.append(extract_lp_values(flows_vars_src2dest_per_edge))
-    #     mcf_problem.close()
-    #     self.gb_env.close()
+    @staticmethod
+    def __validate_flow(net_direct: NetworkClass, tm, flows_src2dest_per_node, src_dst_splitting_ratios):
+        flows = extract_flows(tm)
+        for src, dst in flows:
+            current_spr = src_dst_splitting_ratios[src, dst]
+            assert flows_src2dest_per_node[src, dst, src] >= tm[src, dst]
+            assert error_bound(flows_src2dest_per_node[src, dst, dst], tm[src, dst])
+            for node in net_direct.nodes:
+                _flow_to_node = sum(flows_src2dest_per_node[src, dst, u] * current_spr[net_direct.get_edge2id(u, v)] if u != dst else 0 for u, v in
+                                    net_direct.in_edges_by_node(node))
+                if node == src:
+                    assert error_bound(flows_src2dest_per_node[src, dst, node], _flow_to_node + tm[src, dst])
+                else:
+                    assert error_bound(flows_src2dest_per_node[src, dst, node], _flow_to_node)
