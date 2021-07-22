@@ -3,7 +3,7 @@ import numpy as np
 from common.RL_Env.rl_env import *
 from common.utils import error_bound
 from common.RL_Env.optimizer_abstract import Optimizer_Abstract
-from experiments.soft_min_smart_node_optimizer import SoftMinSmartNodesOptimizer
+from experiments.soft_min_smart_node_algebraic_optimizer import SoftMinSmartNodesOptimizer
 
 
 class RL_Smart_Nodes(RL_Env):
