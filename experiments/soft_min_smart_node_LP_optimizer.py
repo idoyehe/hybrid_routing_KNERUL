@@ -161,14 +161,12 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
 
         self.__validate_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
 
-        flows_vars_per_edge_dict = dict()
         total_load_per_link = np.zeros((net_direct.get_num_edges), dtype=np.float64)
 
         for u, v in net_direct.edges:
-            flows_vars_per_edge_dict[(u, v)] = sum(
-                flows_src2dest_per_node[(src, dst, u)] * src_dst_splitting_ratios[src, dst][net_direct.get_edge2id(u, v)] for src, dst in flows)
             edge_index = net_direct.get_edge2id(u, v)
-            total_load_per_link[edge_index] = flows_vars_per_edge_dict[(u, v)]
+            total_load_per_link[edge_index] = sum(
+                flows_src2dest_per_node[(src, dst)][u] * src_dst_splitting_ratios[src, dst][u, v] if u != dst else 0 for src, dst in flows)
 
         total_congestion_per_link = total_load_per_link / self._edges_capacities
 

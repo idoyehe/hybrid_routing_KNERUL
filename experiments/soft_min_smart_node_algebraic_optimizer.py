@@ -134,12 +134,12 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
 
         self.__validate_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
 
-        total_load_per_link = np.zeros((net_direct.get_num_edges), dtype=np.float64)
+        total_load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
 
         for u, v in net_direct.edges:
             edge_index = net_direct.get_edge2id(u, v)
             total_load_per_link[edge_index] = sum(
-                flows_src2dest_per_node[(src, dst)][u] * src_dst_splitting_ratios[src, dst][u, v] for src, dst in flows)
+                flows_src2dest_per_node[(src, dst)][u] * src_dst_splitting_ratios[src, dst][u, v] if u != dst else 0 for src, dst in flows)
 
         total_congestion_per_link = total_load_per_link / self._edges_capacities
 
@@ -155,18 +155,19 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         for src, dst in flows:
             current_spr = src_dst_splitting_ratios[src, dst]
             assert flows_src2dest_per_node[src, dst][src] >= tm[src, dst]
-            assert error_bound(flows_src2dest_per_node[src, dst][dst], tm[src, dst])
+            assert flows_src2dest_per_node[src, dst][dst] == tm[src, dst]
             for node in net_direct.nodes:
                 _flow_to_node = sum(flows_src2dest_per_node[src, dst][u] * current_spr[u, v] if u != dst else 0 for u, v in
                                     net_direct.in_edges_by_node(node))
                 _flow_from_node = sum(flows_src2dest_per_node[src, dst][u] * current_spr[u, v] if u != dst else 0 for u, v in
-                                    net_direct.out_edges_by_node(node))
+                                      net_direct.out_edges_by_node(node))
 
                 if node == src:
                     assert error_bound(flows_src2dest_per_node[src, dst][node], _flow_to_node + tm[src, dst])
                     assert error_bound(flows_src2dest_per_node[src, dst][node], _flow_from_node)
                 elif node == dst:
-                    assert error_bound(_flow_from_node,0)
+                    assert error_bound(_flow_to_node, tm[src, dst])
+                    assert error_bound(_flow_from_node, 0)
                 else:
                     assert error_bound(flows_src2dest_per_node[src, dst][node], _flow_to_node)
                     assert error_bound(_flow_from_node, _flow_to_node)
