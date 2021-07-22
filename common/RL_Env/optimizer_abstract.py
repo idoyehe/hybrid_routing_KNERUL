@@ -25,7 +25,7 @@ class Optimizer_Abstract(object):
     def _initialize_gurobi_env(self):
         self.gb_env = gb.Env(empty=True)
         self.gb_env.setParam(GRB.Param.OutputFlag, 0)
-        self.gb_env.setParam(GRB.Param.NumericFocus, 2)
+        self.gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
         self.gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
 
     def _initialize(self):

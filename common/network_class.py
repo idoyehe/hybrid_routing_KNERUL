@@ -72,8 +72,8 @@ class NetworkClass(object):
 
     @property
     def get_title(self):
-        if self._title is None and "Name" in self.get_graph.graph:
-            return self.get_graph.graph["Name"]
+        if (not hasattr(self, "_title") or self._title is None) and "Name" in self.get_graph.graph:
+            self._title = self.get_graph.graph["Name"]
         return self._title
 
     def set_title(self, title):
