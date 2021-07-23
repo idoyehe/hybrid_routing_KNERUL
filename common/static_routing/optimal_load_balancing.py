@@ -38,7 +38,7 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
             print("****** Gurobi Failure ******")
             opt_ratio -= 0.001
         except Exception as e:
-            return opt_ratio, necessary_capacity
+            return np.round(opt_ratio, Consts.ROUND), necessary_capacity
 
 
 def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, gurobi_env, opt_ratio_value=None):
@@ -52,13 +52,13 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
 
     if opt_ratio_value is None:
         congestion_objective = opt_lp_problem.addVar(lb=0.0, name="opt_ratio", vtype=GRB.CONTINUOUS)
-        opt_lp_problem.setObjectiveN(congestion_objective, index=1, priority=2)
+        opt_lp_problem.setObjectiveN(congestion_objective, index=1, priority=10,weight=1.0)
 
     else:
         congestion_objective = opt_ratio_value
 
     opt_lp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
-    opt_lp_problem.setObjectiveN(vars_flows_dests_per_edge.sum(), index=2, priority=1)
+    opt_lp_problem.setObjectiveN(vars_flows_dests_per_edge.sum(), index=2, priority=5,weight=1.0)
     opt_lp_problem.update()
 
     for u, v in net_direct.edges:
@@ -105,4 +105,4 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
     max_congested_link = np.max(necessary_capacity / net_direct.get_edges_capacities())
 
     assert error_bound(max_congested_link, opt_ratio_value)
-    return np.round(max_congested_link, Consts.ROUND), necessary_capacity
+    return max_congested_link, necessary_capacity
