@@ -7,11 +7,11 @@ import numpy as np
 import itertools
 
 
-def extract_lp_values(gurobi_vars_dict, R=10):
+def extract_lp_values(gurobi_vars_dict, R=Consts.ROUND):
     gurobi_vars_dict = dict(gurobi_vars_dict)
 
     for key in gurobi_vars_dict.keys():
-        gurobi_vars_dict[key] = round(gurobi_vars_dict[key].x, R)
+        gurobi_vars_dict[key] = np.round(gurobi_vars_dict[key].x, R)
     return gurobi_vars_dict
 
 

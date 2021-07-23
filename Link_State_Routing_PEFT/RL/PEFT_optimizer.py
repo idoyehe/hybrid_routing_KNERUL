@@ -167,7 +167,7 @@ if __name__ == "__main__":
     tm = np.array([[0, 10, 0], [0, 0, 0], [0, 0, 0]])
 
     opt = PEFTOptimizer(ecmpNetwork, None)
-    opt_congestion, opt_routing_scheme = optimal_load_balancing_LP_solver(net=ecmpNetwork, traffic_matrix=tm)
+    opt_congestion, necessary_capacity = optimal_load_balancing_LP_solver(net=ecmpNetwork, traffic_matrix=tm)
     print("Optimal Congestion: {}".format(opt_congestion))
     max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
         opt.step([5, 2.5, 100, 100, 100, 2.5], tm, opt_congestion)

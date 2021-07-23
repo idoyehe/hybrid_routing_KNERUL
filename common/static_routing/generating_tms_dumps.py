@@ -92,7 +92,7 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
 
         # tm = change_zero_cells(tm)
 
-        opt_ratio, _, _ = optimal_load_balancing_LP_solver(net, tm)
+        opt_ratio, _ = optimal_load_balancing_LP_solver(net, tm)
         obliv_ratio = None
         if oblivious_routing_per_edge is not None:
             obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],

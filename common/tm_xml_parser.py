@@ -61,7 +61,7 @@ def __parsing_single_directory(net, dir_path):
 def _generate_traffic_matrix_baseline(net: NetworkClass, tm_list, oblivious_routing_per_edge):
     tm_list_baseline = list()
     for index, tm in enumerate(tm_list):
-        opt_ratio, _, _ = optimal_load_balancing_LP_solver(net, tm)
+        opt_ratio, _, = optimal_load_balancing_LP_solver(net, tm)
         obliv_ratio, _, _ = calculate_congestion_per_matrices(net=net, traffic_matrix_list=[(tm, opt_ratio)],
                                                               oblivious_routing_per_edge=oblivious_routing_per_edge)
         obliv_ratio = obliv_ratio[0]
