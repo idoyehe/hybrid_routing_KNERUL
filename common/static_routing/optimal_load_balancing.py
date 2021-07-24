@@ -1,3 +1,5 @@
+import math
+
 from common.consts import EdgeConsts, Consts
 from common.utils import extract_flows, error_bound, extract_lp_values
 from common.network_class import NetworkClass
@@ -49,16 +51,14 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
 
     vars_flows_dests_per_edge = opt_lp_problem.addVars(destinations, net_direct.edges, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
     opt_lp_problem.update()
-
+    epsilon = 10 ** -np.ceil(np.log10(np.sum(traffic_matrix)))
     if opt_ratio_value is None:
         congestion_objective = opt_lp_problem.addVar(lb=0.0, name="opt_ratio", vtype=GRB.CONTINUOUS)
-        opt_lp_problem.setObjectiveN(congestion_objective, index=1, priority=10,weight=1.0)
+        opt_lp_problem.setObjective(congestion_objective +epsilon * vars_flows_dests_per_edge.sum(), sense=GRB.MINIMIZE)
 
     else:
         congestion_objective = opt_ratio_value
 
-    opt_lp_problem.setParam(GRB.Attr.ModelSense, GRB.MINIMIZE)
-    opt_lp_problem.setObjectiveN(vars_flows_dests_per_edge.sum(), index=2, priority=5,weight=1.0)
     opt_lp_problem.update()
 
     for u, v in net_direct.edges:
