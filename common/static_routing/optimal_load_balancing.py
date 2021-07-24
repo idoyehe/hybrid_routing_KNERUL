@@ -35,10 +35,8 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
     opt_ratio, necessary_capacity = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env)
     while True:
         try:
-            opt_ratio, necessary_capacity = \
-                aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, opt_ratio)
+            opt_ratio, necessary_capacity = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, opt_ratio-0.001)
             print("****** Gurobi Failure ******")
-            opt_ratio -= 0.001
         except Exception as e:
             return np.round(opt_ratio, Consts.ROUND), necessary_capacity
 
@@ -51,13 +49,15 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
 
     vars_flows_dests_per_edge = opt_lp_problem.addVars(destinations, net_direct.edges, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
     opt_lp_problem.update()
-    epsilon = 10 ** -np.ceil(np.log10(np.sum(traffic_matrix)))
     if opt_ratio_value is None:
+        epsilon = 10 ** -np.ceil(np.log10(np.sum(traffic_matrix)))
         congestion_objective = opt_lp_problem.addVar(lb=0.0, name="opt_ratio", vtype=GRB.CONTINUOUS)
-        opt_lp_problem.setObjective(congestion_objective +epsilon * vars_flows_dests_per_edge.sum(), sense=GRB.MINIMIZE)
+        opt_lp_problem.setObjective(congestion_objective + epsilon * vars_flows_dests_per_edge.sum(), sense=GRB.MINIMIZE)
 
     else:
         congestion_objective = opt_ratio_value
+        opt_lp_problem.setObjective(vars_flows_dests_per_edge.sum(), sense=GRB.MINIMIZE)
+
 
     opt_lp_problem.update()
 
