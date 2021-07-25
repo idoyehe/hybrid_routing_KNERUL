@@ -12,6 +12,7 @@ from common.utils import extract_flows, extract_lp_values
 from scipy.sparse import csc_matrix
 from scipy.sparse.linalg import inv
 
+
 class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
     def __init__(self, net: NetworkClass, testing=False):
         super(SoftMinSmartNodesOptimizer, self).__init__(net, testing)
@@ -97,13 +98,8 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
                 for u, v in net_direct.out_edges_by_node(node):
                     assert u == node
                     u_v_idx = net_direct.get_edge2id(u, v)
-                    src_dst_spr = np.nan
-                    if node in smart_nodes_set:
-                        src_dst_spr = smart_nodes_spr[src, dst, u_v_idx]
-                    if not np.isnan(src_dst_spr):
-                        src_dst_splitting_ratios[(src, dst)][u, v] = src_dst_spr
-                    else:
-                        src_dst_splitting_ratios[(src, dst)][u, v] = dst_splitting_ratios[dst][u_v_idx]
+                    # check whether smart node spt is exist otherwise return the default destination based
+                    src_dst_splitting_ratios[(src, dst)][u, v] = smart_nodes_spr.get((src, dst, u, v), dst_splitting_ratios[dst, u_v_idx])
 
         return src_dst_splitting_ratios
 

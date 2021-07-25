@@ -40,8 +40,8 @@ class NetworkClass(object):
         self._flows = None
         self._title = None
         self._chosen_pairs = None
-        self._smart_nodes: list = []
-        self._smart_nodes_spr: dict = None
+        self._smart_nodes: tuple = tuple()
+        self._smart_nodes_spr: dict = dict()
         print("Network {} has been created".format(self.get_title))
 
     def _set_adjacency(self):
@@ -100,7 +100,7 @@ class NetworkClass(object):
     def get_smart_nodes(self):
         return self._smart_nodes
 
-    def set_smart_nodes(self, smart_nodes: list):
+    def set_smart_nodes(self, smart_nodes: tuple):
         for node in smart_nodes:
             assert node in self.nodes
         self._smart_nodes = smart_nodes

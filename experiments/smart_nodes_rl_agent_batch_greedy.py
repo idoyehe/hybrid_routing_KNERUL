@@ -41,7 +41,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
     parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Batch Size", default=200)
     parser.add_argument("-s_nodes", "--smart_nodes", type=int, help="Number of smart nodes", default=1)
-    parser.add_argument("-prcs", "--processes", type=int, help="Number of Processes", default=2)
+    parser.add_argument("-prcs", "--processes", type=int, help="Number of Processes", default=1)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -156,8 +156,8 @@ if __name__ == "__main__":
         logger.info("Iteration {}, model is predicting...".format(i))
 
         link_weights, _ = model.predict(env.reset(), deterministic=True)
-        traffic_matrix_list = create_weighted_traffic_matrices(tms_sample_size, loaded_dict["tms"])  # create a samples from the tms distribution
         dest_spr = env.get_optimizer.calculating_destination_based_spr(link_weights)
+        traffic_matrix_list = create_random_TMs_list(tms_sample_size, loaded_dict["tms"])  # create a samples from the tms distribution
 
         logger.info("Iteration {}, evaluating smart nodes...".format(i))
         best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes, processes)
