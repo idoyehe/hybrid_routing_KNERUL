@@ -9,7 +9,8 @@ import numpy as np
 from common.RL_Env.rl_env_consts import HistoryConsts
 from common.RL_Env.optimizer_abstract import *
 from common.utils import extract_flows, extract_lp_values
-
+from scipy.sparse import csc_matrix
+from scipy.sparse.linalg import inv
 
 class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
     def __init__(self, net: NetworkClass, testing=False):
@@ -121,7 +122,7 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
                 demands[src - 1] = tm[src, dst]
             psi = np.delete(np.delete(current_spr, dst, axis=0), dst, axis=1)
             assert psi.shape == (net_direct.get_num_nodes - 1, net_direct.get_num_nodes - 1)
-            result = demands @ np.linalg.inv(np.identity(net_direct.get_num_nodes - 1) - psi)
+            result = demands @ inv(csc_matrix(np.identity(net_direct.get_num_nodes - 1) - psi)).toarray()
             for node in net_direct.nodes:
                 if node < dst:
                     current_flow_values_per_node[node] = result[node]
