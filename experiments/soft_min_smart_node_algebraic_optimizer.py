@@ -58,7 +58,7 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         if self._testing:
             logger.info("RL most congested link: {}".format(rl_most_congested_link))
             logger.info("RL MLU: {}".format(rl_max_congestion))
-            logger.info("RL MLU Vs. Optimal: {}".format(optimal_value))
+            logger.info("RL MLU Vs. Optimal: {}".format(rl_max_congestion/optimal_value))
 
         return rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, rl_total_load_per_link
 
