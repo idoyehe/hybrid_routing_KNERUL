@@ -4,13 +4,10 @@ Created on 13 May 2021
 """
 import time
 
-import numpy as np
-
 from common.RL_Env.rl_env_consts import HistoryConsts
 from common.RL_Env.optimizer_abstract import *
 from common.utils import extract_flows, extract_lp_values
-from scipy.sparse import csc_matrix
-from scipy.sparse.linalg import inv
+import numpy.linalg as  npl
 
 
 class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
@@ -88,8 +85,6 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         logger.debug("Calculating hop by hop splitting ratios")
         net_direct = self._network
         smart_nodes_spr = net_direct.get_smart_nodes_spr
-        smart_nodes_set = net_direct.get_smart_nodes
-
         src_dst_splitting_ratios = dict()
         dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
         for src, dst in flows:
@@ -118,7 +113,8 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
                 demands[src - 1] = tm[src, dst]
             psi = np.delete(np.delete(current_spr, dst, axis=0), dst, axis=1)
             assert psi.shape == (net_direct.get_num_nodes - 1, net_direct.get_num_nodes - 1)
-            result = demands @ inv(csc_matrix(np.identity(net_direct.get_num_nodes - 1) - psi)).toarray()
+            A = np.transpose(np.identity(net_direct.get_num_nodes - 1) - psi)
+            result = npl.solve(A, demands)
             for node in net_direct.nodes:
                 if node < dst:
                     current_flow_values_per_node[node] = result[node]
