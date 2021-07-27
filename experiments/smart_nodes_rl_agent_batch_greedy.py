@@ -168,9 +168,9 @@ if __name__ == "__main__":
         logger.info("Iteration {}, model is learning...".format(i))
 
         callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
+        total_timesteps /= 2
         checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
-        total_timesteps /= 2
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
 
