@@ -200,7 +200,7 @@ def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traf
 
     expected_objective, splitting_ratios_per_src_dst_edge = \
         _aux_mcf_LP_with_smart_nodes_solver(gb_env, net, traffic_matrix_list, destination_based_spr, smart_nodes)
-    return expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge
+    return smart_nodes, expected_objective, splitting_ratios_per_src_dst_edge
 
 
 def create_random_TMs_list(length, traffic_matrices_list, shuffling: bool = True):

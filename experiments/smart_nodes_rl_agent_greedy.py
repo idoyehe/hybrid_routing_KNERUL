@@ -1,5 +1,4 @@
-from common.utils import load_dump_file
-from common.network_class import NetworkClass
+from common.utils import load_dump_file, find_nodes_subsets
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
@@ -8,12 +7,13 @@ from stable_baselines3.common.env_util import make_vec_env
 from argparse import ArgumentParser
 from sys import argv
 from platform import system
-from experiments.RL_smart_nodes import RL_Smart_Nodes
 from experiments.smart_nodes_multiple_matrices_MCF import *
 from multiprocessing import Pool
 import torch
 import numpy as np
 from functools import partial
+from tabulate import tabulate
+from experiments.RL_smart_nodes import RL_Smart_Nodes
 
 IS_LINUX = system() == "Linux"
 
@@ -40,8 +40,10 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
     parser.add_argument("-l_net", "--load_network", type=str, help="Load a dumped Network object", default=None)
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
-    parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Percent of smart nodes", default=50)
-    parser.add_argument("-s_nodes", "--smart_nodes", type=int, help="Number of smart nodes", default=1)
+    parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Batch Size", default=200)
+    parser.add_argument("-prcs", "--processes", type=int, help="Number of Processes", default=1)
+    parser.add_argument("-n_sn", "--number_smart_nodes", type=int, help="Number of smart nodes", default=1)
+    parser.add_argument("-s_nodes", "--smart_nodes_set", type=eval, help="Smart Node set to examine", default=None)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -49,25 +51,23 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_spr, s_nodes):
-    matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net, traffic_matrix_list=traffic_matrix_list,
-                                                              destination_based_spr=destination_based_spr)
+def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes):
+    matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net,
+                                                              traffic_matrix_list=traffic_matrix_list,
+                                                              destination_based_spr=destination_based_sprs)
     smart_nodes_set = tuple()
-    best_util = np.inf
-    best_spr = None
-    b = None
+    best = (None, np.inf, None)
 
-    for _ in range(s_nodes):
+    for _ in range(number_smart_nodes):
         for s_n in net.nodes:
             if s_n in smart_nodes_set:
                 continue
-            expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge = matrices_mcf_LP_with_smart_nodes_solver_wrapper(smart_nodes_set + (s_n,))
-            if expected_objective < best_util:
-                b = smart_nodes
-                best_util = expected_objective
-                best_spr = splitting_ratios_per_src_dst_edge
-        smart_nodes_set = b
-    return best_util, smart_nodes_set, best_spr
+            expected_objective, smart_nodes, splitting_ratios_per_src_dst_edge = matrices_mcf_LP_with_smart_nodes_solver_wrapper(
+                smart_nodes_set + (s_n,))
+            if expected_objective < best[2]:
+                best = (smart_nodes, expected_objective, splitting_ratios_per_src_dst_edge)
+        smart_nodes_set = best[1]
+    return best
 
 
 if __name__ == "__main__":
@@ -86,7 +86,9 @@ if __name__ == "__main__":
     load_network = args.load_network
     num_of_iterations = args.number_of_iterations
     tms_sample_size = args.tms_sample_size
-    smart_nodes = args.smart_nodes
+    number_smart_nodes = args.number_smart_nodes
+    smart_nodes_set = args.smart_nodes_set
+    processes = args.processes
 
     num_test_observations = min(num_train_observations * 2, 20000)
 
@@ -115,12 +117,14 @@ if __name__ == "__main__":
         net: NetworkClass = NetworkClass.load_network_object(load_network)
         env.set_network_smart_nodes_and_spr(net.get_smart_nodes, net.get_smart_nodes_spr)
 
-    callback_perfix_path = '/home/idoye/PycharmProjects/Research_Implementing/experiments/{}_callbacks_greedy/'.format(net.get_title) \
-        if IS_LINUX else "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\experiments\\{}_callbacks_greedy\\".format(net.get_title)
+    callback_perfix_path = '/home/idoye/PycharmProjects/Research_Implementing/experiments/{}_callbacks_batch/'.format(net.get_title) \
+        if IS_LINUX else "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\experiments\\{}_callbacks_batch\\".format(net.get_title)
 
     if load_agent is not None:
         model = PPO.load(load_agent, envs)
         logger.info("Iteration 0 Starts, model is loaded...")
+
+
     else:
         assert load_agent is None
         policy_kwargs = [{"pi": mlp_arch, "vf": mlp_arch}]
@@ -134,36 +138,37 @@ if __name__ == "__main__":
 
         model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps)
 
-        logger.info("Iteration 0 Starts, model is learning...")
+        logger.info("********* Iteration 0 Starts, Agent is learning *********")
         callback_path = callback_perfix_path + "iteration_{}".format(0) + ("/" if IS_LINUX else "\\")
         checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
+        logger.info("***************** Iteration 0 Finished ******************")
 
     current_smart_nodes = tuple()
     for i in range(1, num_of_iterations + 1):
-        logger.info("Iteration {}, model is predicting...".format(i))
+        logger.info("**************** Iteration {} *****************".format(i))
+        logger.info("**** Iteration {}, Evaluating Smart Node  *****".format(i))
         link_weights, _ = model.predict(env.reset(), deterministic=True)
-        traffic_matrix_list = create_weighted_traffic_matrices(tms_sample_size, loaded_dict["tms"])  # create a samples from the tms distribution
-        dest_spr = env.get_optimizer.calculating_destination_based_spr(link_weights)
 
-        logger.info("Iteration {}, evaluating smart nodes...".format(i))
-        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes)
-        logger.info("Iteration {}, Chosen smart nodes: {}".format(i, best_smart_nodes[1]))
-        current_smart_nodes = best_smart_nodes[1]
+        traffic_matrix_list = create_random_TMs_list(tms_sample_size, loaded_dict["tms"], shuffling=True)
+        destination_based_sprs = env.get_optimizer.calculating_destination_based_spr(link_weights)
+        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes)
+
+        current_smart_nodes = best_smart_nodes[0]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
+        logger.info("********** Iteration {}, Smart Nodes:{}  ***********".format(i, current_smart_nodes))
 
-        logger.info("Iteration {}, model is learning...".format(i))
+        logger.info("********* Iteration {} Starts, Agent is learning *********".format(i))
 
-        callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
-                                                 name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         total_timesteps /= 2
+        callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
 
-    logger.info("Iterations Done!!")
+    logger.info("========================== Learning Process is Done =================================")
 
     env.testing(True)
     obs = env.reset()

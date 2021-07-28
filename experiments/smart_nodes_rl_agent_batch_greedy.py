@@ -7,12 +7,13 @@ from stable_baselines3.common.env_util import make_vec_env
 from argparse import ArgumentParser
 from sys import argv
 from platform import system
-from experiments.RL_smart_nodes import RL_Smart_Nodes
 from experiments.smart_nodes_multiple_matrices_MCF import *
 from multiprocessing import Pool
 import torch
 import numpy as np
 from functools import partial
+from tabulate import tabulate
+from experiments.RL_smart_nodes import RL_Smart_Nodes
 
 IS_LINUX = system() == "Linux"
 
@@ -40,8 +41,9 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-l_net", "--load_network", type=str, help="Load a dumped Network object", default=None)
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
     parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Batch Size", default=200)
-    parser.add_argument("-s_nodes", "--smart_nodes", type=int, help="Number of smart nodes", default=1)
     parser.add_argument("-prcs", "--processes", type=int, help="Number of Processes", default=1)
+    parser.add_argument("-n_sn", "--number_smart_nodes", type=int, help="Number of smart nodes", default=1)
+    parser.add_argument("-s_nodes", "--smart_nodes_set", type=eval, help="Smart Node set to examine", default=None)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -49,32 +51,35 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_spr, s_nodes, processes):
-    nodes_set = list()
-    for n in net.nodes:
-        if len(net.out_edges_by_node(n)) > 1:
-            nodes_set.append(n)
+def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes, smart_nodes_set, processes=1):
+    if smart_nodes_set is None:
+        smart_nodes_set = list(filter(lambda n: len(net.out_edges_by_node(n)) > 1, net.nodes))
 
-    smart_nodes_set = find_nodes_subsets(nodes_set, s_nodes)
+    smart_nodes_set = find_nodes_subsets(smart_nodes_set, number_smart_nodes)
     smart_nodes_set.append(tuple())
     matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net,
                                                               traffic_matrix_list=traffic_matrix_list,
-                                                              destination_based_spr=destination_based_spr)
-    results = list()
-    stride = processes
-    i = 0
-    while i < len(smart_nodes_set):
-        if stride > 1:
-            t = min(i + stride, len(smart_nodes_set))
-            s = i
-            pool = Pool(processes=t - s)
-            results += pool.map(func=matrices_mcf_LP_with_smart_nodes_solver_wrapper, iterable=smart_nodes_set[s:t])
+                                                              destination_based_spr=destination_based_sprs)
+    evaluations = list()
+    start_idx = 0
+    headers = ["Smart Nodes Set",
+               "Expected Objective"]
+    data = list()
+    while start_idx < len(smart_nodes_set):
+        if processes > 1:
+            end_idx = min(start_idx + processes, len(smart_nodes_set))
+            pool = Pool(processes=end_idx - start_idx)
+            evaluations += pool.map(func=matrices_mcf_LP_with_smart_nodes_solver_wrapper, iterable=smart_nodes_set[start_idx:end_idx])
+            start_idx += processes
         else:
-            assert stride == 1
-            results.append(matrices_mcf_LP_with_smart_nodes_solver_wrapper(smart_nodes_set[i]))
-        i += stride
+            assert processes <= 1
+            evaluations.append(matrices_mcf_LP_with_smart_nodes_solver_wrapper(smart_nodes_set[start_idx]))
+            data.append(evaluations[-1][0:2])
+            start_idx += 1
 
-    return min(results, key=lambda t: t[0])
+    logger.info(tabulate(data, headers=headers))
+
+    return min(evaluations, key=lambda t: t[1])
 
 
 if __name__ == "__main__":
@@ -93,7 +98,8 @@ if __name__ == "__main__":
     load_network = args.load_network
     num_of_iterations = args.number_of_iterations
     tms_sample_size = args.tms_sample_size
-    smart_nodes = args.smart_nodes
+    number_smart_nodes = args.number_smart_nodes
+    smart_nodes_set = args.smart_nodes_set
     processes = args.processes
 
     num_test_observations = min(num_train_observations * 2, 20000)
@@ -144,37 +150,38 @@ if __name__ == "__main__":
 
         model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps)
 
-        logger.info("Iteration 0 Starts, model is learning...")
+        logger.info("********* Iteration 0 Starts, Agent is learning *********")
         callback_path = callback_perfix_path + "iteration_{}".format(0) + ("/" if IS_LINUX else "\\")
         checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
+        logger.info("***************** Iteration 0 Finished ******************")
 
     current_smart_nodes = tuple()
     for i in range(1, num_of_iterations + 1):
-        logger.info("Iteration {}, model is predicting...".format(i))
-
+        logger.info("**************** Iteration {} *****************".format(i))
+        logger.info("**** Iteration {}, Evaluating Smart Node  *****".format(i))
         link_weights, _ = model.predict(env.reset(), deterministic=True)
-        dest_spr = env.get_optimizer.calculating_destination_based_spr(link_weights)
-        traffic_matrix_list = create_random_TMs_list(tms_sample_size, loaded_dict["tms"])  # create a samples from the tms distribution
 
-        logger.info("Iteration {}, evaluating smart nodes...".format(i))
-        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, dest_spr, smart_nodes, processes)
-        logger.info("Iteration {}, Chosen smart nodes: {}".format(i, best_smart_nodes[1]))
-        current_smart_nodes = best_smart_nodes[1]
+        traffic_matrix_list = create_random_TMs_list(tms_sample_size, loaded_dict["tms"], shuffling=True)
+        destination_based_sprs = env.get_optimizer.calculating_destination_based_spr(link_weights)
+        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes, smart_nodes_set,
+                                                           processes)
+        current_smart_nodes = best_smart_nodes[0]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
+        logger.info("********** Iteration {}, Smart Nodes:{}  ***********".format(i, current_smart_nodes))
 
-        logger.info("Iteration {}, model is learning...".format(i))
+        logger.info("********* Iteration {} Starts, Agent is learning *********".format(i))
 
-        callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
         total_timesteps /= 2
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
-                                                 name_prefix=RL_ENV_SMART_NODES_GYM_ID)
+        callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
+        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
 
-    logger.info("Iterations Done!!")
+
+    logger.info("========================== Learning Process is Done =================================")
 
     env.testing(True)
     obs = env.reset()
