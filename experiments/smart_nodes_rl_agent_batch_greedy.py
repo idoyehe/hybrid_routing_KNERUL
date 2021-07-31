@@ -43,7 +43,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Batch Size", default=200)
     parser.add_argument("-prcs", "--processes", type=int, help="Number of Processes", default=1)
     parser.add_argument("-n_sn", "--number_smart_nodes", type=int, help="Number of smart nodes", default=1)
-    parser.add_argument("-s_nodes", "--smart_nodes_set", type=eval, help="Smart Node set to examine", default=None)
+    parser.add_argument("-s_nodes", "--smart_nodes_set", type=eval, help="Smart Node set to examine", default=())
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)

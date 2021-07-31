@@ -5,6 +5,7 @@ Created on 13 May 2021
 from common.RL_Env.rl_env_consts import HistoryConsts
 from common.RL_Env.optimizer_abstract import *
 from common.utils import extract_flows, extract_lp_values
+from common.consts import EdgeConsts
 
 
 class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
@@ -66,12 +67,12 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
 
         reduced_directed_graph = nx.DiGraph()
-        for edge_index, cost in enumerate(weights_vector):
+        for edge_index, edge_weight in enumerate(weights_vector):
             u, v = net_direct.get_id2edge(edge_index)
-            reduced_directed_graph.add_edge(u, v, cost=cost)
+            reduced_directed_graph.add_edge(u, v, **{EdgeConsts.WEIGHT_STR: edge_weight})
 
         for node_dst in net_direct.nodes:
-            cost_adj = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight='cost')
+            cost_adj = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight=EdgeConsts.WEIGHT_STR)
             cost_adj = [cost_adj[i] for i in net_direct.nodes]
             edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
             q_val = self._soft_min(edge_cost)
@@ -165,7 +166,7 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         for u, v in net_direct.edges:
             edge_index = net_direct.get_edge2id(u, v)
             total_load_per_link[edge_index] = sum(
-                flows_src2dest_per_node[src, dst,u] * src_dst_splitting_ratios[src, dst][u, v] if u != dst else 0 for src, dst in flows)
+                flows_src2dest_per_node[src, dst, u] * src_dst_splitting_ratios[src, dst][u, v] if u != dst else 0 for src, dst in flows)
 
         total_congestion_per_link = total_load_per_link / self._edges_capacities
 

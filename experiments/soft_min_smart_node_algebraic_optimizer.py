@@ -6,7 +6,8 @@ import time
 
 from common.RL_Env.rl_env_consts import HistoryConsts
 from common.RL_Env.optimizer_abstract import *
-from common.utils import extract_flows, extract_lp_values
+from common.utils import extract_flows
+from common.consts import EdgeConsts
 import numpy.linalg as  npl
 
 
@@ -58,7 +59,7 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         if self._testing:
             logger.info("RL most congested link: {}".format(rl_most_congested_link))
             logger.info("RL MLU: {}".format(rl_max_congestion))
-            logger.info("RL MLU Vs. Optimal: {}".format(rl_max_congestion/optimal_value))
+            logger.info("RL MLU Vs. Optimal: {}".format(rl_max_congestion / optimal_value))
 
         return rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, rl_total_load_per_link
 
@@ -69,12 +70,12 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
 
         reduced_directed_graph = nx.DiGraph()
-        for edge_index, cost in enumerate(weights_vector):
+        for edge_index, edge_weight in enumerate(weights_vector):
             u, v = net_direct.get_id2edge(edge_index)
-            reduced_directed_graph.add_edge(u, v, cost=cost)
+            reduced_directed_graph.add_edge(u, v, **{EdgeConsts.WEIGHT_STR: edge_weight})
 
         for node_dst in net_direct.nodes:
-            cost_adj = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight='cost')
+            cost_adj = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight=EdgeConsts.WEIGHT_STR)
             cost_adj = [cost_adj[i] for i in net_direct.nodes]
             edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
             q_val = self._soft_min(edge_cost)
