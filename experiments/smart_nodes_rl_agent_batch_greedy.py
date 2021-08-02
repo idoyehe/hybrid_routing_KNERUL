@@ -43,7 +43,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-sample_size", "--tms_sample_size", type=int, help="Batch Size", default=200)
     parser.add_argument("-prcs", "--processes", type=int, help="Number of Processes", default=1)
     parser.add_argument("-n_sn", "--number_smart_nodes", type=int, help="Number of smart nodes", default=1)
-    parser.add_argument("-s_nodes", "--smart_nodes_set", type=eval, help="Smart Node set to examine", default=())
+    parser.add_argument("-s_nodes", "--smart_nodes_set", type=eval, help="Smart Node set to examine", default=None)
 
     options = parser.parse_args(args)
     options.total_timesteps = eval(options.total_timesteps)
@@ -57,7 +57,7 @@ def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
         smart_nodes_set = list(filter(lambda n: len(net.out_edges_by_node(n)) > 1, net.nodes))
 
     smart_nodes_set = find_nodes_subsets(smart_nodes_set, number_smart_nodes)
-    # smart_nodes_set.append(tuple())
+    smart_nodes_set.append(tuple())
     matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net,
                                                               traffic_matrix_list=traffic_matrix_list,
                                                               destination_based_spr=destination_based_sprs)
@@ -156,7 +156,7 @@ if __name__ == "__main__":
 
         logger.info("********* Iteration 0 Starts, Agent is learning *********")
         callback_path = callback_perfix_path + "iteration_{}".format(0) + ("/" if IS_LINUX else "\\")
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps / 100, save_path=callback_path,
+        checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
         total_timesteps /= 2
         callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps, save_path=callback_path,
+        checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)

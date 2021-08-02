@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
         logger.info("********* Iteration 0 Starts, Agent is learning *********")
         callback_path = callback_perfix_path + "iteration_{}".format(0) + ("/" if IS_LINUX else "\\")
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps / 100, save_path=callback_path,
+        checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
         total_timesteps /= 2
         callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
-        checkpoint_callback = CheckpointCallback(save_freq=total_timesteps / 100, save_path=callback_path,
+        checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
