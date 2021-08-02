@@ -42,7 +42,7 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
             kp_set.update({new_node})
             nodes_set.remove(new_node)
 
-        return kp_set
+        return tuple(kp_set)
 
     def __get_edge_cost(self, cost_adj, each_edge_weight):
         cost_to_dst1 = cost_adj * self._graph_adjacency_matrix + each_edge_weight
