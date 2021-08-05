@@ -1,10 +1,9 @@
 from common.logger import *
 from common.network_class import NetworkClass, nx
 import numpy as np
-import gurobipy as gb
-from gurobipy import GRB
+import numpy.linalg as npl
 from common.utils import error_bound
-from common.consts import Consts
+from common.consts import EdgeConsts
 
 
 class Optimizer_Abstract(object):
@@ -22,12 +21,6 @@ class Optimizer_Abstract(object):
         self._initialize()
         self._testing = testing
 
-    def _initialize_gurobi_env(self):
-        self.gb_env = gb.Env(empty=True)
-        self.gb_env.setParam(GRB.Param.OutputFlag, 0)
-        self.gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
-        self.gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
-
     def _initialize(self):
         logger.debug("Building ingoing and outgoing edges map")
         self._ingoing_edges, self._outgoing_edges, self._edges_capacities = self._network.build_edges_map()
@@ -40,138 +33,75 @@ class Optimizer_Abstract(object):
         """
         pass
 
-    def _calculating_traffic_distribution(self, splitting_ratios, tm):
+    @staticmethod
+    def __validate_flow(net_direct, traffic_matrix, flows_dest_per_node, splitting_ratios):
+        for dst in net_direct.nodes:
+            current_spr = splitting_ratios[dst]
+            assert flows_dest_per_node[dst][dst] == sum(traffic_matrix[:, dst])
+            for node in net_direct.nodes:
+                assert flows_dest_per_node[dst][node] >= traffic_matrix[node, dst]
+                _flow_to_node = sum(
+                    flows_dest_per_node[dst][u] * current_spr[u, v] if u != dst else 0 for u, v in
+                    net_direct.in_edges_by_node(node))
+                _flow_from_node = sum(
+                    flows_dest_per_node[dst][u] * current_spr[u, v] if u != dst else 0 for u, v in
+                    net_direct.out_edges_by_node(node))
+
+                if node == dst:
+                    assert error_bound(_flow_from_node, 0)
+                else:
+                    assert error_bound(_flow_to_node + traffic_matrix[node, dst], _flow_from_node)
+
+    def _calculating_traffic_distribution(self, dst_splitting_ratios, traffic_matrix):
         net_direct = self._network
-        self._initialize_gurobi_env()
-        self.gb_env.start()
 
-        lp_problem = gb.Model(name="LP problem for flows, given network, traffic matrix and splitting_ratios", env=self.gb_env)
-        flows_vars_per_per_dest_per_edge = lp_problem.addVars(net_direct.nodes, net_direct.edges, name="f", lb=0.0,
-                                                              vtype=GRB.CONTINUOUS)
+        flows_dest_per_node = dict()
+        for dst in net_direct.nodes:
+            current_spr = dst_splitting_ratios[dst]
+            demands = np.delete(traffic_matrix[:, dst], dst)
+            current_flow_values_per_node = np.zeros(shape=(net_direct.get_num_nodes))
+            psi = np.delete(np.delete(current_spr, dst, axis=0), dst, axis=1)
+            assert psi.shape == (net_direct.get_num_nodes - 1, net_direct.get_num_nodes - 1)
+            A = np.transpose(np.identity(net_direct.get_num_nodes - 1) - psi)
+            result = npl.solve(A, demands)
+            for node in net_direct.nodes:
+                if node < dst:
+                    current_flow_values_per_node[node] = result[node]
+                elif node == dst:
+                    current_flow_values_per_node[node] = sum(demands)
+                else:
+                    assert node > dst
+                    current_flow_values_per_node[node] = result[node - 1]
+            flows_dest_per_node[dst] = current_flow_values_per_node
 
-        for s in net_direct.nodes:
-            for t in net_direct.nodes:
-                if s == t:
-                    lp_problem.addConstrs((flows_vars_per_per_dest_per_edge[(t,) + arch] == 0 for arch in
-                                           net_direct.out_edges_by_node(t)),
-                                          name="dst_{}_out_links".format(t))
-                    _collected_flow_in_t_destined_t = sum(
-                        flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in net_direct.in_edges_by_node(t))
-                    lp_problem.addConstr(_collected_flow_in_t_destined_t == sum(tm[:, t]),
-                                         name="dst_{}_in_links".format(t))
-                    continue
+        self.__validate_flow(net_direct, traffic_matrix, flows_dest_per_node, dst_splitting_ratios)
 
-                # all incoming with originated from s to t
-                _collected_flow_in_s_destined_t = sum(flows_vars_per_per_dest_per_edge[(t,) + arch]
-                                                      for arch in net_direct.in_edges_by_node(s)) + tm[s, t]
-
-                _outgoing_flow_from_s_destined_t = sum(
-                    flows_vars_per_per_dest_per_edge[(t,) + arch] for arch in net_direct.out_edges_by_node(s))
-                lp_problem.addConstr(_collected_flow_in_s_destined_t == _outgoing_flow_from_s_destined_t,
-                                     name="flow_{}_to_{}".format(s, t))
-
-                for out_arch in net_direct.out_edges_by_node(s):
-                    edge_index = net_direct.get_edge2id(*out_arch)
-                    lp_problem.addConstr(
-                        flows_vars_per_per_dest_per_edge[(t,) + out_arch] == _collected_flow_in_s_destined_t *
-                        splitting_ratios[t, edge_index],
-                        name="dst_{}_sr_({},{})".format(t, *out_arch))
-
-        lp_problem.update()
-
-        try:
-            logger.debug("LP Submit to Solve {}".format(lp_problem.ModelName))
-            lp_problem.optimize()
-            assert lp_problem.Status == GRB.OPTIMAL
-        except AssertionError as e:
-            logger_level = logger.level
-            logger.setLevel(logging.DEBUG)
-            if lp_problem.Status == GRB.UNBOUNDED:
-                logger.debug('The model cannot be solved because it is unbounded')
-                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
-
-            if lp_problem.Status != GRB.INF_OR_UNBD and lp_problem.Status != GRB.INFEASIBLE:
-                logger.debug('Optimization was stopped with status {}'.format(lp_problem.Status))
-                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
-
-            orignumvars = lp_problem.NumVars
-            lp_problem.feasRelaxS(0, False, False, True)
-            lp_problem.optimize()
-
-            if lp_problem.Status != GRB.OPTIMAL:
-                tm_file_name = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\tm.npy"
-                tm_file = open(tm_file_name, 'wb')
-                np.save(tm_file, tm)
-                tm_file.close()
-
-                sr_file_name = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\sr.npy"
-                sr_file = open(sr_file_name, 'wb')
-                np.save(sr_file, splitting_ratios)
-                sr_file.close()
-                logger.info('Model is infeasible {}'.format(lp_problem.Status))
-                raise Exception("****Optimize failed****\nStatus is NOT optimal but {}".format(lp_problem.Status))
-
-            assert logger.level == logging.DEBUG
-            logger.debug('\nSlack values:')
-            slacks = lp_problem.getVars()[orignumvars:]
-            for sv in slacks:
-                if sv.X > Consts.FEASIBILITY_TOL:
-                    logger.debug('{} = {}'.format(sv.VarName, sv.X))
-
-            logger.setLevel(logger_level)
-
-
-        except gb.GurobiError as e:
-            raise Exception("****Optimize failed****\nException is:\n{}".format(e))
-
-        if logger.level == logging.DEBUG:
-            lp_problem.printStats()
-            lp_problem.printQuality()
-
-        flows_vars_per_per_dest_per_edge = dict(flows_vars_per_per_dest_per_edge)
-        for key in flows_vars_per_per_dest_per_edge.keys():
-            flows_vars_per_per_dest_per_edge[key] = flows_vars_per_per_dest_per_edge[key].x
-
-        lp_problem.close()
-        self.gb_env.close()
-
-        self.__validate_flow(net_direct, tm, flows_vars_per_per_dest_per_edge, splitting_ratios)
-
-        flows_vars_per_edge_dict = dict()
-        total_load_per_link = np.zeros((net_direct.get_num_edges), dtype=np.float64)
+        load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
 
         for u, v in net_direct.edges:
-            flows_vars_per_edge_dict[(u, v)] = sum(
-                flows_vars_per_per_dest_per_edge[(t, u, v)] for t in net_direct.nodes)
             edge_index = net_direct.get_edge2id(u, v)
-            total_load_per_link[edge_index] = flows_vars_per_edge_dict[(u, v)]
+            load_per_link[edge_index] = sum(
+                flows_dest_per_node[dst][u] * dst_splitting_ratios[dst][u, v] if u != dst else 0 for dst in net_direct.nodes)
 
-        total_congestion_per_link = total_load_per_link / self._edges_capacities
+        congestion_per_link = load_per_link / self._edges_capacities
 
-        most_congested_link = np.argmax(total_congestion_per_link)
-        max_congestion = total_congestion_per_link[most_congested_link]
-        total_congestion = np.sum(total_congestion_per_link)
+        most_congested_link = np.argmax(congestion_per_link)
+        max_congestion = congestion_per_link[most_congested_link]
+        total_congestion = np.sum(congestion_per_link)
 
-        return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
+        return max_congestion, most_congested_link, total_congestion, congestion_per_link, load_per_link
 
-    @staticmethod
-    def __validate_flow(net_direct, tm, flows_vars_per_per_dest_per_edge, splitting_ratios):
-        for dst in net_direct.nodes:
-            for src in net_direct.nodes:
-                if src == dst:
-                    total_demand_dst = sum(tm[:, dst])
-                    assert error_bound(total_demand_dst, sum(
-                        flows_vars_per_per_dest_per_edge[dst, u, dst] for u, _ in net_direct.in_edges_by_node(dst)))
-                else:
-                    _collected_flow_in_s_destined_t = sum(
-                        flows_vars_per_per_dest_per_edge[dst, u, src] for u, _ in net_direct.in_edges_by_node(src)) + \
-                                                      tm[src, dst]
+    def _build_reduced_weighted_graph(self, weights_vector):
+        net_direct = self._network
+        reduced_weighted_graph = nx.DiGraph()
+        for edge_index, edge_weight in enumerate(weights_vector):
+            u, v = net_direct.get_id2edge(edge_index)
+            reduced_weighted_graph.add_edge(u, v, **{EdgeConsts.WEIGHT_STR: edge_weight})
 
-                    _outgoing_flow_from_s_destined_t = sum(
-                        flows_vars_per_per_dest_per_edge[dst, src, u] for _, u in net_direct.out_edges_by_node(src))
-                    assert error_bound(_collected_flow_in_s_destined_t, _outgoing_flow_from_s_destined_t)
+        return reduced_weighted_graph
 
-                    for _, v in net_direct.out_edges_by_node(src):
-                        edge_index = net_direct.get_edge2id(src, v)
-                        assert error_bound(flows_vars_per_per_dest_per_edge[dst, src, v],
-                                           _collected_flow_in_s_destined_t * splitting_ratios[dst, edge_index])
+    def _get_cost_given_weights(self, weights_vector, traffic_matrix, optimal_value):
+        pass
+
+    def calculating_destination_based_spr(self, weights_vector):
+        pass

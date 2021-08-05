@@ -8,7 +8,6 @@ from argparse import ArgumentParser
 from sys import argv
 import torch
 import numpy as np
-from collections import defaultdict
 from platform import system
 
 if system() == "Linux":
