@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     if load_agent is not None:
         model = PPO.load(load_agent, envs)
-        logger.info("Iteration 0 Starts, model is loaded...")
+        logger.info("********* Iteration 0 Starts, Agent is Loaded *********")
 
 
     else:
