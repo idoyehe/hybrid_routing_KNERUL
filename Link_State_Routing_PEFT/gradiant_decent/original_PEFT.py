@@ -40,7 +40,7 @@ def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_
     return new_w_u_v
 
 
-def PEFT_main_loop(net, traffic_matrix, necessary_capacity):
+def PEFT_main_loop(net, traffic_matrix, necessary_capacity,optimal_value):
     step_size = 1 / max(necessary_capacity)
     traffic_distribution = PEFTOptimizer(net, None)
     w_u_v = __initialize_all_weights(net)
@@ -50,7 +50,8 @@ def PEFT_main_loop(net, traffic_matrix, necessary_capacity):
     while __stop_loop(net, current_flows_values, necessary_capacity) == False:
         w_u_v = __gradient_decent_update(net, w_u_v, step_size, current_flows_values, necessary_capacity)
         max_congestion, most_congested_link, total_congestion, total_congestion_per_link, current_flows_values = \
-            traffic_distribution.step(w_u_v, traffic_matrix, None)
+            traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
+        print('Congestion Vs. Optimal = {}'.format(max_congestion / optimal_value))
 
     max_congestion, most_congested_link, total_congestion, total_congestion_per_link, current_flows_values = \
         traffic_distribution.step(w_u_v, traffic_matrix, None)
@@ -85,8 +86,8 @@ if __name__ == "__main__":
 
     traffic_matrix = loaded_dict["tms"][0][0]
 
-    heuristic_optimal,necessary_capacity = optimal_load_balancing_LP_solver(net,traffic_matrix)
+    optimal_value,necessary_capacity = optimal_load_balancing_LP_solver(net,traffic_matrix)
 
-    w_u_v, PEFT_congestion = PEFT_main_loop(net, traffic_matrix, necessary_capacity)
+    w_u_v, PEFT_congestion = PEFT_main_loop(net, traffic_matrix, necessary_capacity,optimal_value)
 
     print(w_u_v)
