@@ -5,7 +5,7 @@ Created on 14 Oct 2020
 import numpy as np
 from gym import Env, spaces
 from common.network_class import *
-from common.RL_Env.rl_env_consts import HistoryConsts, ExtraData
+from common.RL_Env.rl_env_consts import EnvConsts, ExtraData
 from common.utils import load_dump_file
 from common.topologies import topology_zoo_loader
 import random
@@ -71,7 +71,7 @@ class RL_Env(Env):
             self._observation_space = spaces.Box(low=0.0, high=np.inf, shape=(self._history_length, self._num_nodes, self._num_nodes))
 
     def _set_action_space(self):
-        self._action_space = spaces.Box(low=HistoryConsts.EPSILON, high=np.inf, shape=(self._num_edges,))
+        self._action_space = spaces.Box(low=EnvConsts.WEIGHT_LB, high=EnvConsts.WEIGHT_UB, shape=(self._num_edges,))
 
     def _sample_tm(self):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically

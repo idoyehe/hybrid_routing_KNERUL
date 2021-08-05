@@ -4,7 +4,7 @@ Created on 13 May 2021
 """
 import time
 
-from common.RL_Env.rl_env_consts import HistoryConsts
+from common.RL_Env.rl_env_consts import EnvConsts
 from common.RL_Env.optimizer_abstract import *
 from common.utils import extract_flows
 from common.consts import EdgeConsts
@@ -53,7 +53,7 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
         cost_to_dst3 = cost_to_dst2[cost_to_dst2 != 0]
         return cost_to_dst3 * self._outgoing_edges
 
-    def _soft_min(self, weights_vector, alpha=HistoryConsts.SOFTMIN_ALPHA):
+    def _soft_min(self, weights_vector, alpha=EnvConsts.SOFTMIN_ALPHA):
         """
         :param weights_vector: vector of weights
         :param alpha: for exponent expression
@@ -62,7 +62,7 @@ class SoftMinSmartNodesOptimizer(Optimizer_Abstract):
 
         exp_val = np.exp(alpha * weights_vector)
         exp_val[weights_vector == 0] = 0
-        exp_val[np.logical_and(weights_vector != 0, exp_val == 0)] = HistoryConsts.EPSILON
+        exp_val[np.logical_and(weights_vector != 0, exp_val == 0)] = EnvConsts.EPSILON
 
         exp_val = np.transpose(exp_val) / np.sum(exp_val, axis=1)
         exp_val = np.sum(np.transpose(exp_val), axis=0)

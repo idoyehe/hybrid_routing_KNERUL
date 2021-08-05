@@ -4,7 +4,6 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.cmd_util import make_vec_env
 from gym import envs, register
-from common.RL_Env.rl_env_consts import HistoryConsts
 from argparse import ArgumentParser
 from sys import argv
 import torch
