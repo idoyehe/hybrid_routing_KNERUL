@@ -1,10 +1,6 @@
-from common.network_class import NetworkClass, nx
-import numpy as np
-import gurobipy as gb
-from gurobipy import GRB
-from common.logger import *
 from common.RL_Env.optimizer_abstract import *
 from math import fsum
+import numpy.linalg as npl
 
 
 class PEFTOptimizer(Optimizer_Abstract):
@@ -21,6 +17,64 @@ class PEFTOptimizer(Optimizer_Abstract):
         splitting_ratios = self._calculating_splitting_ratios(weights_vector)
         max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
             self._calculating_traffic_distribution(splitting_ratios, traffic_matrix)
+
+        return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
+
+    @staticmethod
+    def __validate_flow(net_direct, traffic_matrix, flows_dest_per_node, splitting_ratios):
+        for dst in net_direct.nodes:
+            current_spr = splitting_ratios[dst]
+            assert flows_dest_per_node[dst][dst] == sum(traffic_matrix[:, dst])
+            for node in net_direct.nodes:
+                assert flows_dest_per_node[dst][node] >= traffic_matrix[node, dst]
+                _flow_to_node = sum(
+                    flows_dest_per_node[dst][u] * current_spr[u, v] if u != dst else 0 for u, v in
+                    net_direct.in_edges_by_node(node))
+                _flow_from_node = sum(
+                    flows_dest_per_node[dst][u] * current_spr[u, v] if u != dst else 0 for u, v in
+                    net_direct.out_edges_by_node(node))
+
+                if node == dst:
+                    assert error_bound(_flow_from_node, 0)
+                else:
+                    assert error_bound(_flow_to_node + traffic_matrix[node, dst], _flow_from_node)
+
+    def _calculating_traffic_distribution(self,splitting_ratios, traffic_matrix):
+        net_direct = self._network
+
+        flows_dest_per_node = dict()
+        for dst in net_direct.nodes:
+            current_spr = splitting_ratios[dst]
+            demands = np.delete(traffic_matrix[:,dst],dst)
+            current_flow_values_per_node = np.zeros(shape=(net_direct.get_num_nodes))
+            psi = np.delete(np.delete(current_spr, dst, axis=0), dst, axis=1)
+            assert psi.shape == (net_direct.get_num_nodes - 1, net_direct.get_num_nodes - 1)
+            A = np.transpose(np.identity(net_direct.get_num_nodes - 1) - psi)
+            result = npl.solve(A, demands)
+            for node in net_direct.nodes:
+                if node < dst:
+                    current_flow_values_per_node[node] = result[node]
+                elif node == dst:
+                    current_flow_values_per_node[node] = sum(demands)
+                else:
+                    assert node > dst
+                    current_flow_values_per_node[node] = result[node - 1]
+            flows_dest_per_node[dst] = current_flow_values_per_node
+
+        self.__validate_flow(net_direct, traffic_matrix, flows_dest_per_node, splitting_ratios)
+
+        total_load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
+
+        for u, v in net_direct.edges:
+            edge_index = net_direct.get_edge2id(u, v)
+            total_load_per_link[edge_index] = sum(
+                flows_dest_per_node[dst][u] * splitting_ratios[dst][u, v] if u != dst else 0 for dst in net_direct.nodes)
+
+        total_congestion_per_link = total_load_per_link / self._edges_capacities
+
+        most_congested_link = np.argmax(total_congestion_per_link)
+        max_congestion = total_congestion_per_link[most_congested_link]
+        total_congestion = np.sum(total_congestion_per_link)
 
         return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
 
@@ -143,18 +197,16 @@ class PEFTOptimizer(Optimizer_Abstract):
                 sum_gamma_px_by_dest_by_u[t, u] = fsum(gamma_px_by_dest_by_u_v[t, net_direct.get_edge2id(u, v)]
                                                        for _, v in net_direct.out_edges_by_node(u))
 
-        splitting_ratios = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
+        splitting_ratios = np.zeros((net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64)
 
         for t in net_direct.nodes:
             for u, v in net_direct.edges:
                 edge_index = net_direct.get_edge2id(u, v)
-                splitting_ratios[t, edge_index] = gamma_px_by_dest_by_u_v[t, edge_index] / sum_gamma_px_by_dest_by_u[
-                    t, u]
+                splitting_ratios[t, u, v] = gamma_px_by_dest_by_u_v[t, edge_index] / sum_gamma_px_by_dest_by_u[t, u]
 
         for t in net_direct.nodes:
             for u in net_direct.nodes:
-                assert error_bound(1.0, sum(
-                    splitting_ratios[t, net_direct.get_edge2id(u, v)] for _, v in net_direct.out_edges_by_node(u)))
+                assert error_bound(1.0, sum(splitting_ratios[t, u, v] for _, v in net_direct.out_edges_by_node(u)))
 
         return splitting_ratios
 

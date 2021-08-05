@@ -8,7 +8,7 @@ from common.RL_Env.rl_env_consts import EnvConsts
 from common.RL_Env.optimizer_abstract import *
 from common.utils import extract_flows
 from common.consts import EdgeConsts
-import numpy.linalg as  npl
+import numpy.linalg as npl
 
 
 class SoftMinSmartNodesOptimizer(Optimizer_Abstract):

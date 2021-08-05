@@ -1,12 +1,10 @@
 from argparse import ArgumentParser
-from Link_State_Routing_PEFT.MCF_problem.multiple_matrices_MCF import multiple_matrices_mcf_LP_baseline_solver, \
-    multiple_matrices_mcf_LP_heuristic_solver
-from common.network_class import NetworkClass, nx
+from common.static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
+from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
-from common.utils import load_dump_file, error_bound
+from common.utils import load_dump_file
 from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
 from sys import argv
-from random import shuffle
 import numpy as np
 from tabulate import tabulate
 
@@ -22,35 +20,35 @@ def __initialize_all_weights(net: NetworkClass):
     return np.ones(shape=(net.get_num_edges), dtype=np.float64) * 10
 
 
-def __stop_loop(net: NetworkClass, current_flows_values, necessary_capacity_dict):
+def __stop_loop(net: NetworkClass, current_flows_values, necessary_capacity):
     delta = 0
     for u, v in net.edges:
         edge_idx = net.get_edge2id(u, v)
-        delta += np.abs(current_flows_values[edge_idx] - necessary_capacity_dict[u, v])
+        delta += np.abs(current_flows_values[edge_idx] - necessary_capacity[edge_idx])
     print('sum[|necessary_capacity_dict - current_flows_values|] = {}'.format(delta))
     return delta <0.5
 
 
-def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_values, necessary_capacity_dict):
-    assert len(necessary_capacity_dict.values()) == len(w_u_v)
+def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_values, necessary_capacity):
+    assert len(necessary_capacity) == len(w_u_v)
     new_w_u_v = np.zeros_like(w_u_v, dtype=np.float64)
     for u, v in net.edges:
         edge_idx = net.get_edge2id(u, v)
         new_w_u_v[edge_idx] = max(0, w_u_v[edge_idx] - step_size * (
-                necessary_capacity_dict[u, v] - current_flows_values[edge_idx]))
+                necessary_capacity[edge_idx] - current_flows_values[edge_idx]))
     del w_u_v
     return new_w_u_v
 
 
-def PEFT_main_loop(net, traffic_matrix, necessary_capacity_dict):
-    step_size = 1 / max(necessary_capacity_dict.values())
+def PEFT_main_loop(net, traffic_matrix, necessary_capacity):
+    step_size = 1 / max(necessary_capacity)
     traffic_distribution = PEFTOptimizer(net, None)
     w_u_v = __initialize_all_weights(net)
     max_congestion, most_congested_link, total_congestion, total_congestion_per_link, current_flows_values = \
         traffic_distribution.step(w_u_v, traffic_matrix, None)
 
-    while __stop_loop(net, current_flows_values, necessary_capacity_dict) == False:
-        w_u_v = __gradient_decent_update(net, w_u_v, step_size, current_flows_values, necessary_capacity_dict)
+    while __stop_loop(net, current_flows_values, necessary_capacity) == False:
+        w_u_v = __gradient_decent_update(net, w_u_v, step_size, current_flows_values, necessary_capacity)
         max_congestion, most_congested_link, total_congestion, total_congestion_per_link, current_flows_values = \
             traffic_distribution.step(w_u_v, traffic_matrix, None)
 
@@ -84,20 +82,11 @@ if __name__ == "__main__":
     dumped_path = options.dumped_path
     loaded_dict = load_dump_file(dumped_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
-    shuffle(loaded_dict["tms"])
 
-    l = 2
-    p = [0.99] + [(1 - 0.99) / (l - 1)] * (l - 1)
-    traffic_matrix_list = [(p[i], t[0]) for i, t in enumerate(loaded_dict["tms"][0:l])]
+    traffic_matrix = loaded_dict["tms"][0][0]
 
-    baseline_objective, _, r_per_mtrx, _ = multiple_matrices_mcf_LP_baseline_solver(net, traffic_matrix_list)
-    heuristic_optimal, splitting_ratios_per_src_dst_edge, necessary_capacity_dict = multiple_matrices_mcf_LP_heuristic_solver(
-        net, traffic_matrix_list)
+    heuristic_optimal,necessary_capacity = optimal_load_balancing_LP_solver(net,traffic_matrix)
 
-    expected_tm = sum(pr * t for pr, t in traffic_matrix_list)
+    w_u_v, PEFT_congestion = PEFT_main_loop(net, traffic_matrix, necessary_capacity)
 
-    w_u_v, PEFT_congestion = PEFT_main_loop(net, expected_tm, necessary_capacity_dict)
-
-    traffic_matrix_list = [(p[i], t[0], t[1]) for i, t in enumerate(loaded_dict["tms"][0:l])]
-
-    experiment(traffic_matrix_list, w_u_v, baseline_objective, r_per_mtrx)
+    print(w_u_v)
