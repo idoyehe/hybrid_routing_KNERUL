@@ -132,12 +132,12 @@ if __name__ == "__main__":
         link_weights, _ = model.predict(env.reset(), deterministic=True)
 
         traffic_matrix_list = create_random_TMs_list(tms_sample_size, loaded_dict["tms"], shuffling=True)
-        destination_based_sprs = env.get_optimizer.calculating_destination_based_spr(link_weights)
+        dst_splitting_ratios = env.get_optimizer.calculating_destination_based_spr(link_weights)
         kp_set = env.get_optimizer.key_player_problem_comm_iter(link_weights, number_smart_nodes)
 
         logger.info("********** Iteration {}, Smart Nodes:{}  ***********".format(i, kp_set))
         smart_nodes, expected_objective, splitting_ratios_per_src_dst_edge = matrices_mcf_LP_with_smart_nodes_solver(
-            kp_set, env.get_network, traffic_matrix_list, destination_based_sprs)
+            kp_set, env.get_network, traffic_matrix_list, dst_splitting_ratios)
 
         logger.info("********** Iteration {}, Expected Objective:{}  ***********".format(i, expected_objective))
         env.set_network_smart_nodes_and_spr(smart_nodes, splitting_ratios_per_src_dst_edge)

@@ -65,6 +65,7 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
     def _get_cost_given_weights(self, weights_vector, traffic_matrix, optimal_value):
         net_direct = self._network
         dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
+
         if len(net_direct.get_smart_nodes) > 0:
             src_dst_splitting_ratios = self.calculating_src_dst_spr(dst_splitting_ratios)
             max_congestion, most_congested_link, total_congestion, congestion_per_link, \

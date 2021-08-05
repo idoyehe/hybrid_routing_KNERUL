@@ -14,9 +14,9 @@ class PEFTOptimizer(Optimizer_Abstract):
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
-        splitting_ratios = self.calculating_destination_based_spr(weights_vector)
+        dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
         max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
-            self._calculating_traffic_distribution(splitting_ratios, traffic_matrix)
+            self._calculating_traffic_distribution(dst_splitting_ratios, traffic_matrix)
 
         return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
 

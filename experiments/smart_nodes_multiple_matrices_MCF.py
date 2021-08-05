@@ -95,13 +95,12 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
 
     for u, v in net_direct.edges:
         edge_capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
-        _edge_idx = net_direct.get_edge2id(u, v)
         reduced_flows = list(filter(lambda src_dst: src_dst[1] != u, active_flows))
         for m_idx in range(tms_list_length):
             if u in smart_nodes:
                 m_link_load = sum(vars_flows_src_dst_per_sn_edges[src, dst, u, v] * demands_ratios[m_idx, src, dst] for src, dst in reduced_flows)
             else:
-                m_link_load = sum(vars_flows_src_dst_per_node[src, dst, u] * demands_ratios[m_idx, src, dst] * destination_based_spr[dst, _edge_idx]
+                m_link_load = sum(vars_flows_src_dst_per_node[src, dst, u] * demands_ratios[m_idx, src, dst] * destination_based_spr[dst, u, v]
                                   for src, dst in reduced_flows)
             mcf_problem.addLConstr(m_link_load, GRB.LESS_EQUAL, edge_capacity * vars_bt_per_matrix[m_idx])
 
