@@ -3,10 +3,10 @@ from math import fsum
 import gurobipy as gb
 from gurobipy import GRB
 
+
 class PEFTOptimizer(Optimizer_Abstract):
-    def __init__(self, net: NetworkClass, oblivious_routing_per_edge, testing=False):
+    def __init__(self, net: NetworkClass, testing=False):
         super(PEFTOptimizer, self).__init__(net, testing)
-        self._oblivious_routing_per_edge = oblivious_routing_per_edge
 
     def step(self, weights_vector, traffic_matrix, optimal_value):
         """
@@ -25,16 +25,11 @@ class PEFTOptimizer(Optimizer_Abstract):
 
         assert len(weights_vector) == net_direct.get_num_edges
 
-        reduced_directed_graph = nx.DiGraph()
-        for edge_index, cost in enumerate(weights_vector):
-            u, v = net_direct.get_id2edge(edge_index)
-            reduced_directed_graph.add_edge(u, v, cost=cost)
-
-        assert reduced_directed_graph.number_of_edges() == net_direct.get_num_edges
+        reduced_directed_graph = self._build_reduced_weighted_graph(weights_vector)
 
         distance_gap_by_dest_s_t = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
         for node_dst in net_direct.nodes:
-            shortest_paths_to_dest = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight='cost')
+            shortest_paths_to_dest = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight=EdgeConsts.WEIGHT_STR)
             for u, v in net_direct.edges:
                 edge_index = net_direct.get_edge2id(u, v)
                 distance_gap_by_dest_s_t[node_dst][edge_index] = \
@@ -55,8 +50,7 @@ class PEFTOptimizer(Optimizer_Abstract):
 
         lp_problem = gb.Model(name="LP problem for gamma t U, given network and exponential penalty values", env=gb_env)
 
-        gammas_by_dest_by_u_vars = lp_problem.addVars(net_direct.get_num_nodes, net_direct.get_num_nodes, name="gamma",
-                                                      vtype=GRB.CONTINUOUS)
+        gammas_by_dest_by_u_vars = lp_problem.addVars(net_direct.get_num_nodes, net_direct.get_num_nodes, name="gamma", vtype=GRB.CONTINUOUS)
 
         lp_problem.update()
 
@@ -65,9 +59,8 @@ class PEFTOptimizer(Optimizer_Abstract):
                 if t == u:
                     lp_problem.addConstr(gammas_by_dest_by_u_vars[(t, t)] == 1.0)
                 else:
-                    sigma = sum(
-                        exp_h_by_dest_s_t[(t, net_direct.get_edge2id(u, v))] * gammas_by_dest_by_u_vars[(t, v)]
-                        for _, v in net_direct.out_edges_by_node(u))
+                    sigma = sum(exp_h_by_dest_s_t[(t, net_direct.get_edge2id(u, v))] * gammas_by_dest_by_u_vars[(t, v)]
+                                for _, v in net_direct.out_edges_by_node(u))
                     lp_problem.addConstr(gammas_by_dest_by_u_vars[(t, u)] == sigma)
 
         lp_problem.update()
@@ -125,8 +118,7 @@ class PEFTOptimizer(Optimizer_Abstract):
         exp_h_by_dest_s_t = self._calculating_exponent_distance_gap(weights_vector)
         gammas_by_dest_by_u = self._calculating_equivalent_number(exp_h_by_dest_s_t)
 
-        gamma_px_by_dest_by_u_v = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges),
-                                           dtype=np.float64)
+        gamma_px_by_dest_by_u_v = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
 
         for t in net_direct.nodes:
             for u, v in net_direct.edges:
