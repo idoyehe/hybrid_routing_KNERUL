@@ -109,7 +109,7 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
         expected_objective = total_objective.getValue()
 
     flows_src_dst_per_edge = extract_lp_values(vars_flows_src_dst_per_edge)
-    r_per_mtrx = extract_lp_values(vars_bt_per_matrix, R=6)
+    r_per_mtrx = extract_lp_values(vars_bt_per_matrix)
     mcf_problem.close()
 
     __validate_solution(net_direct, aggregate_tm, flows_src_dst_per_edge)
@@ -122,7 +122,6 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
             reduced_flows = list(filter(lambda src_dst: src_dst[1] != u, active_flows))
             necessary_capacity_per_matrix[m_idx, edge_idx] = sum(
                 flows_src_dst_per_edge[src, dst, u, v] * demands_ratios[m_idx, u, v] for src, dst in reduced_flows)
-            assert necessary_capacity_per_matrix[m_idx, edge_idx] <= r_per_mtrx[m_idx] * edge_capacity
 
     return expected_objective, r_per_mtrx, necessary_capacity_per_matrix
 
