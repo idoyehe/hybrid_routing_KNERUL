@@ -6,11 +6,11 @@ Created on 6 Feb 2017
 
 
 class EnvConsts:
-    SOFTMIN_ALPHA = -2.0
+    SOFTMIN_ALPHA = -1.0
     EPSILON = 1.0e-8
     INFTY = 1.0e8
-    WEIGHT_LB = 1.0e-5
-    WEIGHT_UB = 1.0e2
+    WEIGHT_LB = 1.0e0
+    WEIGHT_UB = 40
     ZERO = 0.0
 
     ACTION_SPLITTINT_RATIOS = "splitting"

@@ -10,6 +10,7 @@ class Consts:
     ACTION_FLOW_PATH = 2
     ZERO = 1e-2
     ERROR_BOUND = 1e-3
+    OUTPUT_FLAG = 0
     FEASIBILITY_TOL = 1e-6
     NUMERIC_FOCUS = 2
     PREC_DEMAND = 0.9999
