@@ -26,7 +26,7 @@ def __stop_loop(net: NetworkClass, current_flows_values, necessary_capacity):
         edge_idx = net.get_edge2id(u, v)
         delta += np.abs(current_flows_values[edge_idx] - necessary_capacity[edge_idx])
     print('sum[|necessary_capacity_dict - current_flows_values|] = {}'.format(delta))
-    return delta <0.5
+    return delta < 0.5
 
 
 def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_values, necessary_capacity):
@@ -40,7 +40,7 @@ def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_
     return new_w_u_v
 
 
-def PEFT_main_loop(net, traffic_matrix, necessary_capacity,optimal_value):
+def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value):
     step_size = 1 / max(necessary_capacity)
     traffic_distribution = PEFTOptimizer(net, None)
     w_u_v = __initialize_all_weights(net)
@@ -86,8 +86,8 @@ if __name__ == "__main__":
 
     traffic_matrix = loaded_dict["tms"][0][0]
 
-    optimal_value,necessary_capacity = optimal_load_balancing_LP_solver(net,traffic_matrix)
+    optimal_value, necessary_capacity = optimal_load_balancing_LP_solver(net, traffic_matrix)
 
-    w_u_v, PEFT_congestion = PEFT_main_loop(net, traffic_matrix, necessary_capacity,optimal_value)
+    w_u_v, PEFT_congestion = PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value)
 
     print(w_u_v)
