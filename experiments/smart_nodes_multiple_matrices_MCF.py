@@ -43,8 +43,7 @@ def __validate_flows_per_matrix(net_direct, smart_nodes, current_matrix_flows_sr
                 if u in smart_nodes and current_matrix_flows_src_dst_per_node[src, dst, u] > 0:
                     _flow_to_node += current_matrix_flows_src_dst_per_node[src, dst, u] * spr_src_dst_per_sn_edges[src, dst, u, v]
                 else:
-                    _edge_idx = net_direct.get_edge2id(u, v)
-                    _flow_to_node += current_matrix_flows_src_dst_per_node[src, dst, u] * destination_based_spr[dst][_edge_idx]
+                    _flow_to_node += current_matrix_flows_src_dst_per_node[src, dst, u] * destination_based_spr[dst][u, v]
             if v == src:
                 assert error_bound(_flow_to_node + tm[src, dst], current_matrix_flows_src_dst_per_node[src, dst, v])
             else:
@@ -115,8 +114,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
                 if u in smart_nodes:
                     _flow_to_node += vars_flows_src_dst_per_sn_edges[src, dst, u, v]
                 else:
-                    _edge_idx = net_direct.get_edge2id(u, v)
-                    _flow_to_node += vars_flows_src_dst_per_node[src, dst, u] * destination_based_spr[dst][_edge_idx]
+                    _flow_to_node += vars_flows_src_dst_per_node[src, dst, u] * destination_based_spr[dst][u, v]
 
             if v == src:
                 mcf_problem.addLConstr(_flow_to_node + aggregate_tm[src, dst], GRB.EQUAL, vars_flows_src_dst_per_node[src, dst, v])

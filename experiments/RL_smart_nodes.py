@@ -33,8 +33,6 @@ class RL_Smart_Nodes(RL_Env):
         total_congestion, cost_congestion_ratio, total_load_per_link, most_congested_arch = self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
-        # oblivious_value = self._oblivious_values[self._current_observation_index][self._tm_start_index + self._history_length]
-
         if self._testing:
             info["links_weights"] = np.array(links_weights)
             info["load_per_link"] = np.array(total_load_per_link)

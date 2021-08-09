@@ -2,12 +2,12 @@
 Created on 14 Oct 2020
 @author: Ido Yehezkel
 """
-import numpy as np
 from gym import Env, spaces
 from common.network_class import *
-from common.RL_Env.rl_env_consts import EnvConsts, ExtraData
+from common.RL_Env.rl_env_consts import EnvConsts,ExtraData
 from common.utils import load_dump_file
 from common.topologies import topology_zoo_loader
+from .optimizer_abstract import Optimizer_Abstract
 import random
 
 ERROR_BOUND = 1e-3
@@ -180,5 +180,5 @@ class RL_Env(Env):
         return self._network
 
     @property
-    def get_optimizer(self):
+    def get_optimizer(self) -> Optimizer_Abstract:
         return self._optimizer
