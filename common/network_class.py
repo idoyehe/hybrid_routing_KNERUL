@@ -263,8 +263,8 @@ class NetworkClass(object):
             self._flows = []
 
             for src, dst in self.get_all_pairs():
-                f_mb_size = self._capacity_map[src] * self._capacity_map[dst] / self._total_capacity
-                self._flows.append((src, dst, scale * f_mb_size))
+                flow_size = self._capacity_map[src] * self._capacity_map[dst] / self._total_capacity
+                self._flows.append((src, dst, scale * flow_size))
         return self._flows
 
     def __randomize_pairs(self, percent):
