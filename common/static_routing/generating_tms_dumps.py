@@ -90,8 +90,6 @@ def _generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float,
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
 
-        # tm = change_zero_cells(tm)
-
         opt_ratio, _ = optimal_load_balancing_LP_solver(net, tm)
         obliv_ratio = None
         if oblivious_routing_per_edge is not None:
