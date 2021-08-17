@@ -237,7 +237,7 @@ class NetworkClass(object):
 
     def print_network(self, label=None):
         g = self.get_graph
-        pos = nx.shell_layout(g)
+        pos = nx.spring_layout(g)
         if label is not None:
             edge_labels = dict([((u, v,), d[label]) for u, v, d in g.edges(data=True)])
             nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels)
