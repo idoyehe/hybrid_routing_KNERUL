@@ -20,12 +20,11 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
-        rl_max_congestion, rl_most_congested_link, rl_total_congestion, \
-        rl_total_congestion_per_link, rl_total_load_per_link = self._get_cost_given_weights(weights_vector,
-                                                                                            traffic_matrix,
-                                                                                            optimal_value)
+        max_congestion, most_congested_link, total_congestion, congestion_per_link, load_per_link = self._get_cost_given_weights(weights_vector,
+                                                                                                                                 traffic_matrix,
+                                                                                                                                 optimal_value)
 
-        return rl_max_congestion, rl_most_congested_link, rl_total_congestion, rl_total_congestion_per_link, rl_total_load_per_link
+        return max_congestion, most_congested_link, total_congestion, congestion_per_link, load_per_link
 
     def key_player_problem_comm_iter(self, weights_vector, k):
         net_direct = self._network

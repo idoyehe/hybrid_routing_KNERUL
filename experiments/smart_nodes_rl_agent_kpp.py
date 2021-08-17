@@ -30,7 +30,7 @@ def _getOptions(args=argv[1:]):
                         default="1")
     parser.add_argument("-gamma", "--gamma", type=float, help="Gamma Value", default=0)
     parser.add_argument("-n_steps", "--number_of_steps", type=int, help="Number of steps per ppo agent", default=100)
-    parser.add_argument("-tts", "--total_timesteps", type=str, help="Agent Total timesteps", default="1000")
+    parser.add_argument("-p_updates", "--policy_updates", type=int, help="number of policy update, or tts")
     parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=0)
     parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     gamma = args.gamma
     dumped_path = args.dumped_path
     n_steps = args.number_of_steps
-    total_timesteps = args.total_timesteps
+    policy_updates = args.policy_updates
     episode_length = args.episode_length
     history_length = args.history_length
     num_train_observations = args.number_of_observations
@@ -72,6 +72,8 @@ if __name__ == "__main__":
     logger.info("Data loaded from: {}".format(dumped_path))
     logger.info("Architecture is: {}".format(mlp_arch))
     logger.info("gamma is: {}".format(gamma))
+
+    total_timesteps = policy_updates * n_steps
 
     if RL_ENV_SMART_NODES_GYM_ID not in envs.registry.env_specs:
         register(id=RL_ENV_SMART_NODES_GYM_ID,
@@ -115,12 +117,11 @@ if __name__ == "__main__":
                 super(CustomMLPPolicy, self).__init__(*args, **kwargs, net_arch=policy_kwargs)
 
 
-        model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps)
+        model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps, batch_size=n_steps)
 
         logger.info("********* Iteration 0 Starts, Agent is learning *********")
         callback_path = callback_perfix_path + "iteration_{}".format(0) + ("/" if IS_LINUX else "\\")
-        checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path,
-                                                 name_prefix=RL_ENV_SMART_NODES_GYM_ID)
+        checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path, name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
         env.get_network.store_network_object(callback_path)
         logger.info("***************** Iteration 0 Finished ******************")

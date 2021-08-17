@@ -30,7 +30,7 @@ def _getOptions(args=argv[1:]):
                         default="1")
     parser.add_argument("-gamma", "--gamma", type=float, help="Gamma Value", default=0)
     parser.add_argument("-n_steps", "--number_of_steps", type=int, help="Number of steps per ppo agent", default=100)
-    parser.add_argument("-tts", "--total_timesteps", type=str, help="Agent Total timesteps", default="1000")
+    parser.add_argument("-p_updates", "--policy_updates", type=int, help="number of policy update, or tts")
     parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=0)
     parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
@@ -46,7 +46,6 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-s_nodes", "--smart_nodes_set", type=eval, help="Smart Node set to examine", default=None)
 
     options = parser.parse_args(args)
-    options.total_timesteps = eval(options.total_timesteps)
     options.mlp_architecture = [int(layer_width) for layer_width in options.mlp_architecture.split(",")]
     return options
 
@@ -90,7 +89,7 @@ if __name__ == "__main__":
     gamma = args.gamma
     dumped_path = args.dumped_path
     n_steps = args.number_of_steps
-    total_timesteps = args.total_timesteps
+    policy_updates = args.policy_updates
     episode_length = args.episode_length
     history_length = args.history_length
     num_train_observations = args.number_of_observations
@@ -104,6 +103,7 @@ if __name__ == "__main__":
     smart_nodes_set = args.smart_nodes_set
     processes = args.processes
 
+    total_timesteps = policy_updates * n_steps
     num_test_observations = min(num_train_observations * 2, 20000)
 
     logger.info("Data loaded from: {}".format(dumped_path))
@@ -121,7 +121,7 @@ if __name__ == "__main__":
                      'num_train_observations': num_train_observations,
                      'num_test_observations': num_test_observations}
                  )
-    envs = make_vec_env(RL_ENV_SMART_NODES_GYM_ID)
+    envs = make_vec_env(RL_ENV_SMART_NODES_GYM_ID, n_envs=1)
     env = envs.envs[0].env
 
     loaded_dict = load_dump_file(dumped_path)
@@ -152,7 +152,7 @@ if __name__ == "__main__":
                 super(CustomMLPPolicy, self).__init__(*args, **kwargs, net_arch=policy_kwargs)
 
 
-        model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps)
+        model = PPO(CustomMLPPolicy, envs, verbose=1, gamma=gamma, n_steps=n_steps, batch_size=n_steps)
 
         logger.info("********* Iteration 0 Starts, Agent is learning *********")
         callback_path = callback_perfix_path + "iteration_{}".format(0) + ("/" if IS_LINUX else "\\")
@@ -171,15 +171,14 @@ if __name__ == "__main__":
         traffic_matrix_list = create_random_TMs_list(tms_sample_size, loaded_dict["tms"], shuffling=True)
         destination_based_sprs = env.get_optimizer.calculating_destination_based_spr(link_weights)
         best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs,
-                                                           number_smart_nodes, smart_nodes_set,
-                                                           processes)
+                                                           number_smart_nodes, smart_nodes_set, processes)
         current_smart_nodes = best_smart_nodes[0]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
         logger.info("********** Iteration {}, Smart Nodes:{}  ***********".format(i, current_smart_nodes))
 
         logger.info("********* Iteration {} Starts, Agent is learning *********".format(i))
 
-        total_timesteps /= 2
+        policy_updates /= 2
         callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
         checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
