@@ -9,8 +9,8 @@ class EnvConsts:
     SOFTMIN_ALPHA = -1.0
     EPSILON = 1.0e-8
     INFTY = 1.0e8
-    WEIGHT_LB = 1.0e0
-    WEIGHT_UB = 40
+    WEIGHT_LB = 1e-1
+    WEIGHT_UB = 2e1
     ZERO = 0.0
 
     ACTION_SPLITTINT_RATIOS = "splitting"
