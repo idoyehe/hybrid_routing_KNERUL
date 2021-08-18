@@ -56,7 +56,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
     mcf_problem = gb.Model(name="Multiple Matrices MCF Problem Finding Smart Nodes Source-Target Routing Scheme", env=gurobi_env)
 
     tms_list_length = len(traffic_matrices_list)
-    demands_ratios = np.zeros_like(traffic_matrices_list)
+    demands_ratios = np.zeros_like(traffic_matrices_list, dtype=np.float64)
     aggregate_tm = np.sum(traffic_matrices_list, axis=0)
     active_flows = extract_flows(aggregate_tm)
 
@@ -67,8 +67,8 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
             demands_ratios[m_idx, src, dst] = tm[src, dst] / aggregate_tm[src, dst]
             assert 0 <= demands_ratios[m_idx, src, dst] <= 1
 
-    vars_flows_src_dst_per_node = mcf_problem.addVars(active_flows, net_direct.nodes, name="f", lb=0, vtype=GRB.CONTINUOUS)
-    vars_bt_per_matrix = mcf_problem.addVars(tms_list_length, name="bt", lb=0, vtype=GRB.CONTINUOUS)
+    vars_flows_src_dst_per_node = mcf_problem.addVars(active_flows, net_direct.nodes, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
+    vars_bt_per_matrix = mcf_problem.addVars(tms_list_length, name="bt", lb=0.0, vtype=GRB.CONTINUOUS)
 
     mcf_problem.update()
     """form objective"""
@@ -85,8 +85,8 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
     vars_flows_src_dst_per_sn_edges = tupledict()
     for s_n in smart_nodes:
         reduced_flows = list(filter(lambda src_dst: src_dst[1] != s_n, active_flows))  # exclude flows the smart node is the destination
-        vars_flows_src_dst_per_sn_edges.update(mcf_problem.addVars(reduced_flows, net_direct.out_edges_by_node(s_n), name="f_sn", lb=0,
-                                                                   vtype=GRB.CONTINUOUS))
+        vars_flows_src_dst_per_sn_edges.update(
+            mcf_problem.addVars(reduced_flows, net_direct.out_edges_by_node(s_n), name="f_sn", lb=0.0, vtype=GRB.CONTINUOUS))
         for src, dst in reduced_flows:
             out_flow_per_src_dst = sum(vars_flows_src_dst_per_sn_edges[src, dst, s_n, v] for _, v in net_direct.out_edges_by_node(s_n))
             mcf_problem.addLConstr(vars_flows_src_dst_per_node[src, dst, s_n], GRB.EQUAL, out_flow_per_src_dst)
