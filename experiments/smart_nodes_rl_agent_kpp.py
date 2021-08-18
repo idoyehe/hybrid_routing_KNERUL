@@ -44,7 +44,6 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-k", "--number_smart_nodes", type=int, help="Number of smart nodes", default=1)
 
     options = parser.parse_args(args)
-    options.total_timesteps = eval(options.total_timesteps)
     options.mlp_architecture = [int(layer_width) for layer_width in options.mlp_architecture.split(",")]
     return options
 
