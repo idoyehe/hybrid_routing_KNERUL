@@ -54,7 +54,7 @@ class RL_Smart_Nodes(RL_Env):
         total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights, tm, optimal_congestion)
 
         if self._testing:
-            cost_congestion_ratio = max_congestion
+            cost_congestion_ratio = max_congestion / optimal_congestion
         else:
             cost_congestion_ratio = max_congestion / optimal_congestion
 

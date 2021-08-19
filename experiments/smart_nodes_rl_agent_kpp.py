@@ -35,8 +35,6 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=0)
     parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
                         default=350)
-    parser.add_argument("-s_weights", "--save_links_weights", type=eval, help="Dump links weights", default=False)
-    parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
     parser.add_argument("-l_net", "--load_network", type=str, help="Load a dumped Network object", default=None)
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
@@ -58,8 +56,6 @@ if __name__ == "__main__":
     episode_length = args.episode_length
     history_length = args.history_length
     num_train_observations = args.number_of_observations
-    save_links_weights = args.save_links_weights
-    save_model_agent = args.save_model_agent
     load_agent = args.load_agent
     load_network = args.load_network
     num_of_iterations = args.number_of_iterations
@@ -154,25 +150,13 @@ if __name__ == "__main__":
     logger.info("========================== Learning Process is Done =================================")
 
     env.testing(True)
-    obs = env.reset()
     rewards_list = list()
     diagnostics = list()
-    link_weights = None
     for _ in range(num_test_observations):
+        obs = env.reset()
         link_weights, _ = model.predict(env.reset(), deterministic=True)
         _, reward, dones, info = env.step(link_weights)
         diagnostics.extend(info)
-        obs = env.reset()
         rewards_list.append(reward * -1)
 
-    if save_links_weights:
-        link_weights_file_name = "{}links_weights_{}.npy".format(callback_perfix_path, num_train_observations)
-        link_weights_file = open(link_weights_file_name, 'wb')
-        np.save(link_weights_file, link_weights)
-        link_weights_file.close()
-
-    rewards_file_name = "{}agent_rewards_{}.npy".format(callback_perfix_path, num_test_observations)
-    rewards_file = open(rewards_file_name, 'wb')
-    rewards_list = np.array(rewards_list)
-    np.save(rewards_file, rewards_list)
-    rewards_file.close()
+    print("Agent average performance: {}".format(np.mean(rewards_list)))
