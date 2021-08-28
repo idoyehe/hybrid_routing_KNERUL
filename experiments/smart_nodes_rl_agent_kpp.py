@@ -8,11 +8,8 @@ from argparse import ArgumentParser
 from sys import argv
 from platform import system
 from experiments.smart_nodes_multiple_matrices_MCF import *
-from multiprocessing import Pool
 import torch
 import numpy as np
-from functools import partial
-from tabulate import tabulate
 from experiments.RL_smart_nodes import RL_Smart_Nodes
 
 IS_LINUX = system() == "Linux"

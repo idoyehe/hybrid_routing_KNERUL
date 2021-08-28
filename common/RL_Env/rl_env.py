@@ -4,7 +4,7 @@ Created on 14 Oct 2020
 """
 from gym import Env, spaces
 from common.network_class import *
-from common.RL_Env.rl_env_consts import EnvConsts,ExtraData
+from common.RL_Env.rl_env_consts import EnvConsts, ExtraData
 from common.utils import load_dump_file
 from common.topologies import topology_zoo_loader
 from .optimizer_abstract import Optimizer_Abstract
@@ -182,3 +182,10 @@ class RL_Env(Env):
     @property
     def get_optimizer(self) -> Optimizer_Abstract:
         return self._optimizer
+
+    @property
+    def get_train_observations(self):
+        return self._train_observations
+
+    def set_train_observations(self, train_observations):
+        self._train_observations = train_observations
