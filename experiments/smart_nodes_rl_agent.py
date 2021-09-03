@@ -42,13 +42,14 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-prcs", "--processes", type=int, help="Number of Processes", default=1)
     parser.add_argument("-n_sn", "--number_smart_nodes", type=int, help="Number of smart nodes", default=1)
     parser.add_argument("-s_nodes", "--smart_nodes_set", type=eval, help="Smart Node set to examine", default=None)
+    parser.add_argument("-kpp", "--kpp", type=eval, help="Use KPP to choose greedy", default=False)
 
     options = parser.parse_args(args)
     options.mlp_architecture = [int(layer_width) for layer_width in options.mlp_architecture.split(",")]
     return options
 
 
-def return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes,
+def greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes,
                                     smart_nodes_set, processes=1):
     if smart_nodes_set is None:
         smart_nodes_set = list(filter(lambda n: len(net.out_edges_by_node(n)) > 1, net.nodes))
@@ -98,12 +99,15 @@ if __name__ == "__main__":
     number_smart_nodes = args.number_smart_nodes
     smart_nodes_set = args.smart_nodes_set
     processes = args.processes
+    kpp = args.kpp
 
     total_timesteps = policy_updates * n_steps
-    num_test_observations = min(num_train_observations * 2, 20000)
+    num_test_observations = min(num_train_observations * 5, 20000)
 
     logger.info("Data loaded from: {}".format(dumped_path))
     logger.info("Architecture is: {}".format(mlp_arch))
+    logger.info("Policy updates: {}".format(policy_updates))
+    logger.info("Train observations: {}".format(num_train_observations))
     logger.info("gamma is: {}".format(gamma))
 
     if RL_ENV_SMART_NODES_GYM_ID not in envs.registry.env_specs:
@@ -119,6 +123,8 @@ if __name__ == "__main__":
                  )
     envs = make_vec_env(RL_ENV_SMART_NODES_GYM_ID, n_envs=1)
     env = envs.envs[0].env
+    env_train_observations = env.get_train_observations
+
 
     loaded_dict = load_dump_file(dumped_path)
     if load_network is None:
@@ -126,6 +132,7 @@ if __name__ == "__main__":
     else:
         net: NetworkClass = NetworkClass.load_network_object(load_network)
         env.set_network_smart_nodes_and_spr(net.get_smart_nodes, net.get_smart_nodes_spr)
+        env.set_train_observations(net.env_train_observation)
 
     callback_perfix_path = '/home/idoye/PycharmProjects/Research_Implementing/experiments/{}_callbacks_batch/'.format(
         net.get_title) \
@@ -155,19 +162,26 @@ if __name__ == "__main__":
         checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
-        env.get_network.store_network_object(callback_path)
+        env.get_network.store_network_object(callback_path,env_train_observations)
         logger.info("***************** Iteration 0 Finished ******************")
 
     current_smart_nodes = tuple()
     for i in range(1, num_of_iterations + 1):
-        logger.info("**************** Iteration {} *****************".format(i))
         logger.info("**** Iteration {}, Evaluating Smart Node  *****".format(i))
         link_weights, _ = model.predict(env.reset(), deterministic=True)
 
         traffic_matrix_list = create_random_TMs_list(tms_sample_size, loaded_dict["tms"], shuffling=True)
         destination_based_sprs = env.get_optimizer.calculating_destination_based_spr(link_weights)
-        best_smart_nodes = return_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs,
-                                                           number_smart_nodes, smart_nodes_set, processes)
+
+        if kpp:
+            kp_set = env.get_optimizer.key_player_problem_comm_iter(link_weights, number_smart_nodes)
+            best_smart_nodes = matrices_mcf_LP_with_smart_nodes_solver(kp_set, env.get_network, traffic_matrix_list, destination_based_sprs)
+            logger.info("********** Iteration {}, KPP Expected Objective:{}  ***********".format(i, best_smart_nodes[1]))
+
+
+        else:
+            best_smart_nodes = greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes, smart_nodes_set,
+                                                               processes)
         current_smart_nodes = best_smart_nodes[0]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
         logger.info("********** Iteration {}, Smart Nodes:{}  ***********".format(i, current_smart_nodes))
@@ -179,7 +193,7 @@ if __name__ == "__main__":
         checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
         model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
-        env.get_network.store_network_object(callback_path)
+        env.get_network.store_network_object(callback_path,env_train_observations)
 
     logger.info("========================== Learning Process is Done =================================")
 
