@@ -35,7 +35,7 @@ class RL_Env_History(RL_Env):
     def step(self, links_weights):
         info = dict()
 
-        cost_congestion_ratio, most_congested_link, total_congestion, total_congestion_per_link, \
+        cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, \
         total_load_per_link = self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
@@ -45,7 +45,6 @@ class RL_Env_History(RL_Env):
             info[ExtraData.LINK_WEIGHTS] = np.array(links_weights)
             info[ExtraData.LOAD_PER_LINK] = np.array(total_load_per_link)
             info[ExtraData.MOST_CONGESTED_LINK] = most_congested_link
-            info[ExtraData.VS_OBLIVIOUS_DATA] = self._optimizer.vs_oblivious_data
 
         info[ExtraData.REWARD_OVER_FUTURE] = cost_congestion_ratio
         self._diagnostics.append(info)
@@ -58,7 +57,7 @@ class RL_Env_History(RL_Env):
         del links_weights
         del cost_congestion_ratio
         del most_congested_link
-        del total_congestion
+        del flows_to_dest_per_node
         del total_congestion_per_link
 
         return observation, reward, done, info
@@ -66,7 +65,7 @@ class RL_Env_History(RL_Env):
     def _process_action_get_cost(self, links_weights):
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
         optimal_val = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]
-        max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
+        max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
             self.optimizer_step(links_weights, tm, optimal_val)
 
         cost_congestion_ratio = max_congestion / optimal_val
@@ -84,12 +83,12 @@ class RL_Env_History(RL_Env):
         logger.debug("Optimal  Congestion :{}".format(optimal_val))
         logger.debug("Congestion Ratio :{}".format(cost_congestion_ratio))
 
-        return cost_congestion_ratio, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
+        return cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
 
     def optimizer_step(self, links_weights, tm, optimal_value):
-        max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
+        max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
             self._optimizer.step(links_weights, tm, optimal_value)
-        return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
+        return max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
 
     def testing(self, _testing):
         super(RL_Env_History, self).testing(_testing)

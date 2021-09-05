@@ -15,10 +15,10 @@ class PEFTOptimizer(Optimizer_Abstract):
         :return: cost and congestion
         """
         dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
-        max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link = \
+        max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
             self._calculating_traffic_distribution(dst_splitting_ratios, traffic_matrix)
 
-        return max_congestion, most_congested_link, total_congestion, total_congestion_per_link, total_load_per_link
+        return max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
 
     def _calculating_exponent_distance_gap(self, weights_vector):
         net_direct = self._network

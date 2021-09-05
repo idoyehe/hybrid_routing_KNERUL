@@ -42,8 +42,8 @@ class RL_Env_PEFT(RL_Env):
         info = dict()
         links_weights = self._modify_action(action)
 
-        total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch = self._process_action_get_cost(
-            links_weights)
+        cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
+            self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
         oblivious_value = self._oblivious_values[self._current_observation_index][
@@ -51,11 +51,10 @@ class RL_Env_PEFT(RL_Env):
 
         if self._testing:
             info["links_weights"] = np.array(links_weights)
-            info["load_per_link"] = np.array(total_load_per_arch)
-            info["most_congested_link"] = most_congested_arch
-            info["rl_vs_obliv_data"] = self._optimizer.rl_vs_obliv_data
+            info["load_per_link"] = np.array(total_load_per_link)
+            info["most_congested_link"] = most_congested_link
 
-        del total_load_per_arch
+        del total_load_per_link
         del links_weights
         info[ExtraData.REWARD_OVER_FUTURE] = cost_congestion_ratio
         self._diagnostics.append(info)
@@ -68,14 +67,12 @@ class RL_Env_PEFT(RL_Env):
 
         return observation, reward, done, info
 
-
-
     def _process_action_get_cost(self, links_weights):
         global ERROR_BOUND
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
         optimal_congestion = self._optimal_values[self._current_observation_index][
             self._tm_start_index + self._history_length]
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
+        max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
             self.optimizer_step(links_weights, tm, optimal_congestion)
 
         cost_congestion_ratio = max_congestion / optimal_congestion
@@ -93,12 +90,12 @@ class RL_Env_PEFT(RL_Env):
         logger.debug("optimal  Congestion :{}".format(optimal_congestion))
         logger.debug("Congestion Ratio :{}".format(cost_congestion_ratio))
 
-        return total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch
+        return cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
 
     def optimizer_step(self, links_weights, tm, optimal_value):
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = \
+        max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
             self._optimizer.step(links_weights, tm, optimal_value)
-        return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
+        return max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
 
     def testing(self, _testing):
         super(RL_Env_PEFT, self).testing(_testing)

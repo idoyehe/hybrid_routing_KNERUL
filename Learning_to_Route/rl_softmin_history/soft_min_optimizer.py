@@ -21,10 +21,10 @@ class SoftMinOptimizer(Optimizer_Abstract):
         :param traffic_matrix: the traffic matrix to examine
         :return: cost and congestion
         """
-        max_congestion, most_congested_link, total_congestion, congestion_per_link, \
+        max_congestion, most_congested_link, flows_to_dest_per_node, congestion_per_link, \
         total_load_per_link = self._get_cost_given_weights(weights_vector, traffic_matrix, optimal_value)
 
-        return max_congestion, most_congested_link, total_congestion, congestion_per_link, total_load_per_link
+        return max_congestion, most_congested_link, flows_to_dest_per_node, congestion_per_link, total_load_per_link
 
     def __get_edge_cost(self, cost_adj, each_edge_weight):
         cost_to_dst1 = cost_adj * self._graph_adjacency_matrix + each_edge_weight
@@ -63,6 +63,8 @@ class SoftMinOptimizer(Optimizer_Abstract):
             edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
             q_val = self.__soft_min(edge_cost)
             for u, v in net_direct.edges:
+                if u == node_dst:
+                    continue
                 edge_idx = net_direct.get_edge2id(u, v)
                 dst_splitting_ratios[node_dst][u, v] = q_val[edge_idx]
         return dst_splitting_ratios
@@ -70,11 +72,11 @@ class SoftMinOptimizer(Optimizer_Abstract):
     def _get_cost_given_weights(self, weights_vector, traffic_matrix, optimal_value):
         dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
 
-        max_congestion, most_congested_link, total_congestion, congestion_per_link, \
+        max_congestion, most_congested_link, flows_to_dest_per_node, congestion_per_link, \
         load_per_link = self._calculating_traffic_distribution(dst_splitting_ratios, traffic_matrix)
         if self._testing:
             logger.info("RL most congested link: {}".format(most_congested_link))
             logger.info("RL MLU: {}".format(max_congestion))
             logger.info("RL MLU Vs. Optimal: {}".format(max_congestion / optimal_value))
 
-        return max_congestion, most_congested_link, total_congestion, congestion_per_link, load_per_link
+        return max_congestion, most_congested_link, flows_to_dest_per_node, congestion_per_link, load_per_link

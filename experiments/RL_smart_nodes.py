@@ -30,7 +30,8 @@ class RL_Smart_Nodes(RL_Env):
     def step(self, links_weights):
         info = dict()
 
-        total_congestion, cost_congestion_ratio, total_load_per_link, most_congested_arch = self._process_action_get_cost(links_weights)
+        cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
+            self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
         if self._testing:
@@ -51,7 +52,8 @@ class RL_Smart_Nodes(RL_Env):
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
         optimal_congestion = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]
         oblivious_congestion = self._oblivious_values[self._current_observation_index][self._tm_start_index + self._history_length]
-        total_congestion, max_congestion, total_load_per_arch, most_congested_arch = self.optimizer_step(links_weights, tm, optimal_congestion)
+        max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = self.optimizer_step(
+            links_weights, tm, optimal_congestion)
 
         if self._testing:
             cost_congestion_ratio = max_congestion / optimal_congestion
@@ -73,13 +75,12 @@ class RL_Smart_Nodes(RL_Env):
         logger.debug("oblivious Congestion :{}".format(oblivious_congestion))
         logger.debug("Congestion Ratio :{}".format(cost_congestion_ratio))
 
-        return total_congestion, cost_congestion_ratio, total_load_per_arch, most_congested_arch
+        return cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
 
     def optimizer_step(self, links_weights, tm, optimal_value):
-        max_congestion, most_congested_arch, total_congestion, rl_total_congestion_per_link, total_load_per_arch = self._optimizer.step(links_weights,
-                                                                                                                                        tm,
-                                                                                                                                        optimal_value)
-        return total_congestion, max_congestion, total_load_per_arch, most_congested_arch
+        max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
+            self._optimizer.step(links_weights, tm, optimal_value)
+        return max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
 
     def testing(self, _testing):
         super(RL_Smart_Nodes, self).testing(_testing)

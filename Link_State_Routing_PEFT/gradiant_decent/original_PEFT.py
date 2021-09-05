@@ -44,16 +44,16 @@ def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value):
     step_size = 1 / max(necessary_capacity)
     traffic_distribution = PEFTOptimizer(net, None)
     w_u_v = __initialize_all_weights(net)
-    max_congestion, most_congested_link, total_congestion, total_congestion_per_link, current_flows_values = \
+    max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, current_flows_values = \
         traffic_distribution.step(w_u_v, traffic_matrix, None)
 
     while __stop_loop(net, current_flows_values, necessary_capacity) == False:
         w_u_v = __gradient_decent_update(net, w_u_v, step_size, current_flows_values, necessary_capacity)
-        max_congestion, most_congested_link, total_congestion, total_congestion_per_link, current_flows_values = \
+        max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, current_flows_values = \
             traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
         print('Congestion Vs. Optimal = {}'.format(max_congestion / optimal_value))
 
-    max_congestion, most_congested_link, total_congestion, total_congestion_per_link, current_flows_values = \
+    max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, current_flows_values = \
         traffic_distribution.step(w_u_v, traffic_matrix, None)
     return w_u_v, max_congestion
 
