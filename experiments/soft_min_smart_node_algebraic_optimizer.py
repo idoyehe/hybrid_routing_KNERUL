@@ -94,11 +94,10 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
         for src, dst in flows:
             psi = src_dst_splitting_ratios[(src, dst)]
             demand = np.zeros(shape=(net_direct.get_num_nodes))
-            demand[src, dst] = tm[src, dst]
+            demand[src] = tm[src, dst]
             assert all(psi[dst][:] == 0)
             assert psi.shape == (net_direct.get_num_nodes, net_direct.get_num_nodes)
-            A = np.transpose(np.identity(net_direct.get_num_nodes) - psi)
-            flows_src2dest_per_node[(src, dst)] = npl.solve(A, demand)
+            flows_src2dest_per_node[(src, dst)] = demand @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
 
         self.__validate_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
 

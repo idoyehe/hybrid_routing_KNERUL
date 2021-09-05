@@ -62,7 +62,7 @@ class RL_Smart_Nodes(RL_Env):
 
             if cost_congestion_ratio < 1.0:
                 try:
-                    assert error_bound(cost_congestion_ratio, optimal_congestion, ERROR_BOUND)
+                    assert error_bound(max_congestion, optimal_congestion, ERROR_BOUND)
                 except Exception as _:
                     logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
                                 "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion,

@@ -170,7 +170,7 @@ if __name__ == "__main__":
         logger.info("**** Iteration {}, Evaluating Smart Node  *****".format(i))
         link_weights, _ = model.predict(env.reset(), deterministic=True)
 
-        traffic_matrix_list = create_random_TMs_list(tms_sample_size, env_train_observations, shuffling=True)
+        traffic_matrix_list = create_random_TMs_list(tms_sample_size, env_train_observations[0], shuffling=False)
         destination_based_sprs = env.get_optimizer.calculating_destination_based_spr(link_weights)
 
         if kpp:

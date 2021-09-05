@@ -185,7 +185,8 @@ class RL_Env(Env):
 
     @property
     def get_train_observations(self):
-        return self._train_observations
+        return self._train_observations, self._opt_train_observations
 
     def set_train_observations(self, train_observations):
-        self._train_observations = train_observations
+        self._train_observations = train_observations[0]
+        self._opt_train_observations = train_observations[1]
