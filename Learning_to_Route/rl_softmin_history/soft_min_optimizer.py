@@ -26,48 +26,42 @@ class SoftMinOptimizer(Optimizer_Abstract):
 
         return max_congestion, most_congested_link, flows_to_dest_per_node, congestion_per_link, total_load_per_link
 
-    def __get_edge_cost(self, cost_adj, each_edge_weight):
-        cost_to_dst1 = cost_adj * self._graph_adjacency_matrix + each_edge_weight
-        cost_to_dst2 = np.reshape(cost_to_dst1, [-1])
-        cost_to_dst3 = cost_to_dst2[cost_to_dst2 != 0]
-        return cost_to_dst3 * self._outgoing_edges
+    def __get_distance_via_neighbor(self, cost_adj, each_edge_weight):
+        distance_via_neighbor = cost_adj * self._graph_adjacency_matrix
+        distance_via_neighbor[self._graph_adjacency_matrix == 0] = np.inf
+        for u in self._network.nodes:
+            _t = distance_via_neighbor[u]
+            _t[_t > cost_adj[u]] = np.inf
+        distance_via_neighbor += each_edge_weight
+        return distance_via_neighbor
 
-    def __soft_min(self, weights_vector, alpha=EnvConsts.SOFTMIN_ALPHA):
+    def __soft_min(self, dest, distance_via_neighbor, alpha=EnvConsts.SOFTMIN_ALPHA):
         """
         :param weights_vector: vector of weights
         :param alpha: for exponent expression
         :return: sum over deges
         """
 
-        exp_val = np.exp(alpha * weights_vector)
-        exp_val[weights_vector == 0] = 0
-        exp_val[np.logical_and(weights_vector != 0, exp_val == 0)] = EnvConsts.EPSILON
-
-        exp_val = np.transpose(exp_val) / np.sum(exp_val, axis=1)
-        exp_val = np.sum(np.transpose(exp_val), axis=0)
-        net_direct = self._network
-        for u in net_direct.nodes:
-            error_bound(1.0, sum(exp_val[net_direct.get_edge2id(u, v)] for _, v in net_direct.out_edges_by_node(u)))
+        exp_val = np.exp(alpha * distance_via_neighbor)
+        normalizer = np.sum(exp_val, axis=1)
+        normalizer[dest]=1.0
+        exp_val = np.transpose(np.transpose(exp_val) / normalizer)
+        assert all(error_bound(int(u != dest), sum(exp_val[u])) for u in self._network.nodes)
         return exp_val
 
     def calculating_destination_based_spr(self, weights_vector):
         logger.debug("Calculating hop by hop splitting ratios")
         net_direct = self._network
-        dst_splitting_ratios = np.zeros((net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64)
+        splitting_ratios_per_dest = np.zeros((net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64)
         one_hop_cost = (weights_vector * self._outgoing_edges) @ np.transpose(self._ingoing_edges)
         reduced_weighted_graph = self._build_reduced_weighted_graph(weights_vector)
 
-        for node_dst in net_direct.nodes:
-            cost_adj = nx.shortest_path_length(G=reduced_weighted_graph, target=node_dst, weight=EdgeConsts.WEIGHT_STR)
-            cost_adj = [cost_adj[i] for i in net_direct.nodes]
-            edge_cost = self.__get_edge_cost(cost_adj, one_hop_cost)
-            q_val = self.__soft_min(edge_cost)
-            for u, v in net_direct.edges:
-                if u == node_dst:
-                    continue
-                edge_idx = net_direct.get_edge2id(u, v)
-                dst_splitting_ratios[node_dst][u, v] = q_val[edge_idx]
-        return dst_splitting_ratios
+        for dest in net_direct.nodes:
+            shortest_path2dest = nx.shortest_path_length(G=reduced_weighted_graph, target=dest, weight=EdgeConsts.WEIGHT_STR)
+            shortest_path2dest = np.array([shortest_path2dest[i] for i in net_direct.nodes], dtype=np.float64)
+            distance_via_neighbor = self.__get_distance_via_neighbor(shortest_path2dest, one_hop_cost)
+            splitting_ratios_per_dest[dest] = self.__soft_min(dest, distance_via_neighbor)
+        return splitting_ratios_per_dest
 
     def _get_cost_given_weights(self, weights_vector, traffic_matrix, optimal_value):
         dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)

@@ -39,7 +39,7 @@ class Optimizer_Abstract(object):
             current_spr = splitting_ratios[dst]
             assert error_bound(flows_dest_per_node[dst][dst], sum(traffic_matrix[:, dst]))
             for node in net_direct.nodes:
-                assert flows_dest_per_node[dst][node] >= traffic_matrix[node, dst]
+                assert flows_dest_per_node[dst][node] >= traffic_matrix[node, dst] or error_bound(flows_dest_per_node[dst][node], traffic_matrix[node, dst])
                 _flow_to_node = sum(
                     flows_dest_per_node[dst][u] * current_spr[u, v] for u, v in net_direct.in_edges_by_node(node))
                 _flow_from_node = sum(
@@ -89,41 +89,3 @@ class Optimizer_Abstract(object):
 
     def calculating_destination_based_spr(self, weights_vector):
         pass
-
-    def _calculating_traffic_distribution_2(self, dst_splitting_ratios, traffic_matrix):
-        net_direct = self._network
-
-        flows_dest_per_node = dict()
-        for dst in net_direct.nodes:
-            current_spr = dst_splitting_ratios[dst]
-            demands = np.delete(traffic_matrix[:, dst], dst)
-            current_flow_values_per_node = np.zeros(shape=(net_direct.get_num_nodes))
-            psi = np.delete(np.delete(current_spr, dst, axis=0), dst, axis=1)
-            assert psi.shape == (net_direct.get_num_nodes - 1, net_direct.get_num_nodes - 1)
-            A = np.transpose(np.identity(net_direct.get_num_nodes - 1) - psi)
-            result = npl.solve(A, demands)
-            for node in net_direct.nodes:
-                if node < dst:
-                    current_flow_values_per_node[node] = result[node]
-                elif node == dst:
-                    current_flow_values_per_node[node] = sum(demands)
-                else:
-                    assert node > dst
-                    current_flow_values_per_node[node] = result[node - 1]
-            flows_dest_per_node[dst] = current_flow_values_per_node
-
-        self.__validate_flow(net_direct, traffic_matrix, flows_dest_per_node, dst_splitting_ratios)
-
-        load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
-
-        for u, v in net_direct.edges:
-            edge_index = net_direct.get_edge2id(u, v)
-            load_per_link[edge_index] = sum(
-                flows_dest_per_node[dst][u] * dst_splitting_ratios[dst][u, v] if u != dst else 0 for dst in net_direct.nodes)
-
-        congestion_per_link = load_per_link / self._edges_capacities
-
-        most_congested_link = np.argmax(congestion_per_link)
-        max_congestion = congestion_per_link[most_congested_link]
-
-        return max_congestion, most_congested_link, flows_dest_per_node, congestion_per_link, load_per_link
