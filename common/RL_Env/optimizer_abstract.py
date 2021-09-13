@@ -34,39 +34,42 @@ class Optimizer_Abstract(object):
         pass
 
     @staticmethod
-    def __validate_flow(net_direct, traffic_matrix, flows_dest_per_node, splitting_ratios):
+    def __validate_flow(net_direct, traffic_matrix, flows_dest_per_node, active_dest, splitting_ratios):
         for dst in net_direct.nodes:
-            current_spr = splitting_ratios[dst]
-            assert error_bound(flows_dest_per_node[dst][dst], sum(traffic_matrix[:, dst]))
-            for node in net_direct.nodes:
-                assert flows_dest_per_node[dst][node] >= traffic_matrix[node, dst] or error_bound(flows_dest_per_node[dst][node], traffic_matrix[node, dst])
-                _flow_to_node = sum(
-                    flows_dest_per_node[dst][u] * current_spr[u, v] for u, v in net_direct.in_edges_by_node(node))
-                _flow_from_node = sum(
-                    flows_dest_per_node[dst][u] * current_spr[u, v] for u, v in net_direct.out_edges_by_node(node))
+            if np.sum(traffic_matrix[:, dst]) > 0:
+                current_spr = splitting_ratios[dst]
+                assert error_bound(flows_dest_per_node[dst][dst], sum(traffic_matrix[:, dst]))
+                for node in net_direct.nodes:
+                    assert flows_dest_per_node[dst][node] >= traffic_matrix[node, dst] or error_bound(flows_dest_per_node[dst][node],
+                                                                                                      traffic_matrix[node, dst])
+                    _flow_to_node = sum(
+                        flows_dest_per_node[dst][u] * current_spr[u, v] for u, v in net_direct.in_edges_by_node(node))
+                    _flow_from_node = sum(
+                        flows_dest_per_node[dst][u] * current_spr[u, v] for u, v in net_direct.out_edges_by_node(node))
 
-                if node == dst:
-                    assert error_bound(_flow_from_node, 0)
-                else:
-                    assert error_bound(_flow_to_node + traffic_matrix[node, dst], _flow_from_node)
+                    if node == dst:
+                        assert error_bound(_flow_from_node, 0)
+                    else:
+                        assert error_bound(_flow_to_node + traffic_matrix[node, dst], _flow_from_node)
 
     def _calculating_traffic_distribution(self, dst_splitting_ratios, traffic_matrix):
         net_direct = self._network
         flows_to_dest_per_node = dict()
-        for dst in net_direct.nodes:
+        active_dest = tuple(filter(lambda dst: np.sum(traffic_matrix[:, dst]) > 0, net_direct.nodes))
+        for dst in active_dest:
             psi = dst_splitting_ratios[dst]
             demands = traffic_matrix[:, dst]
             assert all(psi[dst][:] == 0)
             assert psi.shape == (net_direct.get_num_nodes, net_direct.get_num_nodes)
             flows_to_dest_per_node[dst] = demands @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
 
-        self.__validate_flow(net_direct, traffic_matrix, flows_to_dest_per_node, dst_splitting_ratios)
+        self.__validate_flow(net_direct, traffic_matrix, flows_to_dest_per_node, active_dest, dst_splitting_ratios)
 
         load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
 
         for u, v in net_direct.edges:
             edge_index = net_direct.get_edge2id(u, v)
-            load_per_link[edge_index] = sum(flows_to_dest_per_node[dst][u] * dst_splitting_ratios[dst][u, v] for dst in net_direct.nodes)
+            load_per_link[edge_index] = sum(flows_to_dest_per_node[dst][u] * dst_splitting_ratios[dst][u, v] for dst in active_dest)
 
         congestion_per_link = load_per_link / self._edges_capacities
 
