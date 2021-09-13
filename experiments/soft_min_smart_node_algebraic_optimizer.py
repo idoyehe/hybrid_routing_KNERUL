@@ -97,7 +97,7 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
             demand[src] = tm[src, dst]
             assert all(psi[dst][:] == 0)
             assert psi.shape == (net_direct.get_num_nodes, net_direct.get_num_nodes)
-            flows_src2dest_per_node[(src, dst)] = demand @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
+            flows_src2dest_per_node[(src, dst)] = demand @ npl.pinv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
 
         self.__validate_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
 
@@ -120,7 +120,7 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
         flows = extract_flows(tm)
         for src, dst in flows:
             current_spr = src_dst_splitting_ratios[src, dst]
-            assert flows_src2dest_per_node[src, dst][src] >= tm[src, dst]
+            assert flows_src2dest_per_node[src, dst][src] > tm[src, dst] or error_bound(flows_src2dest_per_node[src, dst][src], tm[src, dst])
             assert error_bound(flows_src2dest_per_node[src, dst][dst], tm[src, dst])
             for node in net_direct.nodes:
                 _flow_to_node = sum(
@@ -139,3 +139,17 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
                 else:
                     assert error_bound(flows_src2dest_per_node[src, dst][node], _flow_to_node)
                     assert error_bound(_flow_from_node, _flow_to_node)
+
+    def calculating_effective_betweenness(self, weights_vector):
+        net_direct = self._network
+        dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
+        b = np.zeros(shape=(net_direct.get_num_nodes,net_direct.get_num_nodes))
+        for k in net_direct.nodes:
+            psi = dst_splitting_ratios[k]
+            b += npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi) @ psi
+
+        B = np.zeros(shape=(net_direct.get_num_nodes))
+        for j in net_direct.nodes:
+            B[j] = np.sum(b[:,j])
+
+        return B

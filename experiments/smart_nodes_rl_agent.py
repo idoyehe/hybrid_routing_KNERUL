@@ -173,8 +173,11 @@ if __name__ == "__main__":
         traffic_matrix_list = create_random_TMs_list(tms_sample_size, env_train_observations[0], shuffling=False)
         destination_based_sprs = env.get_optimizer.calculating_destination_based_spr(link_weights)
 
+        kp_set = env.get_optimizer.key_player_problem_comm_iter(link_weights, number_smart_nodes)
+        B = env.get_optimizer.calculating_effective_betweenness(link_weights)
+        logger.info("********** Iteration {},KPP Smart Nodes:{}  ***********".format(i, kp_set))
+
         if kpp:
-            kp_set = env.get_optimizer.key_player_problem_comm_iter(link_weights, number_smart_nodes)
             best_smart_nodes = matrices_mcf_LP_with_smart_nodes_solver(kp_set, env.get_network, traffic_matrix_list, destination_based_sprs)
             logger.info("********** Iteration {}, KPP Expected Objective:{}  ***********".format(i, best_smart_nodes[1]))
 
@@ -199,12 +202,10 @@ if __name__ == "__main__":
 
     env.testing(True)
     rewards_list = list()
-    diagnostics = list()
     for _ in range(num_test_observations):
         obs = env.reset()
         link_weights, _ = model.predict(env.reset(), deterministic=True)
         _, reward, dones, info = env.step(link_weights)
-        diagnostics.extend(info)
         rewards_list.append(reward * -1)
 
     print("Agent average performance: {}".format(np.mean(rewards_list)))
