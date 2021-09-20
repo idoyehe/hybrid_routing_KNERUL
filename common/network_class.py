@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 from common.utils import *
 from random import shuffle
 import pickle
+from collections import defaultdict
 
 
 class NetworkClass(object):
@@ -35,7 +36,8 @@ class NetworkClass(object):
         self._reducing_map_dict = None
         self._id2edge_map = None
         self._edge2id_map = None
-        self._capacity_map = None
+        self._outgoing_capacity = None
+        self._ingoing_capacity = None
         self._total_capacity = 0
         self._flows = None
         self._title = None
@@ -246,16 +248,17 @@ class NetworkClass(object):
         plt.show()
 
     def __capacity_map(self):
-        if self._capacity_map is None:
+        if self._outgoing_capacity is None or self._ingoing_capacity is None:
             assert self.g_is_directed
-            self._capacity_map = dict()
+            self._outgoing_capacity = defaultdict(int)
+            self._ingoing_capacity = defaultdict(int)
             self._total_capacity = 0
-            for node in self.nodes:
-                node_out_cap = sum(out_edge[2][EdgeConsts.CAPACITY_STR] for out_edge in
-                                   self.out_edges_by_node(node, data=True))
-                self._capacity_map[node] = node_out_cap
-                self._total_capacity += node_out_cap
-        return self._capacity_map, self._total_capacity
+            for u, v in self.edges:
+                edge_capacity = self.get_edge_key((u, v), key=EdgeConsts.CAPACITY_STR)
+                self._ingoing_capacity[v] += edge_capacity
+                self._outgoing_capacity[u] += edge_capacity
+                self._total_capacity += edge_capacity
+        return self._outgoing_capacity, self._ingoing_capacity, self._total_capacity
 
     def gravity_traffic_map(self, scale=1.0):
         if self._flows is None:
@@ -263,7 +266,7 @@ class NetworkClass(object):
             self._flows = []
 
             for src, dst in self.get_all_pairs():
-                flow_size = self._capacity_map[src] * self._capacity_map[dst] / self._total_capacity
+                flow_size = self._outgoing_capacity[src] * self._ingoing_capacity[dst] / self._total_capacity
                 self._flows.append((src, dst, scale * flow_size))
         return self._flows
 
