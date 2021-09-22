@@ -29,23 +29,14 @@ class SoftMinOptimizer(Optimizer_Abstract):
     def __get_distance_via_neighbor(self, cost_adj, each_edge_weight):
         distance_via_neighbor = cost_adj * self._graph_adjacency_matrix
         distance_via_neighbor[self._graph_adjacency_matrix == 0] = np.inf
-        for u in self._network.nodes:
-            _t = distance_via_neighbor[u]
-            _t[_t > cost_adj[u]] = np.inf
         distance_via_neighbor += each_edge_weight
         return distance_via_neighbor
 
-    def __soft_min(self, dest, distance_via_neighbor, alpha=EnvConsts.SOFTMIN_ALPHA):
-        """
-        :param weights_vector: vector of weights
-        :param alpha: for exponent expression
-        :return: sum over deges
-        """
-
-        exp_val = np.exp(alpha * distance_via_neighbor)
+    def __soft_min(self, dest, distance_via_neighbor, gamma=EnvConsts.SOFTMIN_ALPHA):
+        exp_val = np.exp(gamma * distance_via_neighbor)
         normalizer = np.sum(exp_val, axis=1)
-        normalizer[dest]=1.0
         exp_val = np.transpose(np.transpose(exp_val) / normalizer)
+        exp_val[dest, :] = 0.0
         assert all(error_bound(int(u != dest), sum(exp_val[u])) for u in self._network.nodes)
         return exp_val
 
