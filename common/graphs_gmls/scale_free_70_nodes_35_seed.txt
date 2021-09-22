@@ -487,7 +487,7 @@ graph [
   ]
   edge [
     source 2
-    target 7
+    target 4
     LinkSpeedRaw "10000000000"
   ]
   edge [
@@ -497,17 +497,17 @@ graph [
   ]
   edge [
     source 2
+    target 65
+    LinkSpeedRaw "10000000000"
+  ]
+  edge [
+    source 2
+    target 31
+    LinkSpeedRaw "10000000000"
+  ]
+  edge [
+    source 2
     target 47
-    LinkSpeedRaw "10000000000"
-  ]
-  edge [
-    source 2
-    target 25
-    LinkSpeedRaw "10000000000"
-  ]
-  edge [
-    source 2
-    target 4
     LinkSpeedRaw "10000000000"
   ]
   edge [
@@ -601,23 +601,23 @@ graph [
     LinkSpeedRaw "10000000000"
   ]
   edge [
-    source 2
-    target 57
+    source 3
+    target 30
     LinkSpeedRaw "10000000000"
   ]
   edge [
-    source 2
-    target 58
+    source 3
+    target 32
     LinkSpeedRaw "10000000000"
   ]
   edge [
-    source 2
-    target 59
+    source 3
+    target 34
     LinkSpeedRaw "10000000000"
   ]
   edge [
-    source 2
-    target 65
+    source 6
+    target 22
     LinkSpeedRaw "10000000000"
   ]
   edge [

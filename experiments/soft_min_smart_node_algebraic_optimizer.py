@@ -99,7 +99,8 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
             assert psi.shape == (net_direct.get_num_nodes, net_direct.get_num_nodes)
             flows_src2dest_per_node[(src, dst)] = demand @ npl.pinv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
 
-        self.__validate_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
+        if logger.level == logging.DEBUG:
+            self.__validate_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
 
         total_load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
 
@@ -143,13 +144,13 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
     def calculating_effective_betweenness(self, weights_vector):
         net_direct = self._network
         dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
-        b = np.zeros(shape=(net_direct.get_num_nodes,net_direct.get_num_nodes))
+        b = np.zeros(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes))
         for k in net_direct.nodes:
             psi = dst_splitting_ratios[k]
             b += npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi) @ psi
 
         B = np.zeros(shape=(net_direct.get_num_nodes))
         for j in net_direct.nodes:
-            B[j] = np.sum(b[:,j])
+            B[j] = np.sum(b[:, j])
 
         return B
