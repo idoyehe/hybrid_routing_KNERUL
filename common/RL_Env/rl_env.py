@@ -18,6 +18,7 @@ class RL_Env(Env):
     def __init__(self,
                  max_steps,
                  path_dumped=None,
+                 test_file=None,
                  history_length=None,
                  num_train_observations=None,
                  num_test_observations=None,
@@ -27,13 +28,15 @@ class RL_Env(Env):
 
         self._episode_len = max_steps
 
-        loaded_dict = load_dump_file(file_name=path_dumped)
-        self._network = NetworkClass(topology_zoo_loader(url=loaded_dict["url"]))
-        self._tms = loaded_dict["tms"]
-        self._tm_type = loaded_dict["tms_type"]
-        if "oblivious_routing" in loaded_dict.keys():
-            self._oblivious_routing_per_edge = loaded_dict["oblivious_routing"]["per_edge"]
-            self._oblivious_routing_per_flow = loaded_dict["oblivious_routing"]["per_flow"]
+        train_loaded_dict = load_dump_file(file_name=path_dumped)
+        test_loaded_dict = load_dump_file(file_name=test_file)
+        self._network = NetworkClass(topology_zoo_loader(url=train_loaded_dict["url"]))
+        self._tms = train_loaded_dict["tms"]
+        self._tms_test = test_loaded_dict["tms"]
+        self._tm_type = train_loaded_dict["tms_type"]
+        if "oblivious_routing" in train_loaded_dict.keys():
+            self._oblivious_routing_per_edge = train_loaded_dict["oblivious_routing"]["per_edge"]
+            self._oblivious_routing_per_flow = train_loaded_dict["oblivious_routing"]["per_flow"]
         else:
             self._oblivious_routing_per_edge = self._oblivious_routing_per_flow = None
         self._network = self._network
@@ -73,9 +76,9 @@ class RL_Env(Env):
     def _set_action_space(self):
         self._action_space = spaces.Box(low=EnvConsts.WEIGHT_LB, high=EnvConsts.WEIGHT_UB, shape=(self._num_edges,))
 
-    def _sample_tm(self):
+    def _sample_tm(self, tm_set):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
-        tuple_element = random.choice(self._tms)
+        tuple_element = random.choice(tm_set)
         oblv = None
         if len(tuple_element) == 3:
             tm, opt, oblv = tuple_element
@@ -84,30 +87,32 @@ class RL_Env(Env):
         return tm, opt, oblv
 
     def _init_all_observations(self):
-        def __create_episode(_episode_len):
+        def __create_episode(_episode_len, tm_set):
             _episode_tms = list()
             _episode_optimals = list()
             _episode_oblivious = list()
             for _ in range(_episode_len):
-                tm, opt, oblv = self._sample_tm()
+                tm, opt, oblv = self._sample_tm(tm_set)
                 _episode_tms.append(tm)
                 _episode_optimals.append(opt)
                 _episode_oblivious.append(oblv)
             return _episode_tms, _episode_optimals, _episode_oblivious
 
-        def __create_observation(_num_observations):
+        def __create_observation(_num_observations, tm_set):
             _observations_episodes = list()
             _observations_episodes_optimals = list()
             _observations_episodes_oblivious = list()
             for _ in range(_num_observations):
-                _episode_tms, _episode_optimals, _episode_oblivious = __create_episode(self._history_length + self._episode_len)
+                _episode_tms, _episode_optimals, _episode_oblivious = __create_episode(self._history_length + self._episode_len, tm_set)
                 _observations_episodes.append(np.array(_episode_tms))
                 _observations_episodes_optimals.append(np.array(_episode_optimals))
                 _observations_episodes_oblivious.append(np.array(_episode_oblivious))
             return np.array(_observations_episodes), np.array(_observations_episodes_optimals), np.array(_observations_episodes_oblivious)
 
-        self._train_observations, self._opt_train_observations, self._oblv_train_observations = __create_observation(self._num_train_observations)
-        self._test_observations, self._opt_test_observations, self._oblv_test_observations = __create_observation(self._num_test_observations)
+        self._train_observations, self._opt_train_observations, self._oblv_train_observations = __create_observation(self._num_train_observations,
+                                                                                                                     self._tms)
+        self._test_observations, self._opt_test_observations, self._oblv_test_observations = __create_observation(self._num_test_observations,
+                                                                                                                  self._tms_test)
         if not self._none_history:
             self._validate_data()
 

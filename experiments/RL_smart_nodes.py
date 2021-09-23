@@ -11,11 +11,12 @@ class RL_Smart_Nodes(RL_Env):
     def __init__(self,
                  max_steps=1,
                  path_dumped=None,
+                 test_file=None,
                  history_length=0,
                  num_train_observations=None,
                  num_test_observations=None,
                  testing=False):
-        super(RL_Smart_Nodes, self).__init__(max_steps=max_steps, path_dumped=path_dumped,
+        super(RL_Smart_Nodes, self).__init__(max_steps=max_steps, path_dumped=path_dumped, test_file=test_file,
                                              history_length=history_length,
                                              num_train_observations=num_train_observations,
                                              num_test_observations=num_test_observations, testing=testing)

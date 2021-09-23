@@ -25,7 +25,8 @@ RL_ENV_SMART_NODES_GYM_ID: str = 'rl-smart_nodes-v0'
 
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
-    parser.add_argument("-p", "--dumped_path", type=str, help="The path of the dumped file")
+    parser.add_argument("-train_file", "--train_file", type=str, help="The path of the dumped train file")
+    parser.add_argument("-test_file", "--test_file", type=str, help="The path of the dumped test file")
     parser.add_argument("-arch", "--mlp_architecture", type=str, help="The architecture of the neural network",
                         default="1")
     parser.add_argument("-gamma", "--gamma", type=float, help="Gamma Value", default=0)
@@ -86,7 +87,8 @@ if __name__ == "__main__":
     args = _getOptions()
     mlp_arch = args.mlp_architecture
     gamma = args.gamma
-    dumped_path = args.dumped_path
+    train_file = args.train_file
+    test_file = args.test_file
     n_steps = args.number_of_steps
     policy_updates = args.policy_updates
     episode_length = args.episode_length
@@ -102,12 +104,14 @@ if __name__ == "__main__":
     kpp = args.kpp
 
     total_timesteps = policy_updates * n_steps
-    num_test_observations = min(num_train_observations * 5, 20000)
+    num_test_observations = min(num_train_observations * 2, 1024)
 
-    logger.info("Data loaded from: {}".format(dumped_path))
+    logger.info("Train data loaded from: {}".format(train_file))
+    logger.info("Test data loaded from: {}".format(test_file))
     logger.info("Architecture is: {}".format(mlp_arch))
     logger.info("Policy updates: {}".format(policy_updates))
     logger.info("Train observations: {}".format(num_train_observations))
+    logger.info("Test observations: {}".format(num_test_observations))
     logger.info("gamma is: {}".format(gamma))
 
     if RL_ENV_SMART_NODES_GYM_ID not in envs.registry.env_specs:
@@ -117,7 +121,8 @@ if __name__ == "__main__":
                  kwargs={
                      'max_steps': episode_length,
                      'history_length': history_length,
-                     'path_dumped': dumped_path,
+                     'path_dumped': train_file,
+                     'test_file': test_file,
                      'num_train_observations': num_train_observations,
                      'num_test_observations': num_test_observations}
                  )
@@ -125,7 +130,7 @@ if __name__ == "__main__":
     env = envs.envs[0].env
     env_train_observations = env.get_train_observations
 
-    loaded_dict = load_dump_file(dumped_path)
+    loaded_dict = load_dump_file(train_file)
     if load_network is None:
         net: NetworkClass = env.get_network
     else:
