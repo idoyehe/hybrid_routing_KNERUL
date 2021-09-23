@@ -11,8 +11,6 @@ import numpy as np
 from random import shuffle
 from tabulate import tabulate
 
-R = 10
-
 
 def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env = gb.Env(empty=True)
@@ -114,13 +112,12 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
 
     __validate_solution(net_direct, aggregate_tm, flows_src_dst_per_edge)
 
-    necessary_capacity_per_matrix = np.zeros(shape=(tms_list_length, net_direct.get_num_edges))
+    necessary_capacity_per_matrix = np.zeros(shape=(tms_list_length, net_direct.get_num_nodes, net_direct.get_num_nodes))
     for m_idx in range(tms_list_length):
         for u, v in net_direct.edges:
             edge_idx = net_direct.get_edge2id(u, v)
-            edge_capacity = net_direct.get_edges_capacities()[edge_idx]
             reduced_flows = list(filter(lambda src_dst: src_dst[1] != u, active_flows))
-            necessary_capacity_per_matrix[m_idx, edge_idx] = sum(
+            necessary_capacity_per_matrix[m_idx, u, v] = sum(
                 flows_src_dst_per_edge[src, dst, u, v] * demands_ratios[m_idx, u, v] for src, dst in reduced_flows)
 
     return expected_objective, r_per_mtrx, necessary_capacity_per_matrix
@@ -179,10 +176,11 @@ if __name__ == "__main__":
 
     data = list()
     headers = ["# Matrix", "Congestion using multiple MCF - LP", "Congestion using LP optimal", "Ratio"]
+    new_list = list()
     for idx, t_elem in enumerate(loaded_dict["tms"][0:number_of_matrices]):
         r_per_matrix[idx] = round(r_per_matrix[idx], 4)
         assert r_per_matrix[idx] >= t_elem[1] or error_bound(r_per_matrix[idx], t_elem[1])
         data.append([idx, r_per_matrix[idx], t_elem[1], r_per_matrix[idx] / t_elem[1]])
-
+        new_list.append((t_elem[0], r_per_matrix[idx], None))
     print(tabulate(data, headers=headers))
     print("LP Expected Objective :{}".format(expected_objective))
