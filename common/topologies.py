@@ -187,7 +187,7 @@ def topology_zoo_loader(url: str, units=SizeConsts.ONE_Gb):
 def store_graph(graph, title):
     from platform import system
     if system() == "Linux":
-        file_path = "/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/graphs_gmls/{}.txt".format(title)
+        file_path = "/home/idoye/PycharmProjects/Research_Implementing/common/graphs_gmls/{}.txt".format(title)
     else:
         file_path = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\graphs_gmls\\{}.txt".format(title)
     nx.write_gml(graph, file_path)
