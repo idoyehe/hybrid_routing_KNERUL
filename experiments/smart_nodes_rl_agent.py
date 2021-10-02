@@ -184,15 +184,14 @@ if __name__ == "__main__":
 
 
         else:
-            best_smart_nodes = greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes, smart_nodes_set,
-                                                               processes)
+            best_smart_nodes = greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes, smart_nodes_set, processes)
         current_smart_nodes = best_smart_nodes[0]
         env.set_network_smart_nodes_and_spr(current_smart_nodes, best_smart_nodes[2])
         logger.info("********** Iteration {}, Smart Nodes:{}  ***********".format(i, current_smart_nodes))
 
         logger.info("********* Iteration {} Starts, Agent is learning *********".format(i))
 
-        total_timesteps /= 2
+        total_timesteps = n_steps * 300
         callback_path = callback_perfix_path + "iteration_{}".format(i) + ("/" if IS_LINUX else "\\")
         checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path,
                                                  name_prefix=RL_ENV_SMART_NODES_GYM_ID)
