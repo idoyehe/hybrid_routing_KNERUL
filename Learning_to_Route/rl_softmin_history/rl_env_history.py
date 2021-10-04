@@ -6,7 +6,7 @@ refactoring on 14 Oct 2020
 @by: Ido Yehezkel
 """
 
-from common.RL_Env.rl_env import *
+from common.RL_Envs.rl_env import *
 from common.utils import error_bound
 from soft_min_optimizer import SoftMinOptimizer
 

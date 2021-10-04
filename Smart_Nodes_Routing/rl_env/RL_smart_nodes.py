@@ -1,9 +1,7 @@
-import numpy as np
-
-from common.RL_Env.rl_env import *
+from common.RL_Envs.rl_env import *
 from common.utils import error_bound
-from common.RL_Env.optimizer_abstract import Optimizer_Abstract
-from experiments.soft_min_smart_node_algebraic_optimizer import SoftMinSmartNodesOptimizer
+from common.RL_Envs.optimizer_abstract import Optimizer_Abstract
+from Smart_Nodes_Routing.rl_env.soft_min_smart_node_algebraic_optimizer import SoftMinSmartNodesOptimizer
 
 
 class RL_Smart_Nodes(RL_Env):
@@ -15,7 +13,17 @@ class RL_Smart_Nodes(RL_Env):
                  history_length=0,
                  num_train_observations=None,
                  num_test_observations=None,
+                 softMin_gamma=EnvConsts.SOFTMIN_GAMMA,
+                 action_weight_lb=EnvConsts.WEIGHT_LB,
+                 action_weight_ub=EnvConsts.WEIGHT_UB,
+                 action_weight_factor=EnvConsts.WEIGHT_FACTOR,
                  testing=False):
+
+        self._softMin_gamma = softMin_gamma
+        self._action_weight_lb = action_weight_lb
+        self._action_weight_ub = action_weight_ub
+        self._action_weight_factor = action_weight_factor
+
         super(RL_Smart_Nodes, self).__init__(max_steps=max_steps, path_dumped=path_dumped, test_file=test_file,
                                              history_length=history_length,
                                              num_train_observations=num_train_observations,
@@ -24,23 +32,27 @@ class RL_Smart_Nodes(RL_Env):
         assert isinstance(self._optimizer, Optimizer_Abstract)
         self._diagnostics = list()
 
+    def _set_action_space(self):
+        self._action_space = spaces.Box(low=self._action_weight_lb, high=self._action_weight_ub, shape=(self._num_edges,))
+
     @property
     def diagnostics(self):
         return np.array(self._diagnostics)
 
     def step(self, links_weights):
-        info = dict()
+        links_weights *= self._action_weight_factor
 
         cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
             self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
+        info = dict()
         if self._testing:
-            info["links_weights"] = np.array(links_weights)
-            info["load_per_link"] = np.array(total_load_per_link)
+            info[ExtraData.LOAD_PER_LINK] = np.array(total_load_per_link)
+            info[ExtraData.MOST_CONGESTED_LINK] = most_congested_link
+            info[ExtraData.CONGESTION_PER_LINK] = np.array(total_congestion_per_link)
 
         del total_load_per_link
-        info[ExtraData.REWARD_OVER_FUTURE] = cost_congestion_ratio
         self._diagnostics.append(info)
 
         self._tm_start_index += 1
@@ -85,9 +97,9 @@ class RL_Smart_Nodes(RL_Env):
 
     def testing(self, _testing):
         super(RL_Smart_Nodes, self).testing(_testing)
-        self._optimizer = SoftMinSmartNodesOptimizer(self._network, testing=_testing)
+        self._optimizer = SoftMinSmartNodesOptimizer(self._network, self._softMin_gamma, testing=_testing)
 
     def set_network_smart_nodes_and_spr(self, smart_nodes, smart_nodes_spr):
         self._network.set_smart_nodes(smart_nodes)
         self._network.set__smart_nodes_spr(smart_nodes_spr)
-        self._optimizer = SoftMinSmartNodesOptimizer(self._network, testing=self._testing)
+        self._optimizer = SoftMinSmartNodesOptimizer(self._network, self._softMin_gamma, testing=self._testing)

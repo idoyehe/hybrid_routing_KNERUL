@@ -6,14 +6,14 @@ refactoring on 24/04/2020
 @by: Ido Yehezkel
 """
 
-from common.RL_Env.rl_env_consts import EnvConsts
-from common.RL_Env.optimizer_abstract import *
+from common.RL_Envs.rl_env_consts import EnvConsts
+from common.RL_Envs.optimizer_abstract import *
 
 
 class SoftMinOptimizer(Optimizer_Abstract):
-    def __init__(self, net: NetworkClass, oblivious_routing_per_edge, testing=False):
+    def __init__(self, net: NetworkClass, softMin_gamma=EnvConsts.SOFTMIN_GAMMA, testing=False):
         super(SoftMinOptimizer, self).__init__(net, testing)
-        self._oblivious_routing_per_edge = oblivious_routing_per_edge
+        self._softMin_gamma = softMin_gamma
 
     def step(self, weights_vector, traffic_matrix, optimal_value):
         """
@@ -32,8 +32,8 @@ class SoftMinOptimizer(Optimizer_Abstract):
         distance_via_neighbor += each_edge_weight
         return distance_via_neighbor
 
-    def __soft_min(self, dest, distance_via_neighbor, gamma=EnvConsts.SOFTMIN_ALPHA):
-        exp_val = np.exp(gamma * distance_via_neighbor)
+    def __soft_min(self, dest, distance_via_neighbor):
+        exp_val = np.exp(self._softMin_gamma * distance_via_neighbor)
         normalizer = np.sum(exp_val, axis=1)
         exp_val = np.transpose(np.transpose(exp_val) / normalizer)
         exp_val[dest, :] = 0.0

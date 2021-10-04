@@ -1,18 +1,13 @@
-"""
-Created on 13 May 2021
-@author:: Ido Yehezkel
-"""
-
 from Learning_to_Route.rl_softmin_history.soft_min_optimizer import *
-from common.RL_Env.optimizer_abstract import *
+from common.RL_Envs.optimizer_abstract import *
 from common.utils import extract_flows
 from common.consts import EdgeConsts
 import numpy.linalg as npl
 
 
 class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
-    def __init__(self, net: NetworkClass, testing=False):
-        super(SoftMinSmartNodesOptimizer, self).__init__(net, testing)
+    def __init__(self, net: NetworkClass, softMin_gamma=EnvConsts.SOFTMIN_GAMMA, testing=False):
+        super(SoftMinSmartNodesOptimizer, self).__init__(net, softMin_gamma, testing)
 
     def step(self, weights_vector, traffic_matrix, optimal_value):
         """
