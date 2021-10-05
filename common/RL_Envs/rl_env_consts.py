@@ -1,3 +1,11 @@
+from common.utils import IS_LINUX
+
+CALLBACK_PERFIX_PATH = '/home/idoye/PycharmProjects/Research_Implementing/Smart_Nodes_Routing/experiments/' if IS_LINUX \
+    else 'C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Smart_Nodes_Routing\\experiments\\'
+
+CALLBACK_PATH = lambda title: CALLBACK_PERFIX_PATH + '{}_callbacks_batch/'.format(title)
+
+
 class EnvsStrings:
     RL_ENV_SMART_NODES_GYM_ID = 'rl-smart_nodes-v0'
 

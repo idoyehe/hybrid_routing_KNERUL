@@ -48,8 +48,8 @@ class RL_Env(Env):
 
         self._history_length = history_length  # number of each state history
         self._none_history = self._history_length == 0
-        self._num_train_observations = num_train_observations  # number of different train seniors per sparsity
-        self._num_test_observations = num_test_observations  # number of different test seniors per sparsity
+        self._num_train_observations = num_train_observations  # number of different train seniors
+        self._num_test_observations = num_test_observations  # number of different test seniors
         self._observation_space = None
         self._action_space = None
         self._optimizer = None
@@ -183,6 +183,10 @@ class RL_Env(Env):
     @property
     def get_network(self) -> NetworkClass:
         return self._network
+
+    @property
+    def get_num_test_observations(self) -> int:
+        return self._num_test_observations
 
     @property
     def get_optimizer(self) -> Optimizer_Abstract:

@@ -198,7 +198,4 @@ def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traf
     return smart_nodes, expected_objective, splitting_ratios_per_src_dst_edge
 
 
-def create_random_TMs_list(length, traffic_matrices_list, shuffling: bool = True):
-    if shuffling:
-        shuffle(traffic_matrices_list)
-    return np.array([t[0] for t in traffic_matrices_list[0:length]])
+

@@ -2,16 +2,22 @@ from gym import envs, register
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
+from stable_baselines3.common.callbacks import CheckpointCallback
 from common.logger import logger
 from common.network_class import NetworkClass
 from common.RL_Envs.rl_env_consts import *
-from common.utils import find_nodes_subsets
+from common.utils import find_nodes_subsets, SEPERATOR
 from Smart_Nodes_Routing.rl_env.RL_smart_nodes import RL_Smart_Nodes
-from smart_nodes_multiple_matrices_MCF import matrices_mcf_LP_with_smart_nodes_solver
+from Smart_Nodes_Routing.rl_env.smart_nodes_multiple_matrices_MCF import matrices_mcf_LP_with_smart_nodes_solver
 import numpy as np
+import json
 from multiprocessing import Pool
 from functools import partial
 from tabulate import tabulate
+
+
+def _create_random_TMs_list(traffic_matrices_list):
+    return np.array([t[0] for t in traffic_matrices_list])
 
 
 def build_clean_smart_nodes_env(train_file: str,
@@ -97,6 +103,7 @@ def greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
 
     smart_nodes_set = find_nodes_subsets(smart_nodes_set, number_smart_nodes)
     smart_nodes_set.append(tuple())
+    traffic_matrix_list = _create_random_TMs_list(traffic_matrix_list)
     matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net,
                                                               traffic_matrix_list=traffic_matrix_list,
                                                               destination_based_spr=destination_based_sprs)
@@ -112,3 +119,63 @@ def greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
     best_smart_nodes, best_expected_objective, best_splitting_ratios_per_src_dst_edge = min(evaluations, key=lambda t: t[1])
     logger.info("Best smart node set {} with expected objective of {}".format(best_smart_nodes, best_expected_objective))
     return best_smart_nodes, best_expected_objective, best_splitting_ratios_per_src_dst_edge
+
+
+def model_learn(config_folder: str, learning_title: str, model_path: str = None, net_path: str = None, policy_updates: int = None) -> (PPO, RL_Smart_Nodes):
+    config_path = config_folder + "config.json"
+    json_file = open(config_path, 'r')
+    config = json.load(json_file)["learning"]
+    json_file.close()
+    train_file = config_folder + config["train_file"]
+    test_file = config_folder + config["test_file"]
+    num_train_observations = config["num_train_observations"]
+    num_test_observations = config["num_test_observations"]
+    softMin_gamma = config["softMin_gamma"]
+    action_weight_lb = config["weight_lb"]
+    action_weight_ub = config["weight_ub"]
+    action_weight_factor = config["weight_factor"]
+
+    learning_rate = config["learning_rate"]
+    batch_size = config["batch_size"]
+    n_steps = config["n_steps"]
+
+    if policy_updates is None:
+        policy_updates = config["policy_updates"]
+
+    _envs = build_clean_smart_nodes_env(train_file, test_file, num_train_observations, num_test_observations,
+                                        softMin_gamma=softMin_gamma, action_weight_lb=action_weight_lb, action_weight_ub=action_weight_ub,
+                                        action_weight_factor=action_weight_factor)
+    single_env = _envs.envs[0].env
+
+    env_train_observations = single_env.get_train_observations
+
+    if net_path is not None:
+        load_network_and_update_env(network_file=net_path, env=single_env)
+
+    network: NetworkClass = _envs.envs[0].env.get_network
+
+    if model_path is not None:
+        model = PPO.load(model_path, _envs)
+        logger.info("********* Agent is Loaded *********")
+    else:
+        model = build_clean_smart_nodes_model(_envs, learning_rate, n_steps, batch_size)
+        logger.info("********* Empty Agent is Created *********")
+
+    total_timesteps = policy_updates * n_steps
+    callback_path = CALLBACK_PATH(network.get_title) + learning_title + SEPERATOR
+    checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path, name_prefix=EnvsStrings.RL_ENV_SMART_NODES_GYM_ID)
+    model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
+    single_env.get_network.store_network_object(callback_path, env_train_observations)
+
+    return model, single_env
+
+
+def model_continue_learning(model: PPO, single_env: RL_Smart_Nodes, learning_title: str, policy_updates: int = None):
+    n_steps = model.n_steps
+    network = single_env.get_network
+    total_timesteps = policy_updates * n_steps
+    callback_path = CALLBACK_PATH(network.get_title) + learning_title + SEPERATOR
+    checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path, name_prefix=EnvsStrings.RL_ENV_SMART_NODES_GYM_ID)
+    model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
+    single_env.get_network.store_network_object(callback_path, single_env.get_train_observations)
+    return model, single_env

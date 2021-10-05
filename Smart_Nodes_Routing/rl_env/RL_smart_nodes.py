@@ -39,8 +39,11 @@ class RL_Smart_Nodes(RL_Env):
     def diagnostics(self):
         return np.array(self._diagnostics)
 
+    def update_link_weights(self, links_weights):
+        return links_weights * self._action_weight_factor
+
     def step(self, links_weights):
-        links_weights *= self._action_weight_factor
+        links_weights = self.update_link_weights(links_weights)
 
         cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
             self._process_action_get_cost(links_weights)
