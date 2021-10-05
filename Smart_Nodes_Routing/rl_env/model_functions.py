@@ -5,8 +5,13 @@ from stable_baselines3 import PPO
 from common.logger import logger
 from common.network_class import NetworkClass
 from common.RL_Envs.rl_env_consts import *
+from common.utils import find_nodes_subsets
 from Smart_Nodes_Routing.rl_env.RL_smart_nodes import RL_Smart_Nodes
+from smart_nodes_multiple_matrices_MCF import matrices_mcf_LP_with_smart_nodes_solver
 import numpy as np
+from multiprocessing import Pool
+from functools import partial
+from tabulate import tabulate
 
 
 def build_clean_smart_nodes_env(train_file: str,
@@ -84,3 +89,26 @@ def run_testing(model, env, num_test_observations):
     mean_reward = np.mean(rewards_list)
     print("Agent average performance: {}".format(mean_reward * -1))
     return mean_reward
+
+
+def greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_sprs, number_smart_nodes, smart_nodes_set):
+    if smart_nodes_set is None:
+        smart_nodes_set = list(filter(lambda n: len(net.out_edges_by_node(n)) > 1, net.nodes))
+
+    smart_nodes_set = find_nodes_subsets(smart_nodes_set, number_smart_nodes)
+    smart_nodes_set.append(tuple())
+    matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net,
+                                                              traffic_matrix_list=traffic_matrix_list,
+                                                              destination_based_spr=destination_based_sprs)
+    evaluations = list()
+    headers = ["Smart Nodes Set",
+               "Expected Objective"]
+    data = list()
+    for current_sn_set in smart_nodes_set:
+        evaluations.append(matrices_mcf_LP_with_smart_nodes_solver_wrapper(current_sn_set))
+        data.append(evaluations[-1][0:2])
+
+    logger.info(tabulate(data, headers=headers))
+    best_smart_nodes, best_expected_objective, best_splitting_ratios_per_src_dst_edge = min(evaluations, key=lambda t: t[1])
+    logger.info("Best smart node set {} with expected objective of {}".format(best_smart_nodes, best_expected_objective))
+    return best_smart_nodes, best_expected_objective, best_splitting_ratios_per_src_dst_edge

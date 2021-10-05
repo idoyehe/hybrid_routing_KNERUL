@@ -2,8 +2,8 @@
   "tuning": {
     "train_file": "ScaleFree30Nodes_tms_30X30_length_512_gravity_sparsity_0.3",
     "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_gravity_sparsity_0.3",
-    "num_train_observations": 64,
-    "num_test_observations": 64,
+    "num_train_observations": 512,
+    "num_test_observations": 256,
     "policy_updates": 250
   },
   "learning": {
@@ -11,6 +11,13 @@
     "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_gravity_sparsity_0.3",
     "num_train_observations": 512,
     "num_test_observations": 1024,
-    "policy_updates": 1500
+    "policy_updates": 1500,
+    "batch_size": 64,
+    "learning_rate": 0.0001,
+    "weight_ub": 1,
+    "n_steps": 160,
+    "weight_factor": 100,
+    "softmin_gamma": -2.2,
+    "weight_lb": 0.01
   }
 }

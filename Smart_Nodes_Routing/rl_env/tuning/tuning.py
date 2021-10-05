@@ -1,6 +1,6 @@
 import json
 from common.logger import logger
-from Smart_Nodes_Routing.rl_env.build_model import *
+from Smart_Nodes_Routing.rl_env.model_functions import *
 from common.RL_Envs.rl_env_consts import HyperparamertsStrings
 import numpy as np
 
