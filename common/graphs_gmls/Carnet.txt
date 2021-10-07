@@ -1,0 +1,403 @@
+graph [
+  Network "Carnet"
+  node [
+    id 0
+    label "Stara Gradnifska"
+  ]
+  node [
+    id 1
+    label "Kutina"
+  ]
+  node [
+    id 2
+    label "Slavonski"
+  ]
+  node [
+    id 3
+    label "Pozega"
+  ]
+  node [
+    id 4
+    label "Gorica"
+  ]
+  node [
+    id 5
+    label "Karlovac"
+  ]
+  node [
+    id 6
+    label "Sisak"
+  ]
+  node [
+    id 7
+    label "Petrinja"
+  ]
+  node [
+    id 8
+    label "Jastrebarsko"
+  ]
+  node [
+    id 9
+    label "GEANT"
+  ]
+  node [
+    id 10
+    label "Hvar"
+  ]
+  node [
+    id 11
+    label "Dubrovnik"
+  ]
+  node [
+    id 12
+    label "Rovinj"
+  ]
+  node [
+    id 13
+    label "Visnjan"
+  ]
+  node [
+    id 14
+    label "Opatija"
+  ]
+  node [
+    id 15
+    label "Porec"
+  ]
+  node [
+    id 16
+    label "Buje"
+  ]
+  node [
+    id 17
+    label "Zadar"
+  ]
+  node [
+    id 18
+    label "Zenumik D"
+  ]
+  node [
+    id 19
+    label "Knin"
+  ]
+  node [
+    id 20
+    label "Trogic"
+  ]
+  node [
+    id 21
+    label "Pucisca"
+  ]
+  node [
+    id 22
+    label "Solin"
+  ]
+  node [
+    id 23
+    label "Sibenik"
+  ]
+  node [
+    id 24
+    label "Pula"
+  ]
+  node [
+    id 25
+    label "M. Losinj"
+  ]
+  node [
+    id 26
+    label "Rijeka"
+  ]
+  node [
+    id 27
+    label "Split"
+  ]
+  node [
+    id 28
+    label "Cakovec"
+  ]
+  node [
+    id 29
+    label "GEANT"
+  ]
+  node [
+    id 30
+    label "Gospic"
+  ]
+  node [
+    id 31
+    label "Otocac"
+  ]
+  node [
+    id 32
+    label "Vinkovci"
+  ]
+  node [
+    id 33
+    label "BIHarnet"
+  ]
+  node [
+    id 34
+    label "Vukovar"
+  ]
+  node [
+    id 35
+    label "Dakovo"
+  ]
+  node [
+    id 36
+    label "Zagreb"
+  ]
+  node [
+    id 37
+    label "Zabresic"
+  ]
+  node [
+    id 38
+    label "Samobor"
+  ]
+  node [
+    id 39
+    label "Varazdin"
+  ]
+  node [
+    id 40
+    label "Krizevci"
+  ]
+  node [
+    id 41
+    label "Bjelovar"
+  ]
+  node [
+    id 42
+    label "Virovitica"
+  ]
+  node [
+    id 43
+    label "Osijek"
+  ]
+  edge [
+    source 0
+    target 36
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 1
+    target 36
+    LinkSpeedRaw 10000000.0
+  ]
+  edge [
+    source 2
+    target 43
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 3
+    target 43
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 4
+    target 36
+    LinkSpeed "1"
+    LinkLabel "1Gb/s"
+    LinkSpeedUnits "G"
+    LinkSpeedRaw 1000000000.0
+  ]
+  edge [
+    source 5
+    target 36
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 6
+    target 36
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 6
+    target 7
+    LinkSpeed "2"
+    LinkLabel "2Mb/s"
+    LinkSpeedUnits "M"
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 8
+    target 36
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 9
+    target 36
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 10
+    target 27
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 11
+    target 27
+    LinkSpeedRaw 200000000.0
+  ]
+  edge [
+    source 12
+    target 24
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 13
+    target 26
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 14
+    target 26
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 15
+    target 26
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 16
+    target 26
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 17
+    target 18
+    LinkSpeedRaw 4000000.0
+  ]
+  edge [
+    source 17
+    target 27
+    LinkSpeedRaw 200000000.0
+  ]
+  edge [
+    source 19
+    target 27
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 20
+    target 27
+    LinkSpeedRaw 4000000.0
+  ]
+  edge [
+    source 21
+    target 27
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 22
+    target 27
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 23
+    target 27
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 24
+    target 26
+    LinkSpeedRaw 1000000000.0
+  ]
+  edge [
+    source 25
+    target 26
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 26
+    target 36
+    LinkSpeedRaw 1000000000.0
+  ]
+  edge [
+    source 26
+    target 30
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 26
+    target 31
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 27
+    target 36
+    LinkSpeedRaw 1000000000.0
+  ]
+  edge [
+    source 28
+    target 39
+    LinkSpeedRaw 4000000.0
+  ]
+  edge [
+    source 29
+    target 36
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 32
+    target 34
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 33
+    target 36
+    LinkSpeedRaw 155000000.0
+  ]
+  edge [
+    source 34
+    target 43
+    LinkSpeedRaw 6000000.0
+  ]
+  edge [
+    source 35
+    target 43
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 36
+    target 42
+    LinkSpeedRaw 2000000.0
+  ]
+  edge [
+    source 36
+    target 43
+    LinkSpeedRaw 1000000000.0
+  ]
+  edge [
+    source 36
+    target 40
+    LinkSpeedRaw 4000000.0
+  ]
+  edge [
+    source 36
+    target 41
+    LinkSpeedRaw 100000000.0
+  ]
+  edge [
+    source 36
+    target 39
+    LinkSpeed "1"
+    LinkLabel "1Gb/s"
+    LinkSpeedUnits "G"
+    LinkSpeedRaw 1000000000.0
+  ]
+  edge [
+    source 36
+    target 38
+    LinkSpeedRaw 4000000.0
+  ]
+  edge [
+    source 36
+    target 37
+    LinkSpeedRaw 4000000.0
+  ]
+]

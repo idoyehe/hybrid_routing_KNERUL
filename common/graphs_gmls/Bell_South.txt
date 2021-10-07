@@ -1,0 +1,534 @@
+graph [
+  Network "Bell South "
+  node [
+    id 0
+    label "Cocoa Beach"
+  ]
+  node [
+    id 1
+    label "Daytona Beach"
+  ]
+  node [
+    id 2
+    label "West Palm Beach"
+  ]
+  node [
+    id 3
+    label "Stuart"
+  ]
+  node [
+    id 4
+    label "Jacksonville"
+  ]
+  node [
+    id 5
+    label "Savannah"
+  ]
+  node [
+    id 6
+    label "Panama City"
+  ]
+  node [
+    id 7
+    label "Gainesville"
+  ]
+  node [
+    id 8
+    label "Albany"
+  ]
+  node [
+    id 9
+    label "Macon"
+  ]
+  node [
+    id 10
+    label "Stone Mt"
+  ]
+  node [
+    id 11
+    label "Nashville"
+  ]
+  node [
+    id 12
+    label "Knoxville"
+  ]
+  node [
+    id 13
+    label "New Orleans?"
+  ]
+  node [
+    id 14
+    label "Lafayette"
+  ]
+  node [
+    id 15
+    label "Baton Rouge"
+  ]
+  node [
+    id 16
+    label "Shreveport"
+  ]
+  node [
+    id 17
+    label "Jackson"
+  ]
+  node [
+    id 18
+    label "Memphis"
+  ]
+  node [
+    id 19
+    label "Owensboro"
+  ]
+  node [
+    id 20
+    label "Louisville"
+  ]
+  node [
+    id 21
+    label "Georgetown"
+  ]
+  node [
+    id 22
+  ]
+  node [
+    id 23
+  ]
+  node [
+    id 24
+    label "Arden"
+  ]
+  node [
+    id 25
+    label "Charlotte"
+  ]
+  node [
+    id 26
+    label "Winston"
+  ]
+  node [
+    id 27
+    label "Columbia"
+  ]
+  node [
+    id 28
+    label "Augusta"
+  ]
+  node [
+    id 29
+    label "Florence"
+  ]
+  node [
+    id 30
+    label "Charleston"
+  ]
+  node [
+    id 31
+    label "New Orleans"
+  ]
+  node [
+    id 32
+    label "Slidell"
+  ]
+  node [
+    id 33
+    label "Huntsville"
+  ]
+  node [
+    id 34
+    label "Chatanooga"
+  ]
+  node [
+    id 35
+    label "Atlanta"
+  ]
+  node [
+    id 36
+    label "Athens"
+  ]
+  node [
+    id 37
+    label "Biloxi"
+  ]
+  node [
+    id 38
+    label "Pensacola"
+  ]
+  node [
+    id 39
+    label "Montgomery"
+  ]
+  node [
+    id 40
+    label "Birmingham"
+  ]
+  node [
+    id 41
+    label "Ft Lauderdale"
+  ]
+  node [
+    id 42
+    label "Boca Raton"
+  ]
+  node [
+    id 43
+    label "Mobile"
+  ]
+  node [
+    id 44
+    label "Greenville"
+  ]
+  node [
+    id 45
+    label "Spartanburg"
+  ]
+  node [
+    id 46
+    label "Stone Mt"
+  ]
+  node [
+    id 47
+    label "Wilmington"
+  ]
+  node [
+    id 48
+    label "Orlando"
+  ]
+  node [
+    id 49
+    label "Miami"
+  ]
+  node [
+    id 50
+    label "Miami"
+  ]
+  edge [
+    source 0
+    target 48
+  ]
+  edge [
+    source 1
+    target 4
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 2
+    target 42
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 3
+    target 50
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 4
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 4
+    target 49
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 5
+    target 46
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 6
+    target 26
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 6
+    target 31
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 7
+    target 48
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 8
+    target 46
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 9
+    target 46
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 10
+    target 15
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 10
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 10
+    target 46
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 10
+    target 39
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 11
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 11
+    target 31
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 12
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 12
+    target 31
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 13
+    target 15
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 14
+    target 15
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 15
+    target 16
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 17
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 17
+    target 31
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 18
+    target 31
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 19
+    target 20
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 20
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 20
+    target 21
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 20
+    target 31
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 22
+    target 25
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 22
+    target 31
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 23
+    target 26
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 24
+    target 26
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 25
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 25
+    target 31
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 26
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 26
+    target 47
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 27
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 27
+    target 28
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 27
+    target 29
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 27
+    target 30
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 27
+    target 31
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 31
+    target 32
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 31
+    target 34
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 31
+    target 37
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 31
+    target 39
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 31
+    target 40
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 31
+    target 43
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 31
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 31
+    target 49
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 31
+    target 38
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 33
+    target 40
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 34
+    target 35
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 35
+    target 40
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 35
+    target 43
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 35
+    target 44
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 35
+    target 48
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 35
+    target 49
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 36
+    target 46
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 38
+    target 44
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 41
+    target 50
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 42
+    target 50
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 44
+    target 45
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 48
+    target 49
+    LinkSpeedRaw 10000000000
+  ]
+  edge [
+    source 49
+    target 50
+    LinkSpeedRaw 10000000000
+  ]
+]

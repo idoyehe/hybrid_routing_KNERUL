@@ -1,0 +1,399 @@
+graph [
+  Network "GEANT"
+  node [
+    id 0
+    label "NL"
+  ]
+  node [
+    id 1
+    label "BE"
+  ]
+  node [
+    id 2
+    label "DK"
+  ]
+  node [
+    id 3
+    label "PL"
+  ]
+  node [
+    id 4
+    label "DE"
+  ]
+  node [
+    id 5
+    label "CZ"
+  ]
+  node [
+    id 6
+    label "LU"
+  ]
+  node [
+    id 7
+    label "FR"
+  ]
+  node [
+    id 8
+    label "CH"
+  ]
+  node [
+    id 9
+    label "IT"
+  ]
+  node [
+    id 10
+    label "GR"
+  ]
+  node [
+    id 11
+    label "CY"
+  ]
+  node [
+    id 12
+    label "IL"
+  ]
+  node [
+    id 13
+    label "MT"
+  ]
+  node [
+    id 14
+    label "TR"
+  ]
+  node [
+    id 15
+    label "RO"
+  ]
+  node [
+    id 16
+    label "HU"
+  ]
+  node [
+    id 17
+    label "SK"
+  ]
+  node [
+    id 18
+    label "PT"
+  ]
+  node [
+    id 19
+    label "ES"
+  ]
+  node [
+    id 20
+    label "BG"
+  ]
+  node [
+    id 21
+    label "HR"
+  ]
+  node [
+    id 22
+    label "SL"
+  ]
+  node [
+    id 23
+    label "AT"
+  ]
+  node [
+    id 24
+    label "LT"
+  ]
+  node [
+    id 25
+    label "RU"
+  ]
+  node [
+    id 26
+    label "IS"
+  ]
+  node [
+    id 27
+    label "IE"
+  ]
+  node [
+    id 28
+    label "UK"
+  ]
+  node [
+    id 29
+    label "NO"
+  ]
+  node [
+    id 30
+    label "SE"
+  ]
+  node [
+    id 31
+    label "FI"
+  ]
+  node [
+    id 32
+    label "EE"
+  ]
+  node [
+    id 33
+    label "LV"
+  ]
+  edge [
+    source 0
+    target 1
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 0
+    target 2
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 0
+    target 4
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 0
+    target 13
+    LinkSpeedRaw 45000000.0
+  ]
+  edge [
+    source 1
+    target 28
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 2
+    target 32
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 2
+    target 4
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 2
+    target 25
+    LinkSpeedRaw 2500000000.0
+  ]
+  edge [
+    source 2
+    target 26
+    LinkSpeedRaw 310000000.0
+  ]
+  edge [
+    source 2
+    target 29
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 2
+    target 30
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 3
+    target 24
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 3
+    target 4
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 3
+    target 5
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 4
+    target 5
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 4
+    target 6
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 4
+    target 8
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 4
+    target 12
+    LinkSpeedRaw 2500000000.0
+  ]
+  edge [
+    source 4
+    target 23
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 4
+    target 25
+    LinkSpeedRaw 2500000000.0
+  ]
+  edge [
+    source 5
+    target 17
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 6
+    target 7
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 7
+    target 8
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 7
+    target 19
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 7
+    target 28
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 8
+    target 9
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 8
+    target 19
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 9
+    target 10
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 9
+    target 11
+    LinkSpeedRaw 155000000.0
+  ]
+  edge [
+    source 9
+    target 13
+    LinkSpeedRaw 45000000.0
+  ]
+  edge [
+    source 9
+    target 19
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 9
+    target 23
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 10
+    target 11
+    LinkSpeedRaw 155000000.0
+  ]
+  edge [
+    source 10
+    target 20
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 10
+    target 23
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 14
+    target 20
+    LinkSpeedRaw 2500000000.0
+  ]
+  edge [
+    source 14
+    target 15
+    LinkSpeedRaw 2500000000.0
+  ]
+  edge [
+    source 15
+    target 16
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 15
+    target 20
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 16
+    target 17
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 16
+    target 20
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 16
+    target 21
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 17
+    target 23
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 18
+    target 19
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 18
+    target 28
+    LinkSpeedRaw 2500000000.0
+  ]
+  edge [
+    source 21
+    target 22
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 22
+    target 23
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 24
+    target 33
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 27
+    target 28
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 29
+    target 30
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 30
+    target 31
+    LinkSpeedRaw 10000000000.0
+  ]
+  edge [
+    source 32
+    target 33
+    LinkSpeedRaw 10000000000.0
+  ]
+]
