@@ -4,6 +4,7 @@ from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.utils import load_dump_file
 from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
+from Learning_to_Route.rl_softmin_history.soft_min_optimizer import SoftMinOptimizer
 from sys import argv
 import numpy as np
 from tabulate import tabulate
@@ -42,7 +43,8 @@ def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_
 
 def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value):
     step_size = 1 / max(necessary_capacity)
-    traffic_distribution = PEFTOptimizer(net, None)
+    traffic_distribution = PEFTOptimizer(net)
+    traffic_distribution_2 = SoftMinOptimizer(net)
     w_u_v = __initialize_all_weights(net)
     max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, current_flows_values = \
         traffic_distribution.step(w_u_v, traffic_matrix, None)
@@ -51,6 +53,7 @@ def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value):
         w_u_v = __gradient_decent_update(net, w_u_v, step_size, current_flows_values, necessary_capacity)
         max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, current_flows_values = \
             traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
+        max_congestion_2,_,_,_,_ = traffic_distribution_2.step(w_u_v, traffic_matrix, optimal_value)
         print('Congestion Vs. Optimal = {}'.format(max_congestion / optimal_value))
 
     max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, current_flows_values = \

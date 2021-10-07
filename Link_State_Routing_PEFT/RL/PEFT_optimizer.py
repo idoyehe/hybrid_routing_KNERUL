@@ -137,9 +137,10 @@ class PEFTOptimizer(Optimizer_Abstract):
             for u, v in net_direct.edges:
                 edge_index = net_direct.get_edge2id(u, v)
                 splitting_ratios[t, u, v] = gamma_px_by_dest_by_u_v[t, edge_index] / sum_gamma_px_by_dest_by_u[t, u]
+            splitting_ratios[t, t, :] = 0.0
 
         for t in net_direct.nodes:
             for u in net_direct.nodes:
-                assert error_bound(1.0, sum(splitting_ratios[t, u, v] for _, v in net_direct.out_edges_by_node(u)))
+                assert error_bound(int(t != u), sum(splitting_ratios[t, u, v] for _, v in net_direct.out_edges_by_node(u)))
 
         return splitting_ratios
