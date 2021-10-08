@@ -43,22 +43,23 @@ def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_
 
 def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value):
     step_size = 1 / max(necessary_capacity)
-    traffic_distribution = PEFTOptimizer(net)
-    traffic_distribution_2 = SoftMinOptimizer(net)
+    PEFT_traffic_distribution = PEFTOptimizer(net)
+    softMin_traffic_distribution = SoftMinOptimizer(net, -1)
     w_u_v = __initialize_all_weights(net)
-    max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, current_flows_values = \
-        traffic_distribution.step(w_u_v, traffic_matrix, None)
+    PEFT_congestion, _, _, _, current_flows_values = PEFT_traffic_distribution.step(w_u_v, traffic_matrix, None)
+    softMin_congestion, _, _, _, _ = softMin_traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
+    print('PEFT Congestion Vs. Optimal = {}'.format(PEFT_congestion / optimal_value))
+    print('SoftMin Congestion Vs. Optimal = {}'.format(softMin_congestion / optimal_value))
 
     while __stop_loop(net, current_flows_values, necessary_capacity) == False:
         w_u_v = __gradient_decent_update(net, w_u_v, step_size, current_flows_values, necessary_capacity)
-        max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, current_flows_values = \
-            traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
-        max_congestion_2,_,_,_,_ = traffic_distribution_2.step(w_u_v, traffic_matrix, optimal_value)
-        print('Congestion Vs. Optimal = {}'.format(max_congestion / optimal_value))
+        PEFT_congestion, _, _, _, current_flows_values = PEFT_traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
+        softMin_congestion, _, _, _, _ = softMin_traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
+        print('Congestion Vs. Optimal = {}'.format(PEFT_congestion / optimal_value))
+        print('Congestion_2 Vs. Optimal = {}'.format(softMin_congestion / optimal_value))
 
-    max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, current_flows_values = \
-        traffic_distribution.step(w_u_v, traffic_matrix, None)
-    return w_u_v, max_congestion
+    PEFT_congestion, _, _, _, _ = PEFT_traffic_distribution.step(w_u_v, traffic_matrix, None)
+    return w_u_v, PEFT_congestion
 
 
 def experiment(traffic_matrix_list, w_u_v, baseline_objective, r_per_mtrx):

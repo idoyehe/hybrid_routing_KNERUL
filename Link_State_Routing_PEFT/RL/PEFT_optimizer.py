@@ -66,7 +66,7 @@ class PEFTOptimizer(Optimizer_Abstract):
         lp_problem.update()
 
         try:
-            logger.info("LP Submit to Solve {}".format(lp_problem.ModelName))
+            logger.debug("LP Submit to Solve {}".format(lp_problem.ModelName))
             lp_problem.optimize()
             assert lp_problem.Status == GRB.OPTIMAL
 
