@@ -16,16 +16,14 @@ class EnvConsts:
     INFTY = 1.0e8
     WEIGHT_LB = 1.0e-3
     WEIGHT_UB = 3.0e1
-    WEIGHT_FACTOR = 1.0
     ZERO = 0.0
-    GAMMA = 0.0
+    GAMMA = 0
 
 
 class HyperparamertsStrings:
-    SOFTMIN_GAMMA = 'softmin_gamma'
+    SOFTMIN_GAMMA = 'softMin_gamma'
     WEIGHT_LB = 'weight_lb'
     WEIGHT_UB = 'weight_ub'
-    WEIGHT_FACTOR = 'weight_factor'
 
     LEARNING_RATE = 'learning_rate'
     BATCH_SIZE = 'batch_size'

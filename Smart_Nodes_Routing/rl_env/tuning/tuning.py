@@ -19,14 +19,13 @@ def run_tuning(hyperparameters: dict, config_folder: str):
     softMin_gamma = hyperparameters[HyperparamertsStrings.SOFTMIN_GAMMA]
     weight_lb = hyperparameters[HyperparamertsStrings.WEIGHT_LB]
     weight_ub = hyperparameters[HyperparamertsStrings.WEIGHT_UB]
-    weight_factor = hyperparameters[HyperparamertsStrings.WEIGHT_FACTOR]
 
     learning_rate = hyperparameters[HyperparamertsStrings.LEARNING_RATE]
     batch_size = hyperparameters[HyperparamertsStrings.BATCH_SIZE]
     n_steps = hyperparameters[HyperparamertsStrings.N_STEPS]
 
     _envs = build_clean_smart_nodes_env(train_file, test_file, num_train_observations, num_test_observations, softMin_gamma=softMin_gamma,
-                                        action_weight_lb=weight_lb, action_weight_ub=weight_ub, action_weight_factor=weight_factor)
+                                        action_weight_lb=weight_lb, action_weight_ub=weight_ub)
 
     model = build_clean_smart_nodes_model(_envs, learning_rate, n_steps, batch_size)
 

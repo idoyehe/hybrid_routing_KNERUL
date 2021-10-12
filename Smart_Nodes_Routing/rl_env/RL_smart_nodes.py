@@ -2,7 +2,8 @@ from common.RL_Envs.rl_env import *
 from common.utils import error_bound
 from common.RL_Envs.optimizer_abstract import Optimizer_Abstract
 from Smart_Nodes_Routing.rl_env.soft_min_smart_node_algebraic_optimizer import SoftMinSmartNodesOptimizer
-
+from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
+from common.static_routing.optimal_load_balancing import *
 
 class RL_Smart_Nodes(RL_Env):
 
@@ -16,13 +17,11 @@ class RL_Smart_Nodes(RL_Env):
                  softMin_gamma=EnvConsts.SOFTMIN_GAMMA,
                  action_weight_lb=EnvConsts.WEIGHT_LB,
                  action_weight_ub=EnvConsts.WEIGHT_UB,
-                 action_weight_factor=EnvConsts.WEIGHT_FACTOR,
                  testing=False):
 
         self._softMin_gamma = softMin_gamma
         self._action_weight_lb = action_weight_lb
         self._action_weight_ub = action_weight_ub
-        self._action_weight_factor = action_weight_factor
 
         super(RL_Smart_Nodes, self).__init__(max_steps=max_steps, path_dumped=path_dumped, test_file=test_file,
                                              history_length=history_length,
@@ -39,12 +38,7 @@ class RL_Smart_Nodes(RL_Env):
     def diagnostics(self):
         return np.array(self._diagnostics)
 
-    def update_link_weights(self, links_weights):
-        return links_weights * self._action_weight_factor
-
     def step(self, links_weights):
-        links_weights = self.update_link_weights(links_weights)
-
         cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
             self._process_action_get_cost(links_weights)
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
@@ -100,7 +94,8 @@ class RL_Smart_Nodes(RL_Env):
 
     def testing(self, _testing):
         super(RL_Smart_Nodes, self).testing(_testing)
-        self._optimizer = SoftMinSmartNodesOptimizer(self._network, self._softMin_gamma, testing=_testing)
+        # self._optimizer = SoftMinSmartNodesOptimizer(self._network, self._softMin_gamma, testing=_testing)
+        self._optimizer = PEFTOptimizer(self._network, testing=_testing)
 
     def set_network_smart_nodes_and_spr(self, smart_nodes, smart_nodes_spr):
         self._network.set_smart_nodes(smart_nodes)

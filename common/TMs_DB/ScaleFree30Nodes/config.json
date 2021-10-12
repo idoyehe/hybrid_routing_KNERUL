@@ -7,17 +7,16 @@
     "policy_updates": 250
   },
   "learning": {
-    "train_file": "ScaleFree30Nodes_tms_30X30_length_512_gravity_sparsity_0.3",
-    "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_gravity_sparsity_0.3",
-    "num_train_observations": 512,
-    "num_test_observations": 1024,
-    "policy_updates": 1000,
-    "batch_size": 128,
-    "learning_rate": 0.0001,
-    "weight_ub": 1,
-    "n_steps": 128,
-    "weight_factor": 100,
-    "softMin_gamma": -2.2,
-    "weight_lb": 0.01
+    "train_file": "ScaleFree30Nodes_tms_30X30_length_1_gravity_sparsity_0.3",
+    "test_file": "ScaleFree30Nodes_tms_30X30_length_1_gravity_sparsity_0.3",
+    "num_train_observations": 1,
+    "num_test_observations": 1,
+    "policy_updates": 1e30,
+    "n_steps": 16,
+    "learning_rate": 0.001,
+    "batch_size": 2,
+    "softMin_gamma": -1,
+    "weight_lb": 0.1,
+    "weight_ub": 50
   }
 }

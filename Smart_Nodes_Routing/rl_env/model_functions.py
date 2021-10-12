@@ -1,3 +1,4 @@
+import torch
 from gym import envs, register
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.ppo import MlpPolicy
@@ -11,7 +12,6 @@ from Smart_Nodes_Routing.rl_env.RL_smart_nodes import RL_Smart_Nodes
 from Smart_Nodes_Routing.rl_env.smart_nodes_multiple_matrices_MCF import matrices_mcf_LP_with_smart_nodes_solver
 import numpy as np
 import json
-from multiprocessing import Pool
 from functools import partial
 from tabulate import tabulate
 
@@ -29,8 +29,7 @@ def build_clean_smart_nodes_env(train_file: str,
                                 softMin_gamma=EnvConsts.SOFTMIN_GAMMA,
                                 action_weight_lb=EnvConsts.WEIGHT_LB,
                                 action_weight_ub=EnvConsts.WEIGHT_UB,
-                                action_weight_factor=EnvConsts.WEIGHT_FACTOR,
-                                n_envs=1):
+                                n_envs=2):
     logger.info("Train data loaded from: {}".format(train_file))
     logger.info("Test data loaded from: {}".format(test_file))
 
@@ -51,8 +50,7 @@ def build_clean_smart_nodes_env(train_file: str,
                  'num_test_observations': num_test_observations,
                  'softMin_gamma': softMin_gamma,
                  'action_weight_lb': action_weight_lb,
-                 'action_weight_ub': action_weight_ub,
-                 'action_weight_factor': action_weight_factor})
+                 'action_weight_ub': action_weight_ub})
 
     return make_vec_env(EnvsStrings.RL_ENV_SMART_NODES_GYM_ID, n_envs=n_envs)
 
@@ -71,6 +69,20 @@ def build_clean_smart_nodes_model(model_envs, learning_rate: float, n_steps: int
 
     ppo_model = PPO(MlpPolicy, model_envs, verbose=1, gamma=gamma, learning_rate=learning_rate, n_steps=n_steps, batch_size=batch_size,
                     policy_kwargs=policy_kwargs)
+    par = ppo_model.get_parameters()
+    par['policy']['log_std'] += -10
+    par['policy']['action_net.weight'] = torch.zeros_like(par['policy']['action_net.weight'])
+
+    par['policy']['action_net.bias'] = torch.tensor(
+        [21.96883, 11.56587, 11.01115, 8.46576, 12.81978, 6.82846, 9.67489, 5.27979, 5.25515, 5.28384, 5.27219, 5.26027, 6.74640, 22.91519, 13.97877,
+         22.88946, 14.47366, 10.37872, 5.16104, 7.79711, 5.16648, 5.14826, 10.83628, 19.70354, 9.96238, 8.76365, 5.14975, 5.18224, 6.64693, 14.79913,
+         5.15943, 5.17707, 19.81461, 11.51679, 8.92476, 5.09122, 9.75154, 6.37023, 7.79810, 10.89047, 5.11598, 5.08135, 5.08888, 10.30671, 9.62940,
+         5.09141, 10.06301, 13.94150, 8.68659, 12.91445, 10.28453, 6.86186, 6.44171, 7.68533, 9.59151, 7.82101, 6.67048, 5.15015, 5.18239, 5.16146,
+         8.31751, 9.21555, 10.09108, 6.72051, 15.74292, 10.08667, 17.93862, 5.11609, 7.47548, 8.37816, 6.64782, 5.16642, 6.93324, 6.15637, 5.28003,
+         5.25521, 5.28422, 5.27248, 5.15973, 5.08166, 5.26045, 5.17725, 6.88432, 17.80110, 5.14854, 5.08880
+         ], dtype=torch.float32, device='cpu')
+    # par['policy']['action_net.bias'] = torch.tensor([8.748] * 86, dtype=torch.float32, device='cpu')
+    ppo_model.set_parameters(par)
 
     return ppo_model
 
@@ -102,7 +114,6 @@ def greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
         smart_nodes_set = list(filter(lambda n: len(net.out_edges_by_node(n)) > 1, net.nodes))
 
     smart_nodes_set = find_nodes_subsets(smart_nodes_set, number_smart_nodes)
-    smart_nodes_set.append(tuple())
     traffic_matrix_list = _create_random_TMs_list(traffic_matrix_list)
     matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net,
                                                               traffic_matrix_list=traffic_matrix_list,
@@ -121,7 +132,8 @@ def greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
     return best_smart_nodes, best_expected_objective, best_splitting_ratios_per_src_dst_edge
 
 
-def model_learn(config_folder: str, learning_title: str, model_path: str = None, net_path: str = None, policy_updates: int = None) -> (PPO, RL_Smart_Nodes):
+def model_learn(config_folder: str, learning_title: str, model_path: str = None, net_path: str = None, policy_updates: int = None) -> (
+        PPO, RL_Smart_Nodes):
     config_path = config_folder + "config.json"
     json_file = open(config_path, 'r')
     config = json.load(json_file)["learning"]
@@ -133,7 +145,6 @@ def model_learn(config_folder: str, learning_title: str, model_path: str = None,
     softMin_gamma = config["softMin_gamma"]
     action_weight_lb = config["weight_lb"]
     action_weight_ub = config["weight_ub"]
-    action_weight_factor = config["weight_factor"]
 
     learning_rate = config["learning_rate"]
     batch_size = config["batch_size"]
@@ -143,8 +154,7 @@ def model_learn(config_folder: str, learning_title: str, model_path: str = None,
         policy_updates = config["policy_updates"]
 
     _envs = build_clean_smart_nodes_env(train_file, test_file, num_train_observations, num_test_observations,
-                                        softMin_gamma=softMin_gamma, action_weight_lb=action_weight_lb, action_weight_ub=action_weight_ub,
-                                        action_weight_factor=action_weight_factor)
+                                        softMin_gamma=softMin_gamma, action_weight_lb=action_weight_lb, action_weight_ub=action_weight_ub)
     single_env = _envs.envs[0].env
 
     env_train_observations = single_env.get_train_observations

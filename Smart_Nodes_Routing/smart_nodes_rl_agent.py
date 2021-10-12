@@ -37,7 +37,6 @@ if __name__ == "__main__":
     for i in range(1, num_of_iterations + 1):
         logger.info("**** Iteration {}, Evaluating Smart Node  *****".format(i))
         link_weights, _ = model.predict(single_env.reset(), deterministic=True)
-        link_weights = single_env.update_link_weights(link_weights)
         destination_based_sprs = single_env.get_optimizer.calculating_destination_based_spr(link_weights)
         env_train_observations = single_env.get_train_observations
 

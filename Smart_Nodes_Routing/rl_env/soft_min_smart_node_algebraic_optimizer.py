@@ -54,7 +54,9 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
                 for u, v in net_direct.out_edges_by_node(node):
                     assert u == node
                     # check whether smart node spt is exist otherwise return the default destination based
-                    src_dst_splitting_ratios[(src, dst)][u, v] = smart_nodes_spr.get((src, dst, u, v), dst_splitting_ratios[dst, u, v])
+                    src_dst_splitting_ratios[(src, dst)][u, v] = np.float64(smart_nodes_spr.get((src, dst, u, v), dst_splitting_ratios[dst, u, v]))
+
+            assert all(error_bound(int(u != dst), sum(src_dst_splitting_ratios[(src, dst)][u])) for u in self._network.nodes)
 
         return src_dst_splitting_ratios
 
