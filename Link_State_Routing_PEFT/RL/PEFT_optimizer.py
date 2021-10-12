@@ -27,14 +27,15 @@ class PEFTOptimizer(Optimizer_Abstract):
 
         reduced_directed_graph = self._build_reduced_weighted_graph(weights_vector)
 
-        distance_gap_by_dest_s_t = np.zeros((net_direct.get_num_nodes, net_direct.get_num_edges), dtype=np.float64)
+        distance_gap_by_dest_s_t = np.zeros((net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64) + np.inf
         for node_dst in net_direct.nodes:
             shortest_paths_to_dest = nx.shortest_path_length(G=reduced_directed_graph, target=node_dst, weight=EdgeConsts.WEIGHT_STR)
             for u, v in net_direct.edges:
                 edge_index = net_direct.get_edge2id(u, v)
-                distance_gap_by_dest_s_t[node_dst][edge_index] = \
+                distance_gap_by_dest_s_t[node_dst][u, v] = \
                     weights_vector[edge_index] + shortest_paths_to_dest[v] - shortest_paths_to_dest[u]
-                assert distance_gap_by_dest_s_t[node_dst][edge_index] >= 0
+                assert distance_gap_by_dest_s_t[node_dst][u, v] >= 0
+
 
         exp_h_by_dest_s_t = np.exp(-1 * distance_gap_by_dest_s_t)
 
@@ -59,8 +60,7 @@ class PEFTOptimizer(Optimizer_Abstract):
                 if t == u:
                     lp_problem.addConstr(gammas_by_dest_by_u_vars[(t, t)] == 1.0)
                 else:
-                    sigma = sum(exp_h_by_dest_s_t[(t, net_direct.get_edge2id(u, v))] * gammas_by_dest_by_u_vars[(t, v)]
-                                for _, v in net_direct.out_edges_by_node(u))
+                    sigma = sum(exp_h_by_dest_s_t[t, u, v] * gammas_by_dest_by_u_vars[(t, v)] for _, v in net_direct.out_edges_by_node(u))
                     lp_problem.addConstr(gammas_by_dest_by_u_vars[(t, u)] == sigma)
 
         lp_problem.update()
@@ -123,7 +123,7 @@ class PEFTOptimizer(Optimizer_Abstract):
         for t in net_direct.nodes:
             for u, v in net_direct.edges:
                 edge_index = net_direct.get_edge2id(u, v)
-                gamma_px_by_dest_by_u_v[t, edge_index] = gammas_by_dest_by_u[t, v] * exp_h_by_dest_s_t[t, edge_index]
+                gamma_px_by_dest_by_u_v[t, edge_index] = gammas_by_dest_by_u[t, v] * exp_h_by_dest_s_t[t, u, v]
 
         sum_gamma_px_by_dest_by_u = np.zeros((net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64)
         for t in net_direct.nodes:
