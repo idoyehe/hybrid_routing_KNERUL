@@ -13,10 +13,10 @@
     "num_test_observations": 1,
     "policy_updates": 1e30,
     "n_steps": 16,
-    "learning_rate": 0.001,
+    "learning_rate": 0.003,
     "batch_size": 2,
     "softMin_gamma": -1,
-    "weight_lb": 0.1,
-    "weight_ub": 50
+    "weight_lb": 3,
+    "weight_ub": 30
   }
 }
