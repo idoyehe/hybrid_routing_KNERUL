@@ -1,9 +1,8 @@
 from common.RL_Envs.rl_env import *
-from common.utils import error_bound
 from common.RL_Envs.optimizer_abstract import Optimizer_Abstract
-from Smart_Nodes_Routing.rl_env.soft_min_smart_node_algebraic_optimizer import SoftMinSmartNodesOptimizer
-from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
+from Smart_Nodes_Routing.rl_env.peft_smart_node_algebraic_optimizer import PEFTSmartNodesOptimizer
 from common.static_routing.optimal_load_balancing import *
+
 
 class RL_Smart_Nodes(RL_Env):
 
@@ -32,7 +31,7 @@ class RL_Smart_Nodes(RL_Env):
         self._diagnostics = list()
 
     def _set_action_space(self):
-        self._action_space = spaces.Box(low=self._action_weight_lb, high=self._action_weight_ub, shape=(self._num_edges,))
+        self._action_space = spaces.Box(low=self._action_weight_lb, high=self._action_weight_ub, shape=(self._num_edges,), dtype=np.float64)
 
     @property
     def diagnostics(self):
@@ -40,7 +39,8 @@ class RL_Smart_Nodes(RL_Env):
 
     def step(self, links_weights):
         cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
-            self._process_action_get_cost(links_weights)
+            self._process_action_get_cost(links_weights * 10)
+
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 
         info = dict()
@@ -94,10 +94,9 @@ class RL_Smart_Nodes(RL_Env):
 
     def testing(self, _testing):
         super(RL_Smart_Nodes, self).testing(_testing)
-        # self._optimizer = SoftMinSmartNodesOptimizer(self._network, self._softMin_gamma, testing=_testing)
-        self._optimizer = PEFTOptimizer(self._network, testing=_testing)
+        self._optimizer = PEFTSmartNodesOptimizer(self._network, testing=_testing)
 
     def set_network_smart_nodes_and_spr(self, smart_nodes, smart_nodes_spr):
         self._network.set_smart_nodes(smart_nodes)
         self._network.set__smart_nodes_spr(smart_nodes_spr)
-        self._optimizer = SoftMinSmartNodesOptimizer(self._network, self._softMin_gamma, testing=self._testing)
+        self._optimizer = PEFTSmartNodesOptimizer(self._network, testing=self._testing)

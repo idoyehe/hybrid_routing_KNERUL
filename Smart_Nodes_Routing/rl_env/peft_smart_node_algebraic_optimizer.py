@@ -1,13 +1,13 @@
-from Learning_to_Route.rl_softmin_history.soft_min_optimizer import *
+from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
 from common.RL_Envs.optimizer_abstract import *
 from common.utils import extract_flows
 from common.consts import EdgeConsts
 import numpy.linalg as npl
 
 
-class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
-    def __init__(self, net: NetworkClass, softMin_gamma=EnvConsts.SOFTMIN_GAMMA, testing=False):
-        super(SoftMinSmartNodesOptimizer, self).__init__(net, softMin_gamma, testing)
+class PEFTSmartNodesOptimizer(PEFTOptimizer):
+    def __init__(self, net: NetworkClass, testing=False):
+        super(PEFTSmartNodesOptimizer, self).__init__(net, testing)
 
     def step(self, weights_vector, traffic_matrix, optimal_value):
         """
@@ -20,45 +20,6 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
                                                                                                                                        optimal_value)
 
         return max_congestion, most_congested_link, flows_to_dest_per_node, congestion_per_link, load_per_link
-
-    def key_player_problem_comm_iter(self, weights_vector, k):
-        net_direct = self._network
-        kp_set = set()
-        reduced_weighted_graph = self._build_reduced_weighted_graph(weights_vector)
-        nodes_set = set(filter(lambda n: len(net_direct.out_edges_by_node(n)) > 1, net_direct.nodes))
-        for _ in range(k):
-            max_gbc = 0
-            new_node = None
-            for curr_node in nodes_set:
-                t = nx.group_betweenness_centrality(reduced_weighted_graph, kp_set.union({curr_node}), normalized=True,
-                                                    weight=EdgeConsts.WEIGHT_STR)
-                if t > max_gbc:
-                    max_gbc = t
-                    new_node = curr_node
-            kp_set.update({new_node})
-            nodes_set.remove(new_node)
-
-        return tuple(kp_set)
-
-    def calculating_src_dst_spr(self, dst_splitting_ratios):
-        logger.debug("Calculating hop by hop splitting ratios")
-        net_direct = self._network
-        smart_nodes_spr = net_direct.get_smart_nodes_spr
-        src_dst_splitting_ratios = dict()
-        for src, dst in net_direct.get_all_pairs():
-            src_dst_splitting_ratios[(src, dst)] = np.zeros(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes),
-                                                            dtype=np.float64)
-            for node in net_direct.nodes:
-                if node == dst:
-                    continue
-                for u, v in net_direct.out_edges_by_node(node):
-                    assert u == node
-                    # check whether smart node spt is exist otherwise return the default destination based
-                    src_dst_splitting_ratios[(src, dst)][u, v] = np.float64(smart_nodes_spr.get((src, dst, u, v), dst_splitting_ratios[dst, u, v]))
-
-            assert all(error_bound(int(u != dst), sum(src_dst_splitting_ratios[(src, dst)][u])) for u in self._network.nodes)
-
-        return src_dst_splitting_ratios
 
     def _get_cost_given_weights(self, weights_vector, traffic_matrix, optimal_value):
         net_direct = self._network
@@ -74,7 +35,7 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
             most_congested_link, \
             flows_to_dest_per_node, \
             congestion_per_link, \
-            load_per_link = super(SoftMinSmartNodesOptimizer, self)._calculating_traffic_distribution(dst_splitting_ratios, traffic_matrix)
+            load_per_link = super(PEFTSmartNodesOptimizer, self)._calculating_traffic_distribution(dst_splitting_ratios, traffic_matrix)
 
         if self._testing:
             logger.info("RL most congested link: {}".format(most_congested_link))
@@ -97,7 +58,7 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
             flows_src2dest_per_node[(src, dst)] = demand @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
 
         if logger.level == logging.DEBUG:
-            self.__validate_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
+            self.__validate_src_dst_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
 
         total_load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
 
@@ -114,7 +75,7 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
         return max_congestion, most_congested_link, flows_src2dest_per_node, total_congestion_per_link, total_load_per_link
 
     @staticmethod
-    def __validate_flow(net_direct: NetworkClass, tm, flows_src2dest_per_node, src_dst_splitting_ratios):
+    def __validate_src_dst_flow(net_direct: NetworkClass, tm, flows_src2dest_per_node, src_dst_splitting_ratios):
         flows = extract_flows(tm)
         for src, dst in flows:
             current_spr = src_dst_splitting_ratios[src, dst]
@@ -137,17 +98,3 @@ class SoftMinSmartNodesOptimizer(SoftMinOptimizer):
                 else:
                     assert error_bound(flows_src2dest_per_node[src, dst][node], _flow_to_node)
                     assert error_bound(_flow_from_node, _flow_to_node)
-
-    def calculating_effective_betweenness(self, weights_vector):
-        net_direct = self._network
-        dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
-        b = np.zeros(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes))
-        for k in net_direct.nodes:
-            psi = dst_splitting_ratios[k]
-            b += npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi) @ psi
-
-        B = np.zeros(shape=(net_direct.get_num_nodes))
-        for j in net_direct.nodes:
-            B[j] = np.sum(b[:, j])
-
-        return B

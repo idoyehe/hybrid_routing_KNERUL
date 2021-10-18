@@ -92,3 +92,22 @@ class Optimizer_Abstract(object):
 
     def calculating_destination_based_spr(self, weights_vector):
         pass
+
+    def calculating_src_dst_spr(self, dst_splitting_ratios):
+        logger.debug("Calculating hop by hop splitting ratios")
+        net_direct = self._network
+        smart_nodes_spr = net_direct.get_smart_nodes_spr
+        src_dst_splitting_ratios = dict()
+        for src, dst in net_direct.get_all_pairs():
+            src_dst_splitting_ratios[(src, dst)] = np.zeros(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64)
+            for node in net_direct.nodes:
+                if node == dst:
+                    continue
+                for u, v in net_direct.out_edges_by_node(node):
+                    assert u == node
+                    # check whether smart node spt is exist otherwise return the default destination based
+                    src_dst_splitting_ratios[(src, dst)][u, v] = np.float64(smart_nodes_spr.get((src, dst, u, v), dst_splitting_ratios[dst, u, v]))
+
+            assert all(error_bound(int(u != dst), sum(src_dst_splitting_ratios[(src, dst)][u])) for u in self._network.nodes)
+
+        return src_dst_splitting_ratios
