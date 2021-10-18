@@ -35,7 +35,7 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
     opt_ratio, necessary_capacity = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env)
     while True:
         try:
-            opt_ratio, necessary_capacity = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, opt_ratio-0.001)
+            opt_ratio, necessary_capacity = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, opt_ratio - 0.001)
             print("****** Gurobi Failure ******")
         except Exception as e:
             return np.round(opt_ratio, Consts.ROUND), necessary_capacity
@@ -57,7 +57,6 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
     else:
         congestion_objective = opt_ratio_value
         opt_lp_problem.setObjective(vars_flows_dests_per_edge.sum(), sense=GRB.MINIMIZE)
-
 
     opt_lp_problem.update()
 
@@ -97,10 +96,9 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
 
     __validate_solution(net_direct, destinations, traffic_matrix, flows_dests_per_edge)
 
-    necessary_capacity = np.zeros(shape=(net_direct.get_num_edges,), dtype=np.float64)
+    necessary_capacity = np.zeros(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64)
     for u, v in net_direct.edges:
-        edge_index = net_direct.get_edge2id(u, v)
-        necessary_capacity[edge_index] = sum(flows_dests_per_edge[dst, u, v] for dst in destinations)
+        necessary_capacity[u, v] = sum(flows_dests_per_edge[dst, u, v] for dst in destinations)
 
     max_congested_link = np.max(necessary_capacity / net_direct.get_edges_capacities())
 
