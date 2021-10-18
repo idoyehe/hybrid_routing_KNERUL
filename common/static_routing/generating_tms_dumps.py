@@ -4,8 +4,7 @@ from oblivious_routing import *
 from common.logger import logger
 from common.topologies import topology_zoo_loader
 from common.consts import TMType
-from common.size_consts import SizeConsts
-from common.utils import change_zero_cells
+from multiple_matrices_MCF import multiple_tms_mcf_LP_solver
 import os
 from argparse import ArgumentParser
 from sys import argv
@@ -28,7 +27,7 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def _dump_tms_and_opt(net: NetworkClass,url, matrix_sparsity: float, tm_type,
+def _dump_tms_and_opt(net: NetworkClass, url, matrix_sparsity: float, tm_type,
                       oblivious_routing_per_edge, oblivious_routing_per_flow,
                       static_pairs: bool, elephant_percentage: float, network_elephant, network_mice,
                       total_matrices: int):
@@ -40,6 +39,8 @@ def _dump_tms_and_opt(net: NetworkClass,url, matrix_sparsity: float, tm_type,
                                             network_mice=network_mice,
                                             total_matrices=total_matrices)
 
+    expected_objective, _, necessary_capacity_per_tm = multiple_tms_mcf_LP_solver(net, [(1 / total_matrices, tm) for tm, _, _ in tms])
+
     dict2dump = {
         "tms": tms,
         "url": url,
@@ -47,8 +48,9 @@ def _dump_tms_and_opt(net: NetworkClass,url, matrix_sparsity: float, tm_type,
             "per_edge": oblivious_routing_per_edge,
             "per_flow": oblivious_routing_per_flow
         },
-        "tms_sparsity": matrix_sparsity,
-        "tms_type": tm_type, }
+        "expected_congestion": expected_objective,
+        "necessary_capacity_per_tm": necessary_capacity_per_tm,
+        "tms_sparsity": matrix_sparsity, "tms_type": tm_type, }
 
     folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_title)
     file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(net.get_title,
