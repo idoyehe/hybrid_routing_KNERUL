@@ -97,10 +97,11 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
     __validate_solution(net_direct, destinations, traffic_matrix, flows_dests_per_edge)
 
     necessary_capacity = np.zeros(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64)
+    max_congested_link = 0
     for u, v in net_direct.edges:
+        edge_capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
         necessary_capacity[u, v] = sum(flows_dests_per_edge[dst, u, v] for dst in destinations)
-
-    max_congested_link = np.max(necessary_capacity / net_direct.get_edges_capacities())
+        max_congested_link = max(max_congested_link,necessary_capacity[u, v]/edge_capacity)
 
     assert error_bound(max_congested_link, opt_ratio_value)
     return max_congested_link, necessary_capacity

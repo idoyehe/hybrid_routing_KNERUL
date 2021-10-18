@@ -25,24 +25,23 @@ def __stop_loop(net: NetworkClass, current_flows_values, necessary_capacity):
     delta = 0
     for u, v in net.edges:
         edge_idx = net.get_edge2id(u, v)
-        delta += np.abs(current_flows_values[edge_idx] - necessary_capacity[edge_idx])
+        delta += np.abs(current_flows_values[edge_idx] - necessary_capacity[u, v])
     print('sum[|necessary_capacity_dict - current_flows_values|] = {}'.format(delta))
     return delta < 0.5
 
 
 def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_values, necessary_capacity):
-    assert len(necessary_capacity) == len(w_u_v)
+    assert necessary_capacity.shape == (net.get_num_nodes, net.get_num_nodes)
     new_w_u_v = np.zeros_like(w_u_v, dtype=np.float64)
     for u, v in net.edges:
         edge_idx = net.get_edge2id(u, v)
-        new_w_u_v[edge_idx] = max(0, w_u_v[edge_idx] - step_size * (
-                necessary_capacity[edge_idx] - current_flows_values[edge_idx]))
+        new_w_u_v[edge_idx] = max(0, w_u_v[edge_idx] - step_size * (necessary_capacity[u, v] - current_flows_values[edge_idx]))
     del w_u_v
     return new_w_u_v
 
 
 def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value):
-    step_size = 1 / max(necessary_capacity)
+    step_size = 1 / np.max(necessary_capacity)
     PEFT_traffic_distribution = PEFTOptimizer(net)
     softMin_traffic_distribution = SoftMinOptimizer(net, -1)
     w_u_v = __initialize_all_weights(net)
