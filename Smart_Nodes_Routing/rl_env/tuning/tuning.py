@@ -16,7 +16,7 @@ def run_tuning(hyperparameters: dict, config_folder: str):
     num_test_observations = config["num_test_observations"]
     policy_updates = config["policy_updates"]
 
-    softMin_gamma = hyperparameters[HyperparamertsStrings.SOFTMIN_GAMMA]
+    weights_factor = hyperparameters[HyperparamertsStrings.WEIGHTS_FACTOR]
     weight_lb = hyperparameters[HyperparamertsStrings.WEIGHT_LB]
     weight_ub = hyperparameters[HyperparamertsStrings.WEIGHT_UB]
 
@@ -24,7 +24,7 @@ def run_tuning(hyperparameters: dict, config_folder: str):
     batch_size = hyperparameters[HyperparamertsStrings.BATCH_SIZE]
     n_steps = hyperparameters[HyperparamertsStrings.N_STEPS]
 
-    _envs = build_clean_smart_nodes_env(train_file, test_file, num_train_observations, num_test_observations, softMin_gamma=softMin_gamma,
+    _envs = build_clean_smart_nodes_env(train_file, test_file, num_train_observations, num_test_observations, weights_factor=weights_factor,
                                         action_weight_lb=weight_lb, action_weight_ub=weight_ub)
 
     model = build_clean_smart_nodes_model(_envs, learning_rate, n_steps, batch_size)

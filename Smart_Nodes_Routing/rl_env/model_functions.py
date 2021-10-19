@@ -1,15 +1,16 @@
-import torch
 from gym import envs, register
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 from common.logger import logger
+from common.topologies import topology_zoo_loader
 from common.network_class import NetworkClass
 from common.RL_Envs.rl_env_consts import *
-from common.utils import find_nodes_subsets, SEPERATOR
+from common.utils import find_nodes_subsets, SEPERATOR, load_dump_file
 from Smart_Nodes_Routing.rl_env.RL_smart_nodes import RL_Smart_Nodes
 from Smart_Nodes_Routing.rl_env.smart_nodes_multiple_matrices_MCF import matrices_mcf_LP_with_smart_nodes_solver
+from Link_State_Routing_PEFT.gradiant_decent.original_PEFT import PEFT_main_loop
 import numpy as np
 import json
 from functools import partial
@@ -26,7 +27,7 @@ def build_clean_smart_nodes_env(train_file: str,
                                 num_test_observations: int,
                                 episode_length: int = 1,
                                 history_length: int = 0,
-                                softMin_gamma=EnvConsts.SOFTMIN_GAMMA,
+                                weights_factor=EnvConsts.WEIGHTS_FACTOR,
                                 action_weight_lb=EnvConsts.WEIGHT_LB,
                                 action_weight_ub=EnvConsts.WEIGHT_UB,
                                 n_envs=2):
@@ -48,7 +49,7 @@ def build_clean_smart_nodes_env(train_file: str,
                  'test_file': test_file,
                  'num_train_observations': num_train_observations,
                  'num_test_observations': num_test_observations,
-                 'softMin_gamma': softMin_gamma,
+                 'weights_factor': weights_factor,
                  'action_weight_lb': action_weight_lb,
                  'action_weight_ub': action_weight_ub})
 
@@ -69,21 +70,6 @@ def build_clean_smart_nodes_model(model_envs, learning_rate: float, n_steps: int
 
     ppo_model = PPO(MlpPolicy, model_envs, verbose=1, gamma=gamma, learning_rate=learning_rate, n_steps=n_steps, batch_size=batch_size,
                     policy_kwargs=policy_kwargs)
-    par = ppo_model.get_parameters()
-    par['policy']['log_std'] += -10
-    par['policy']['action_net.weight'] = torch.zeros_like(par['policy']['action_net.weight'])
-
-    par['policy']['action_net.bias'] = torch.tensor(
-        [21.96883, 11.56587, 11.01115, 8.46576, 12.81978, 6.82846, 9.67489, 5.27979, 5.25515, 5.28384, 5.27219, 5.26027, 6.74640, 22.91519, 13.97877,
-         22.88946, 14.47366, 10.37872, 5.16104, 7.79711, 5.16648, 5.14826, 10.83628, 19.70354, 9.96238, 8.76365, 5.14975, 5.18224, 6.64693, 14.79913,
-         5.15943, 5.17707, 19.81461, 11.51679, 8.92476, 5.09122, 9.75154, 6.37023, 7.79810, 10.89047, 5.11598, 5.08135, 5.08888, 10.30671, 9.62940,
-         5.09141, 10.06301, 13.94150, 8.68659, 12.91445, 10.28453, 6.86186, 6.44171, 7.68533, 9.59151, 7.82101, 6.67048, 5.15015, 5.18239, 5.16146,
-         8.31751, 9.21555, 10.09108, 6.72051, 15.74292, 10.08667, 17.93862, 5.11609, 7.47548, 8.37816, 6.64782, 5.16642, 6.93324, 6.15637, 5.28003,
-         5.25521, 5.28422, 5.27248, 5.15973, 5.08166, 5.26045, 5.17725, 6.88432, 17.80110, 5.14854, 5.08880
-         ], dtype=torch.float32, device='cpu')
-    # par['policy']['action_net.bias'] = torch.tensor([8.748] * 86, dtype=torch.float32, device='cpu')
-    ppo_model.set_parameters(par)
-
     return ppo_model
 
 
@@ -142,7 +128,7 @@ def model_learn(config_folder: str, learning_title: str, model_path: str = None,
     test_file = config_folder + config["test_file"]
     num_train_observations = config["num_train_observations"]
     num_test_observations = config["num_test_observations"]
-    softMin_gamma = config["softMin_gamma"]
+    weights_factor = config["weights_factor"]
     action_weight_lb = config["weight_lb"]
     action_weight_ub = config["weight_ub"]
 
@@ -154,7 +140,7 @@ def model_learn(config_folder: str, learning_title: str, model_path: str = None,
         policy_updates = config["policy_updates"]
 
     _envs = build_clean_smart_nodes_env(train_file, test_file, num_train_observations, num_test_observations,
-                                        softMin_gamma=softMin_gamma, action_weight_lb=action_weight_lb, action_weight_ub=action_weight_ub)
+                                        weights_factor=weights_factor, action_weight_lb=action_weight_lb, action_weight_ub=action_weight_ub)
     single_env = _envs.envs[0].env
 
     env_train_observations = single_env.get_train_observations
@@ -189,3 +175,51 @@ def model_continue_learning(model: PPO, single_env: RL_Smart_Nodes, learning_tit
     model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
     single_env.get_network.store_network_object(callback_path, single_env.get_train_observations)
     return model, single_env
+
+
+def get_initial_weights(config_folder: str):
+    config_path = config_folder + "config.json"
+    json_file = open(config_path, 'r')
+    config = json.load(json_file)["learning"]
+    json_file.close()
+    train_file = config_folder + config["train_file"]
+    loaded_dict = load_dump_file(train_file)
+    traffic_matrix = np.sum(tm for tm, _, _ in loaded_dict["tms"])
+    necessary_capacity = loaded_dict["necessary_capacity_per_tm"][-1]
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
+    w_u_v, PEFT_congestion = PEFT_main_loop(net, traffic_matrix, necessary_capacity, 1)
+    return w_u_v
+
+
+if __name__ == "__main__":
+    from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
+    from Learning_to_Route.rl_softmin_history.soft_min_optimizer import SoftMinOptimizer
+    from common.static_routing.multiple_matrices_MCF import multiple_tms_mcf_LP_solver
+
+    config_folder = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\TMs_DB\\ScaleFree70Nodes\\"
+    # w_u_v = get_initial_weights(config_folder)
+    w_u_v = np.array(
+        [3.28489, 3.84911, 2.40156, 2.53162, 2.08734, 2.81310, 2.71351, 10.00000, 10.00000, 10.00000, 10.00000, 10.00000, 2.27188, 3.34352, 3.31877,
+         3.52526, 2.16697, 1.91787, 10.00000, 2.50944, 10.00000, 10.00000, 3.79226, 3.29915, 3.53814, 2.81792, 10.00000, 10.00000, 2.09823, 2.43083,
+         10.00000, 10.00000, 3.56389, 3.48897, 2.20534, 10.00000, 2.65600, 2.33144, 2.74463, 2.57577, 10.00000, 10.00000, 10.00000, 2.39145, 2.21545,
+         10.00000, 2.52263, 2.22938, 2.60257, 2.08059, 1.92462, 2.31761, 1.09414, 2.80892, 2.84131, 2.72573, 1.81322, 10.00000, 10.00000, 10.00000,
+         2.11520, 2.64129, 1.72426, 2.47989, 2.36318, 1.80674, 1.68575, 10.00000, 2.72704, 1.81353, 1.47456, 10.00000, 1.08030, 1.48839, 10.00000,
+         10.00000, 10.00000, 10.00000, 10.00000, 10.00000, 10.00000, 10.00000, 2.28660, 1.67103, 10.00000, 10.00000
+         ], dtype=np.float64)
+
+    config_path = config_folder + "config.json"
+    json_file = open(config_path, 'r')
+    config = json.load(json_file)["learning"]
+    json_file.close()
+    train_file = config_folder + config["train_file"]
+    loaded_dict = load_dump_file(train_file)
+    traffic_matrix_list = loaded_dict["tms"]
+    net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
+    traffic_distribution = PEFTOptimizer(net, -1)
+
+    dst_splitting_ratios = traffic_distribution.calculating_destination_based_spr(w_u_v)
+    a = [traffic_distribution.step(w_u_v, tm, opt)[0] for tm, opt, _ in traffic_matrix_list]
+    print(np.mean(a))
+    best_smart_nodes, best_expected_objective, best_splitting_ratios_per_src_dst_edge = greedy_best_smart_nodes_and_spr(net,
+                                                                                                                        traffic_matrix_list,
+                                                                                                                        dst_splitting_ratios, 3, (0,1,2,3))

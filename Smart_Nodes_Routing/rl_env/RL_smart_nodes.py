@@ -13,12 +13,12 @@ class RL_Smart_Nodes(RL_Env):
                  history_length=0,
                  num_train_observations=None,
                  num_test_observations=None,
-                 softMin_gamma=EnvConsts.SOFTMIN_GAMMA,
+                 weights_factor=EnvConsts.WEIGHTS_FACTOR,
                  action_weight_lb=EnvConsts.WEIGHT_LB,
                  action_weight_ub=EnvConsts.WEIGHT_UB,
                  testing=False):
 
-        self._softMin_gamma = softMin_gamma
+        self._weight_factor = weights_factor
         self._action_weight_lb = action_weight_lb
         self._action_weight_ub = action_weight_ub
 
@@ -38,8 +38,9 @@ class RL_Smart_Nodes(RL_Env):
         return np.array(self._diagnostics)
 
     def step(self, links_weights):
-        cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
-            self._process_action_get_cost(links_weights * 10)
+        links_weights *= self._weight_factor
+        cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, \
+        total_congestion_per_link, total_load_per_link = self._process_action_get_cost(links_weights)
 
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
 

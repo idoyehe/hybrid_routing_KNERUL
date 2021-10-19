@@ -178,8 +178,9 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
             assert len(net_direct.out_edges_by_node(u)) > 1
             for _, v in net_direct.out_edges_by_node(u):
                 spr_src_dst_per_sn_edges[(src, dst, u, v)] = flows_src_dst_per_sn_edges[src, dst, u, v] / flow_from_u_src2dst
+
+    __validate_splitting_ratios(net_direct, smart_nodes, flows_src_dst_per_node, active_flows, spr_src_dst_per_sn_edges)
     if logger.level == logging.DEBUG:
-        __validate_splitting_ratios(net_direct, smart_nodes, flows_src_dst_per_node, active_flows, spr_src_dst_per_sn_edges)
         __validate_flows(net_direct, smart_nodes, flows_src_dst_per_node, traffic_matrices_list, demands_ratios, spr_src_dst_per_sn_edges,
                          destination_based_spr)
 

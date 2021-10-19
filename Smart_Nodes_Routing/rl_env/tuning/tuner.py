@@ -19,7 +19,7 @@ class DdrTuner(MeasurementInterface):
         manipulator.add_parameter(EnumParameter(HyperparamertsStrings.BATCH_SIZE, [64, 128]))
         manipulator.add_parameter(EnumParameter(HyperparamertsStrings.N_STEPS, [64, 128, 192]))
 
-        manipulator.add_parameter(EnumParameter(HyperparamertsStrings.SOFTMIN_GAMMA, [-1, -1.2, -1.4, -1.6, -1.8, -2, -2.2, -2.4, -2.6]))
+        manipulator.add_parameter(EnumParameter(HyperparamertsStrings.WEIGHTS_FACTOR, [8, 9, 10, 11, 12]))
         manipulator.add_parameter(EnumParameter(HyperparamertsStrings.WEIGHT_LB, [1e-4, 1e-3, 1e-2]))
         manipulator.add_parameter(EnumParameter(HyperparamertsStrings.WEIGHT_UB, [1, 2, 3]))
         return manipulator

@@ -11,7 +11,7 @@ class Consts:
     ZERO = 1e-2
     ERROR_BOUND = 1e-3
     OUTPUT_FLAG = 0
-    FEASIBILITY_TOL = 1e-6
+    FEASIBILITY_TOL = 1e-7
     NUMERIC_FOCUS = 3
     PREC_DEMAND = 0.9999
     MAX_ITER = 500
