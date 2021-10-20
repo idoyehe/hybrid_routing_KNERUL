@@ -20,14 +20,7 @@ def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env.start()
 
     expected_objective, r_per_mtrx, necessary_capacity_per_tm = _aux_multiple_tms_mcf_LP_solver(net, traffic_matrix_list, gb_env)
-    while True:
-        try:
-            expected_objective, r_per_mtrx, necessary_capacity_per_tm = \
-                _aux_multiple_tms_mcf_LP_solver(net, traffic_matrix_list, gb_env, expected_objective - 0.001)
-            print("****** Gurobi Failure ******")
-            expected_objective -= 0.001
-        except Exception as e:
-            return expected_objective, r_per_mtrx, necessary_capacity_per_tm
+    return expected_objective, r_per_mtrx, necessary_capacity_per_tm
 
 
 def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_env, expected_objective=None):
