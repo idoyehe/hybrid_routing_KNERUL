@@ -11,12 +11,13 @@
     "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_gravity_sparsity_0.3",
     "num_train_observations": 512,
     "num_test_observations": 1024,
-    "policy_updates": 3000,
-    "n_steps": 128,
+    "policy_updates": 1000,
+    "n_envs": 1,
+    "n_steps": 512,
     "learning_rate": 0.003,
-    "batch_size": 32,
-    "softMin_gamma": -1,
-    "weight_lb": 0.35,
-    "weight_ub": 3
+    "batch_size": 64,
+    "weights_factor": 1,
+    "weight_lb": 1,
+    "weight_ub": 15
   }
 }

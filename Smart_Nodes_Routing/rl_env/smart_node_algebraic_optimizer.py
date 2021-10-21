@@ -1,13 +1,13 @@
-from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
+from Learning_to_Route.rl_softmin_history.soft_min_optimizer import SoftMinOptimizer
 from common.RL_Envs.optimizer_abstract import *
 from common.utils import extract_flows
 from common.consts import EdgeConsts
 import numpy.linalg as npl
 
 
-class PEFTSmartNodesOptimizer(PEFTOptimizer):
+class SmartNodesOptimizer(SoftMinOptimizer):
     def __init__(self, net: NetworkClass, testing=False):
-        super(PEFTSmartNodesOptimizer, self).__init__(net, testing)
+        super(SmartNodesOptimizer, self).__init__(net, -1, testing)
 
     def step(self, weights_vector, traffic_matrix, optimal_value):
         """
@@ -21,9 +21,9 @@ class PEFTSmartNodesOptimizer(PEFTOptimizer):
 
         return max_congestion, most_congested_link, flows_to_dest_per_node, congestion_per_link, load_per_link
 
-    def _get_cost_given_weights(self, weights_vector, traffic_matrix, optimal_value):
+    def _get_cost_given_weights(self, links_weights, traffic_matrix, optimal_value):
         net_direct = self._network
-        dst_splitting_ratios = self.calculating_destination_based_spr(weights_vector)
+        dst_splitting_ratios = self.calculating_destination_based_spr(links_weights)
 
         if len(net_direct.get_smart_nodes) > 0:
             src_dst_splitting_ratios = self.calculating_src_dst_spr(dst_splitting_ratios)
@@ -35,7 +35,7 @@ class PEFTSmartNodesOptimizer(PEFTOptimizer):
             most_congested_link, \
             flows_to_dest_per_node, \
             congestion_per_link, \
-            load_per_link = super(PEFTSmartNodesOptimizer, self)._calculating_traffic_distribution(dst_splitting_ratios, traffic_matrix)
+            load_per_link = super(SmartNodesOptimizer, self)._calculating_traffic_distribution(dst_splitting_ratios, traffic_matrix)
 
         if self._testing:
             logger.info("RL most congested link: {}".format(most_congested_link))

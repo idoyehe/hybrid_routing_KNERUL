@@ -32,13 +32,24 @@ class RL_Env(Env):
         test_loaded_dict = load_dump_file(file_name=test_file)
         self._network = NetworkClass(topology_zoo_loader(url=train_loaded_dict["url"]))
         self._tms = train_loaded_dict["tms"]
+        random.shuffle(self._tms)
+        self._tms = self._tms[0:num_train_observations]
+
         self._tms_test = test_loaded_dict["tms"]
+        random.shuffle(self._tms_test)
+        self._tms_test = self._tms_test[0:num_test_observations]
         self._tm_type = train_loaded_dict["tms_type"]
+
+        assert len(self._tms) == num_train_observations
+        assert len(self._tms_test) == num_test_observations
+
         if "oblivious_routing" in train_loaded_dict.keys():
             self._oblivious_routing_per_edge = train_loaded_dict["oblivious_routing"]["per_edge"]
             self._oblivious_routing_per_flow = train_loaded_dict["oblivious_routing"]["per_flow"]
         else:
             self._oblivious_routing_per_edge = self._oblivious_routing_per_flow = None
+
+        del train_loaded_dict, test_loaded_dict
         self._network = self._network
         self._g_name = self._network.get_title
         self._num_nodes = self._network.get_num_nodes
@@ -78,43 +89,40 @@ class RL_Env(Env):
 
     def _sample_tm(self, tm_set):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
-        tuple_element = random.choice(tm_set)
-        oblv = None
-        if len(tuple_element) == 3:
+        for idx, tuple_element in enumerate(tm_set):
             tm, opt, oblv = tuple_element
-        else:
-            tm, opt = tuple_element
-        return tm, opt, oblv
+            yield tm, opt, oblv
 
     def _init_all_observations(self):
-        def __create_episode(_episode_len, tm_set):
+        def __create_episode(_episode_len, set_gen):
             _episode_tms = list()
             _episode_optimals = list()
             _episode_oblivious = list()
             for _ in range(_episode_len):
-                tm, opt, oblv = self._sample_tm(tm_set)
+                tm, opt, oblv = next(set_gen)
                 _episode_tms.append(tm)
                 _episode_optimals.append(opt)
                 _episode_oblivious.append(oblv)
             return _episode_tms, _episode_optimals, _episode_oblivious
 
-        def __create_observation(_num_observations, tm_set):
+        def __create_observation(_num_observations, set_gen):
             _observations_episodes = list()
             _observations_episodes_optimals = list()
             _observations_episodes_oblivious = list()
             for _ in range(_num_observations):
-                _episode_tms, _episode_optimals, _episode_oblivious = __create_episode(self._history_length + self._episode_len, tm_set)
+                _episode_tms, _episode_optimals, _episode_oblivious = __create_episode(self._history_length + self._episode_len, set_gen)
                 _observations_episodes.append(np.array(_episode_tms))
                 _observations_episodes_optimals.append(np.array(_episode_optimals))
                 _observations_episodes_oblivious.append(np.array(_episode_oblivious))
             return np.array(_observations_episodes), np.array(_observations_episodes_optimals), np.array(_observations_episodes_oblivious)
 
+        train_set_gen = self._sample_tm(self._tms)
+        test_set_gen = self._sample_tm(self._tms_test)
         self._train_observations, self._opt_train_observations, self._oblv_train_observations = __create_observation(self._num_train_observations,
-                                                                                                                     self._tms)
+                                                                                                                     train_set_gen)
         self._test_observations, self._opt_test_observations, self._oblv_test_observations = __create_observation(self._num_test_observations,
-                                                                                                                  self._tms_test)
-        if not self._none_history:
-            self._validate_data()
+                                                                                                                  test_set_gen)
+        # self._validate_data()
 
     def _validate_data(self):
         is_equal_train = np.zeros((self._num_train_observations, self._num_train_observations))

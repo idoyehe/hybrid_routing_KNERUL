@@ -29,9 +29,9 @@ if __name__ == "__main__":
 
     if load_agent is None:
         logger.info("********* Iteration 0 Starts *********")
-        model, single_env = model_learn(config_folder, "Iteration_0", load_agent, load_network)
+        model, single_env, weights_factor = model_learn(config_folder, "Iteration_0", load_agent, load_network)
     else:
-        model, single_env = model_learn(config_folder, "Iteration_0", load_agent, load_network, policy_updates=10)
+        model, single_env, weights_factor = model_learn(config_folder, "Iteration_0", load_agent, load_network, policy_updates=policy_updates)
 
         logger.info("***************** Iteration 0 Finished ******************")
 
@@ -39,7 +39,8 @@ if __name__ == "__main__":
     for i in range(1, num_of_iterations + 1):
         logger.info("***** Iteration {}, Evaluating Smart Node  *****".format(i))
         link_weights, _ = model.predict(single_env.reset(), deterministic=True)
-        destination_based_sprs = single_env.get_optimizer.calculating_destination_based_spr(link_weights*10)
+        link_weights *= weights_factor
+        destination_based_sprs = single_env.get_optimizer.calculating_destination_based_spr(link_weights)
         env_train_observations = single_env.get_train_observations
 
         best_smart_nodes = greedy_best_smart_nodes_and_spr(single_env.get_network, env_train_observations[0], destination_based_sprs,

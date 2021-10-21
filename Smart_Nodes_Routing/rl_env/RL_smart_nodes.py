@@ -1,6 +1,6 @@
 from common.RL_Envs.rl_env import *
 from common.RL_Envs.optimizer_abstract import Optimizer_Abstract
-from Smart_Nodes_Routing.rl_env.peft_smart_node_algebraic_optimizer import PEFTSmartNodesOptimizer
+from Smart_Nodes_Routing.rl_env.smart_node_algebraic_optimizer import SmartNodesOptimizer
 from common.static_routing.optimal_load_balancing import *
 
 
@@ -66,25 +66,12 @@ class RL_Smart_Nodes(RL_Env):
         max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = self.optimizer_step(
             links_weights, tm, optimal_congestion)
 
-        if self._testing:
-            cost_congestion_ratio = max_congestion
-        else:
-            cost_congestion_ratio = max_congestion / optimal_congestion
-
-            if cost_congestion_ratio < 1.0:
-                try:
-                    assert error_bound(max_congestion, optimal_congestion, ERROR_BOUND)
-                except Exception as _:
-                    logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
-                                "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion,
-                                                                                    optimal_congestion))
-
-            cost_congestion_ratio = max(cost_congestion_ratio, 1.0)
+        cost_congestion_ratio = max_congestion
 
         logger.debug("optimal Congestion :{}".format(optimal_congestion))
-        logger.debug("Cost Congestion :{}".format(max_congestion))
+        logger.debug("Max Congestion :{}".format(max_congestion))
         logger.debug("oblivious Congestion :{}".format(oblivious_congestion))
-        logger.debug("Congestion Ratio :{}".format(cost_congestion_ratio))
+        logger.debug("Congestion Ratio :{}".format(max_congestion/optimal_congestion))
 
         return cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
 
@@ -95,9 +82,9 @@ class RL_Smart_Nodes(RL_Env):
 
     def testing(self, _testing):
         super(RL_Smart_Nodes, self).testing(_testing)
-        self._optimizer = PEFTSmartNodesOptimizer(self._network, testing=_testing)
+        self._optimizer = SmartNodesOptimizer(self._network, testing=_testing)
 
     def set_network_smart_nodes_and_spr(self, smart_nodes, smart_nodes_spr):
         self._network.set_smart_nodes(smart_nodes)
         self._network.set__smart_nodes_spr(smart_nodes_spr)
-        self._optimizer = PEFTSmartNodesOptimizer(self._network, testing=self._testing)
+        self._optimizer = SmartNodesOptimizer(self._network, testing=self._testing)
