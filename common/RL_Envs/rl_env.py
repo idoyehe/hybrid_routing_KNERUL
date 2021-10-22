@@ -10,8 +10,6 @@ from common.topologies import topology_zoo_loader
 from .optimizer_abstract import Optimizer_Abstract
 import random
 
-ERROR_BOUND = 1e-3
-
 
 class RL_Env(Env):
 
