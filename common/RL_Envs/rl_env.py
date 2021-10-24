@@ -205,11 +205,15 @@ class RL_Env(Env):
 
     @property
     def get_train_observations(self):
-        return self._train_observations, self._opt_train_observations    \
+        return self._train_observations, self._opt_train_observations
 
     @property
     def get_expected_congestion(self):
         return self._expected_congestion
+
+    @property
+    def get_initial_weights(self):
+        return self._initial_weights
 
     def set_train_observations(self, train_observations):
         self._train_observations = train_observations[0]

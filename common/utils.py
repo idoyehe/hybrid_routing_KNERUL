@@ -6,9 +6,12 @@ import pickle
 import numpy as np
 import itertools
 from platform import system
+import torch
 IS_LINUX = system() == "Linux"
 
 SEPERATOR = "/" if IS_LINUX else "\\"
+
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def extract_lp_values(gurobi_vars_dict, R=Consts.ROUND):
     gurobi_vars_dict = dict(gurobi_vars_dict)
