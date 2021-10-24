@@ -29,6 +29,11 @@ class RL_Env(Env):
         train_loaded_dict = load_dump_file(file_name=path_dumped)
         test_loaded_dict = load_dump_file(file_name=test_file)
         self._network = NetworkClass(topology_zoo_loader(url=train_loaded_dict["url"]))
+        self._expected_congestion = train_loaded_dict["expected_congestion"]
+        logger.info("Expected Congestion: {}".format(self._expected_congestion))
+
+        self._initial_weights = train_loaded_dict["initial_weights"]
+
         self._tms = train_loaded_dict["tms"]
         random.shuffle(self._tms)
         self._tms = self._tms[0:num_train_observations]
@@ -200,8 +205,14 @@ class RL_Env(Env):
 
     @property
     def get_train_observations(self):
-        return self._train_observations, self._opt_train_observations
+        return self._train_observations, self._opt_train_observations    \
+
+    @property
+    def get_expected_congestion(self):
+        return self._expected_congestion
 
     def set_train_observations(self, train_observations):
         self._train_observations = train_observations[0]
         self._opt_train_observations = train_observations[1]
+
+

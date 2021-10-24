@@ -29,6 +29,8 @@ class RL_Smart_Nodes(RL_Env):
 
         assert isinstance(self._optimizer, Optimizer_Abstract)
         self._diagnostics = list()
+        self.softMin_initial_expected_congestion()
+
 
     def _set_action_space(self):
         self._action_space = spaces.Box(low=self._action_weight_lb, high=self._action_weight_ub, shape=(self._num_edges,), dtype=np.float64)
@@ -88,3 +90,8 @@ class RL_Smart_Nodes(RL_Env):
         self._network.set_smart_nodes(smart_nodes)
         self._network.set__smart_nodes_spr(smart_nodes_spr)
         self._optimizer = SmartNodesOptimizer(self._network, testing=self._testing)
+
+    def softMin_initial_expected_congestion(self):
+        dst_splitting_ratios = self._optimizer.calculating_destination_based_spr(self._initial_weights)
+        a = np.mean([super(SmartNodesOptimizer,self._optimizer)._calculating_traffic_distribution(dst_splitting_ratios, tm[0])[0] for tm in self._train_observations])
+        logger.info("SoftMin Initial Expected Congestion: {}".format(a))
