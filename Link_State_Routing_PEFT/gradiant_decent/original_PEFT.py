@@ -21,13 +21,13 @@ def __initialize_all_weights(net: NetworkClass):
     return np.ones(shape=(net.get_num_edges), dtype=np.float64) * 10
 
 
-def __stop_loop(net: NetworkClass, current_flows_values, necessary_capacity):
+def __stop_loop(net: NetworkClass, current_flows_values, necessary_capacity,stop_threshold):
     delta = 0
     for u, v in net.edges:
         edge_idx = net.get_edge2id(u, v)
         delta += np.abs(current_flows_values[edge_idx] - necessary_capacity[u, v])
     print('sum[|necessary_capacity_dict - current_flows_values|] = {}'.format(delta))
-    return delta < 0.5
+    return delta < stop_threshold
 
 
 def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_values, necessary_capacity):
@@ -40,7 +40,7 @@ def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_
     return new_w_u_v
 
 
-def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value):
+def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value=1,stop_threshold=0.3):
     step_size = 1 / np.max(necessary_capacity)
     PEFT_traffic_distribution = PEFTOptimizer(net)
     softMin_traffic_distribution = SoftMinOptimizer(net, -1)
@@ -50,7 +50,7 @@ def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value):
     print('PEFT Congestion Vs. Optimal = {}'.format(PEFT_congestion / optimal_value))
     print('SoftMin Congestion Vs. Optimal = {}'.format(softMin_congestion / optimal_value))
 
-    while __stop_loop(net, current_flows_values, necessary_capacity) == False:
+    while __stop_loop(net, current_flows_values, necessary_capacity,stop_threshold) == False:
         w_u_v = __gradient_decent_update(net, w_u_v, step_size, current_flows_values, necessary_capacity)
         PEFT_congestion, _, _, _, current_flows_values = PEFT_traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
         softMin_congestion, _, _, _, _ = softMin_traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
