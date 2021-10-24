@@ -28,12 +28,13 @@ def _getOptions(args=argv[1:]):
     options = parser.parse_args(args)
     return options
 
+
 def get_initial_weights(net, traffic_matrix, necessary_capacity):
     w_u_v, PEFT_congestion = PEFT_main_loop(net, traffic_matrix, necessary_capacity)
     return w_u_v
 
 
-def _dump_tms_and_opt(net: NetworkClass, url, matrix_sparsity: float, tm_type,initial_weights_clac,
+def _dump_tms_and_opt(net: NetworkClass, url, matrix_sparsity: float, tm_type, initial_weights_clac,
                       oblivious_routing_per_edge, oblivious_routing_per_flow,
                       static_pairs: bool, elephant_percentage: float, network_elephant, network_mice,
                       total_matrices: int):
@@ -50,7 +51,7 @@ def _dump_tms_and_opt(net: NetworkClass, url, matrix_sparsity: float, tm_type,in
         traffic_matrices_list = [(1 / total_matrices, tm) for tm, _, _ in tms]
         expected_objective, _, necessary_capacity_per_tm = multiple_tms_mcf_LP_solver(net, traffic_matrices_list)
         aggregate_tm = sum(tm for _, tm in traffic_matrices_list)
-        initial_weights =get_initial_weights(net,aggregate_tm,necessary_capacity_per_tm[-1])
+        initial_weights = get_initial_weights(net, aggregate_tm, necessary_capacity_per_tm[-1])
 
     dict2dump = {
         "tms": tms,
