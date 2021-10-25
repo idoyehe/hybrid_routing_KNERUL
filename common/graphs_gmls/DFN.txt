@@ -2,669 +2,669 @@ graph [
   Network "DFN"
   node [
     id 0
-    label "CHE"
+    label "0"
   ]
   node [
     id 1
-    label "LEI"
+    label "1"
   ]
   node [
     id 2
-    label "ADH"
+    label "2"
   ]
   node [
     id 3
-    label "DRE"
+    label "3"
   ]
   node [
     id 4
-    label "GSI"
+    label "4"
   ]
   node [
     id 5
-    label "HEI"
+    label "5"
   ]
   node [
     id 6
-    label "JEN"
+    label "6"
   ]
   node [
     id 7
-    label "ILM"
+    label "7"
   ]
   node [
     id 8
-    label "DeCix"
+    label "8"
   ]
   node [
     id 9
-    label "Geant"
+    label "9"
   ]
   node [
     id 10
-    label "FZK"
+    label "10"
   ]
   node [
     id 11
-    label "STU"
+    label "11"
   ]
   node [
     id 12
-    label "DeCix"
+    label "12"
   ]
   node [
     id 13
-    label "Telia"
+    label "13"
   ]
   node [
     id 14
-    label "BIE"
+    label "14"
   ]
   node [
     id 15
-    label "Telekom"
+    label "15"
   ]
   node [
     id 16
-    label "GOE"
+    label "16"
   ]
   node [
     id 17
-    label "BRE"
+    label "17"
   ]
   node [
     id 18
-    label "WUP"
+    label "18"
   ]
   node [
     id 19
-    label "BIR"
+    label "19"
   ]
   node [
     id 20
-    label "BON"
+    label "20"
   ]
   node [
     id 21
-    label "MAR"
+    label "21"
   ]
   node [
     id 22
-    label "GIE"
+    label "22"
   ]
   node [
     id 23
-    label "KAS"
+    label "23"
   ]
   node [
     id 24
-    label "PAD"
+    label "24"
   ]
   node [
     id 25
-    label "EWE"
+    label "25"
   ]
   node [
     id 26
-    label "Telekom"
+    label "26"
   ]
   node [
     id 27
-    label "MUE"
+    label "27"
   ]
   node [
     id 28
-    label "SAA"
+    label "28"
   ]
   node [
     id 29
-    label "GC"
+    label "29"
   ]
   node [
     id 30
-    label "DES"
+    label "30"
   ]
   node [
     id 31
-    label "HAM"
+    label "31"
   ]
   node [
     id 32
-    label "KIE"
+    label "32"
   ]
   node [
     id 33
-    label "ROS"
+    label "33"
   ]
   node [
     id 34
-    label "MAG"
+    label "34"
   ]
   node [
     id 35
-    label "BRA"
+    label "35"
   ]
   node [
     id 36
-    label "KAI"
+    label "36"
   ]
   node [
     id 37
-    label "GRE"
+    label "37"
   ]
   node [
     id 38
-    label "DOR"
+    label "38"
   ]
   node [
     id 39
-    label "BOC"
+    label "39"
   ]
   node [
     id 40
-    label "FHM"
+    label "40"
   ]
   node [
     id 41
-    label "REG"
+    label "41"
   ]
   node [
     id 42
-    label "AUG"
+    label "42"
   ]
   node [
     id 43
-    label "GAR"
+    label "43"
   ]
   node [
     id 44
-    label "DUI"
+    label "44"
   ]
   node [
     id 45
-    label "FZJ"
+    label "45"
   ]
   node [
     id 46
-    label "AAC"
+    label "46"
   ]
   node [
     id 47
-    label "WUE"
+    label "47"
   ]
   node [
     id 48
-    label "TUB"
+    label "48"
   ]
   node [
     id 49
-    label "HUB"
+    label "49"
   ]
   node [
     id 50
-    label "HAN"
+    label "50"
   ]
   node [
     id 51
-    label "FRA"
+    label "51"
   ]
   node [
     id 52
-    label "POT"
+    label "52"
   ]
   node [
     id 53
-    label "ERL"
+    label "53"
   ]
   node [
     id 54
-    label "BAY"
+    label "54"
   ]
   node [
     id 55
-    label "FFO"
+    label "55"
   ]
   node [
     id 56
-    label "ZIB"
+    label "56"
   ]
   node [
     id 57
-    label "ZEU"
+    label "57"
   ]
   edge [
     source 0
     target 1
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 0
     target 3
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 1
     target 53
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 1
     target 6
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 1
     target 15
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 2
     target 56
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 2
     target 49
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 3
     target 52
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 3
     target 53
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 4
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 4
     target 5
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 5
     target 10
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 6
     target 7
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 7
     target 53
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 9
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 10
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 10
     target 11
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 10
     target 36
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 11
     target 43
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 12
     target 52
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 13
     target 52
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 14
     target 24
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 14
     target 50
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 14
     target 27
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 16
     target 50
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 16
     target 23
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 17
     target 25
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 17
     target 50
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 17
     target 31
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 18
     target 19
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 18
     target 38
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 19
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 19
     target 20
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 20
     target 46
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 21
     target 22
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 21
     target 23
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 22
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 23
     target 24
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 25
     target 27
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 26
     target 50
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 27
     target 44
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 28
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 28
     target 36
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 29
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 30
     target 48
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 30
     target 31
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 32
     target 33
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 32
     target 50
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 33
     target 50
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 33
     target 37
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 34
     target 35
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 34
     target 52
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 35
     target 50
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 36
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 37
     target 52
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 38
     target 39
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 39
     target 44
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 40
     target 41
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 40
     target 43
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 41
     target 53
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 42
     target 43
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 42
     target 53
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 43
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 44
     target 50
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 44
     target 45
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 45
     target 46
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 46
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 47
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 47
     target 53
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 48
     target 56
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 48
     target 49
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 48
     target 52
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 48
     target 57
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 50
     target 51
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 50
     target 52
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 50
     target 53
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 50
     target 55
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 51
     target 52
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 51
     target 53
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 52
     target 53
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 52
     target 54
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 52
     target 55
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 52
     target 56
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 53
     target 54
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 55
     target 56
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 56
     target 57
-    LinkSpeedRaw 10000000000.0
+    LinkSpeedRaw "2500000000"
   ]
 ]

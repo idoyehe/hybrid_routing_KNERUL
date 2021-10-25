@@ -1,501 +1,501 @@
 graph [
-  Network "China Telecom "
+  Network "China_Telecom "
   node [
     id 0
-    label "Lhasa"
+    label "0"
   ]
   node [
     id 1
-    label "Lanzhou"
+    label "1"
   ]
   node [
     id 2
-    label "Kashi"
+    label "2"
   ]
   node [
     id 3
-    label "Shiquanhe"
+    label "3"
   ]
   node [
     id 4
-    label "Jinan"
+    label "4"
   ]
   node [
     id 5
-    label "Qingdao"
+    label "5"
   ]
   node [
     id 6
-    label "Taiyuan"
+    label "6"
   ]
   node [
     id 7
-    label "Shilazhuang"
+    label "7"
   ]
   node [
     id 8
-    label "Shanghai"
+    label "8"
   ]
   node [
     id 9
-    label "Suzhou"
+    label "9"
   ]
   node [
     id 10
-    label "International Link 1"
+    label "10"
   ]
   node [
     id 11
-    label "International Link 2"
+    label "11"
   ]
   node [
     id 12
-    label "Nanning"
+    label "12"
   ]
   node [
     id 13
-    label "Changsha"
+    label "13"
   ]
   node [
     id 14
-    label "Guiyang"
+    label "14"
   ]
   node [
     id 15
-    label "Chongqing"
+    label "15"
   ]
   node [
     id 16
-    label "Chengdu"
+    label "16"
   ]
   node [
     id 17
-    label "Kunming"
+    label "17"
   ]
   node [
     id 18
-    label "Xi'an"
+    label "18"
   ]
   node [
     id 19
-    label "Zhengzhou"
+    label "19"
   ]
   node [
     id 20
-    label "International Link 4"
+    label "20"
   ]
   node [
     id 21
-    label "International Link 3"
+    label "21"
   ]
   node [
     id 22
-    label "Haikou"
+    label "22"
   ]
   node [
     id 23
-    label "Hong Kong"
+    label "23"
   ]
   node [
     id 24
-    label "Hangzhou"
+    label "24"
   ]
   node [
     id 25
-    label "Wuhan"
+    label "25"
   ]
   node [
     id 26
-    label "Hefei"
+    label "26"
   ]
   node [
     id 27
-    label "Nanjing"
+    label "27"
   ]
   node [
     id 28
-    label "Guangzhou"
+    label "28"
   ]
   node [
     id 29
-    label "Xiamen"
+    label "29"
   ]
   node [
     id 30
-    label "Fuzhou"
+    label "30"
   ]
   node [
     id 31
-    label "Nandhang"
+    label "31"
   ]
   node [
     id 32
-    label "Xining"
+    label "32"
   ]
   node [
     id 33
-    label "Urumqi"
+    label "33"
   ]
   node [
     id 34
-    label "Harbin"
+    label "34"
   ]
   node [
     id 35
-    label "Changchun"
+    label "35"
   ]
   node [
     id 36
-    label "Shenyang"
+    label "36"
   ]
   node [
     id 37
-    label "Dalian"
+    label "37"
   ]
   node [
     id 38
-    label "Tianjin"
+    label "38"
   ]
   node [
     id 39
-    label "Beijing"
+    label "39"
   ]
   node [
     id 40
-    label "Hohhot"
+    label "40"
   ]
   node [
     id 41
-    label "Yinchuan"
+    label "41"
   ]
   edge [
     source 0
     target 16
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 0
     target 3
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 0
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 1
     target 18
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 1
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 2
     target 33
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 4
     target 8
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 5
     target 38
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 6
     target 18
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 6
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 7
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 38
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 9
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 8
     target 11
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 16
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 8
     target 18
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 23
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 24
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 25
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 26
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 8
     target 27
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 31
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 9
     target 27
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 10
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 12
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 13
     target 25
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 14
     target 16
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 14
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 15
     target 16
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 15
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 16
     target 27
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 16
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 17
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 18
     target 32
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 18
     target 33
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 18
     target 41
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 18
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 18
     target 40
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 18
     target 25
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 18
     target 27
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 18
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 19
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 20
     target 23
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 21
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 22
     target 25
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 22
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 23
     target 28
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 23
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 25
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 25
     target 27
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 27
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 27
     target 30
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 28
     target 38
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 28
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 28
     target 29
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 32
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 33
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 34
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 35
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 36
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 37
     target 38
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 38
     target 39
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 39
     target 41
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 39
     target 40
-    LinkSpeedRaw 10000000000
+    LinkSpeedRaw "10000000000"
   ]
 ]

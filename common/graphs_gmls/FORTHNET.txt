@@ -2,560 +2,560 @@ graph [
   Network "FORTHNET"
   node [
     id 0
-    label "Komotini"
+    label "0"
   ]
   node [
     id 1
-    label "Alexandroypoli"
+    label "1"
   ]
   node [
     id 2
-    label "Xanthi"
+    label "2"
   ]
   node [
     id 3
-    label "Kavala"
+    label "3"
   ]
   node [
     id 4
-    label "Interconnection Greece"
+    label "4"
   ]
   node [
     id 5
-    label "Chios"
+    label "5"
   ]
   node [
     id 6
-    label "Lesbos"
+    label "6"
   ]
   node [
     id 7
-    label "Athens"
+    label "7"
   ]
   node [
     id 8
-    label "Zakynthos"
+    label "8"
   ]
   node [
     id 9
-    label "Pyrgos"
+    label "9"
   ]
   node [
     id 10
-    label "Samos"
+    label "10"
   ]
   node [
     id 11
-    label "Rhodes"
+    label "11"
   ]
   node [
     id 12
-    label "Agrinio"
+    label "12"
   ]
   node [
     id 13
-    label "Mesologgi"
+    label "13"
   ]
   node [
     id 14
-    label "Prevezza"
+    label "14"
   ]
   node [
     id 15
-    label "Arta"
+    label "15"
   ]
   node [
     id 16
-    label "Lamia"
+    label "16"
   ]
   node [
     id 17
-    label "Inofita"
+    label "17"
   ]
   node [
     id 18
-    label "Rethymnon"
+    label "18"
   ]
   node [
     id 19
-    label "Moires"
+    label "19"
   ]
   node [
     id 20
-    label "Ag. Nikolaos"
+    label "20"
   ]
   node [
     id 21
-    label "Ierapetra"
+    label "21"
   ]
   node [
     id 22
-    label "Siteia"
+    label "22"
   ]
   node [
     id 23
-    label "Corinth"
+    label "23"
   ]
   node [
     id 24
-    label "Itea"
+    label "24"
   ]
   node [
     id 25
-    label "Livadia"
+    label "25"
   ]
   node [
     id 26
-    label "Kastoria"
+    label "26"
   ]
   node [
     id 27
-    label "Larissa"
+    label "27"
   ]
   node [
     id 28
-    label "Lefkada"
+    label "28"
   ]
   node [
     id 29
-    label "Grevena"
+    label "29"
   ]
   node [
     id 30
-    label "Igoumenitsa"
+    label "30"
   ]
   node [
     id 31
-    label "Argostoli"
+    label "31"
   ]
   node [
     id 32
-    label "Internet"
+    label "32"
   ]
   node [
     id 33
-    label "Patra"
+    label "33"
   ]
   node [
     id 34
-    label "Sklathos"
+    label "34"
   ]
   node [
     id 35
-    label "Chalkida"
+    label "35"
   ]
   node [
     id 36
-    label "Karditsa"
+    label "36"
   ]
   node [
     id 37
-    label "Volos"
+    label "37"
   ]
   node [
     id 38
-    label "Karpenisi"
+    label "38"
   ]
   node [
     id 39
-    label "Trikana"
+    label "39"
   ]
   node [
     id 40
-    label "Corfu"
+    label "40"
   ]
   node [
     id 41
-    label "Ioaninna"
+    label "41"
   ]
   node [
     id 42
-    label "Hersonlssos"
+    label "42"
   ]
   node [
     id 43
-    label "Heraklion"
+    label "43"
   ]
   node [
     id 44
-    label "Argos"
+    label "44"
   ]
   node [
     id 45
-    label "Syros"
+    label "45"
   ]
   node [
     id 46
-    label "Mykonos"
+    label "46"
   ]
   node [
     id 47
-    label "Santorini"
+    label "47"
   ]
   node [
     id 48
-    label "Chania"
+    label "48"
   ]
   node [
     id 49
-    label "Sparta"
+    label "49"
   ]
   node [
     id 50
-    label "Kalamata"
+    label "50"
   ]
   node [
     id 51
-    label "Tripoli"
+    label "51"
   ]
   node [
     id 52
-    label "Polygyros"
+    label "52"
   ]
   node [
     id 53
-    label "Drama"
+    label "53"
   ]
   node [
     id 54
-    label "Serres"
+    label "54"
   ]
   node [
     id 55
-    label "Thessaloniki"
+    label "55"
   ]
   node [
     id 56
-    label "Kilkis"
+    label "56"
   ]
   node [
     id 57
-    label "Edessa"
+    label "57"
   ]
   node [
     id 58
-    label "Florina"
+    label "58"
   ]
   node [
     id 59
-    label "Verola"
+    label "59"
   ]
   node [
     id 60
-    label "Kozani"
+    label "60"
   ]
   node [
     id 61
-    label "Katerina"
+    label "61"
   ]
   edge [
     source 0
     target 55
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 1
     target 55
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 2
     target 3
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 3
     target 53
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 3
     target 55
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 4
     target 7
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 5
     target 7
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 6
     target 7
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 7
     target 32
-    LinkSpeedRaw 28000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 7
     target 33
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 7
     target 35
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 7
     target 41
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 7
     target 10
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 7
     target 11
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 7
     target 45
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 7
     target 46
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 7
     target 47
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 7
     target 16
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 7
     target 17
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 7
     target 51
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 7
     target 43
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 7
     target 55
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 7
     target 24
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 7
     target 25
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 7
     target 27
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 7
     target 23
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 8
     target 33
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 9
     target 33
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 12
     target 33
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 13
     target 33
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 14
     target 41
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 15
     target 41
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 18
     target 43
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 19
     target 43
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 20
     target 42
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 20
     target 21
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 20
     target 22
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 26
     target 41
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 27
     target 36
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 27
     target 37
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 27
     target 38
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 27
     target 39
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 28
     target 33
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 29
     target 41
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 30
     target 41
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 31
     target 33
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 32
     target 55
-    LinkSpeedRaw 15000000000.0
+    LinkSpeedRaw "5000000000"
   ]
   edge [
     source 34
     target 35
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 40
     target 41
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 42
     target 43
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 43
     target 48
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 44
     target 51
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 49
     target 51
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "15000000000"
   ]
   edge [
     source 50
     target 51
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 52
     target 55
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 54
     target 55
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 55
     target 56
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 55
     target 57
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 55
     target 58
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 55
     target 59
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "2500000000"
   ]
   edge [
     source 55
     target 60
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "10000000000"
   ]
   edge [
     source 55
     target 61
-    LinkSpeedRaw 11000000000.0
+    LinkSpeedRaw "15000000000"
   ]
 ]
