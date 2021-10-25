@@ -1,5 +1,5 @@
 graph [
-  Network "China_Telecom "
+  Network "China_Telecom"
   node [
     id 0
     label "0"
