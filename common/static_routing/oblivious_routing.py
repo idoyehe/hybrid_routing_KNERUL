@@ -1,4 +1,4 @@
-from common.utils import error_bound, extract_lp_values,load_dump_file
+from common.utils import error_bound, extract_lp_values, load_dump_file
 from Smart_Nodes_Routing.rl_env.smart_node_algebraic_optimizer import SmartNodesOptimizer
 from common.network_class import NetworkClass
 from common.consts import EdgeConsts, Consts
@@ -151,7 +151,7 @@ def aux_oblivious_routing_scheme(net: NetworkClass, gurobi_env, oblivious_ratio=
             if flow_out_u > 0.0:
                 for _, v in net_directed.out_edges_by_node(u):
                     src_dst_splitting_ratios[src, dst, u, v] = flow_src_dst_edge_dict[(src, dst, u, v)] / flow_out_u
-                assert error_bound(sum(src_dst_splitting_ratios[(src, dst)][u]),1.0)
+                assert error_bound(sum(src_dst_splitting_ratios[(src, dst)][u]), 1.0)
 
     return oblivious_ratio_value, src_dst_splitting_ratios
 
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     net = NetworkClass(topology_zoo_loader(topology_gml))
     oblivious_ratio, src_dst_splitting_ratios = oblivious_routing_scheme(net)
     print("The oblivious ratio for {} is {}".format(net.get_title, oblivious_ratio))
-    traffic_matrix_list =loaded_dict["tms"]
+    traffic_matrix_list = loaded_dict["tms"]
     traffic_distribution = SmartNodesOptimizer(net, -1)
-    oblivious_mean_congestion = np.mean([traffic_distribution._calculating_traffic_distribution(src_dst_splitting_ratios,t[0])[0] for t in traffic_matrix_list])
+    oblivious_mean_congestion = np.mean([traffic_distribution._calculating_traffic_distribution(src_dst_splitting_ratios, t[0])[0] for t in traffic_matrix_list])
     print("Oblivious Mean Congestion Result: {}".format((oblivious_mean_congestion)))
