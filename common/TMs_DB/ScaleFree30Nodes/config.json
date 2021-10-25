@@ -8,9 +8,9 @@
   },
   "learning": {
     "train_file": "ScaleFree30Nodes_tms_30X30_length_512_gravity_sparsity_0.3",
-    "test_file": "ScaleFree30Nodes_tms_30X30_length_512_gravity_sparsity_0.3",
+    "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_gravity_sparsity_0.3",
     "num_train_observations": 512,
-    "num_test_observations": 512,
+    "num_test_observations": 1024,
     "policy_updates": 1100,
     "n_envs": 1,
     "n_steps": 320,
