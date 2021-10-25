@@ -1,0 +1,22 @@
+{
+  "tuning": {
+    "train_file": "T-lex_tms_12X12_length_1024_gravity_sparsity_0.3",
+    "test_file": "T-lex_tms_12X12_length_1024_gravity_sparsity_0.3",
+    "num_train_observations": 512,
+    "num_test_observations": 512,
+    "policy_updates": 500
+  },
+  "learning": {
+    "train_file": "T-lex_tms_12X12_length_1024_gravity_sparsity_0.3",
+    "test_file": "T-lex_tms_12X12_length_1024_gravity_sparsity_0.3",
+    "num_train_observations": 512,
+    "num_test_observations": 1024,
+    "policy_updates": 1000,
+    "n_steps": 256,
+    "softMin_gamma": -2,
+    "batch_size": 64,
+    "learning_rate": 0.001,
+    "weight_lb": 0.001,
+    "weight_ub": 3
+  }
+}

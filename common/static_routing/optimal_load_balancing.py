@@ -1,7 +1,7 @@
 import math
 
 from common.consts import EdgeConsts, Consts
-from common.utils import extract_flows, error_bound, extract_lp_values
+from common.utils import error_bound, extract_lp_values
 from common.network_class import NetworkClass
 from collections import defaultdict
 from common.logger import *
