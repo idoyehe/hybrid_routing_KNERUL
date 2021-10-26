@@ -148,7 +148,9 @@ def topology_zoo_loader(url: str, units=SizeConsts.ONE_Gb):
         elif system() == 'Windows':
             local_path = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\graphs_gmls" + \
                          local_path.replace("/", "\\").split("\\graphs_gmls")[1]
-
+        elif system() == "Darwin":
+            local_path = "/Users/idoye/PycharmProjects/Research_Implementing/common/graphs_gmls" + \
+                         local_path.replace("\\", "/").split("/graphs_gmls")[1]
 
         else:
             raise Exception("Unknown OS")
@@ -189,7 +191,8 @@ def store_graph(graph, title):
     if system() == "Linux":
         file_path = "/home/idoye/PycharmProjects/Research_Implementing/common/graphs_gmls/{}.txt".format(title)
     else:
-        file_path = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\graphs_gmls\\{}.txt".format(title)
+        file_path = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\graphs_gmls\\{}.txt".format(
+            title)
     nx.write_gml(graph, file_path)
 
 
