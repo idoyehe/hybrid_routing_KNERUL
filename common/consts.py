@@ -6,27 +6,16 @@ Created on 6 Feb 2017
 
 
 class Consts:
-    ACTION_OBLIVIOUS_PATH = 1
-    ACTION_FLOW_PATH = 2
     ZERO = 1e-2
     ERROR_BOUND = 1e-3
     OUTPUT_FLAG = 0
     FEASIBILITY_TOL = 1e-9
     BARRIER_METHOD = 2
     NUMERIC_FOCUS = 3
-    PREC_DEMAND = 0.9999
     MAX_ITER = 500
     ROUND = 6
-    INCREASE_ACTION = 0
-    DECREASE_ACTION = 1
-    NAK_ACTION = 2
-
-    SRC_META_POS = 0
-    DST_META_POS = 1
-    EDGE_META_POS = 2
     WEIGHT_STR = 'weight'
     CAPACITY_STR = 'capacity'
-    TTL_FLOW_STR = 'ttl_flow'
 
 
     # initial weight assignment strategy
