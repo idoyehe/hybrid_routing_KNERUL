@@ -30,7 +30,9 @@ class RL_Env(Env):
         test_loaded_dict = load_dump_file(file_name=test_file)
         self._network = NetworkClass(topology_zoo_loader(url=train_loaded_dict["url"]))
         self._expected_congestion = train_loaded_dict["expected_congestion"]
+        self._dst_mean_congestion = train_loaded_dict["dst_mean_congestion"]
         logger.info("Expected Congestion: {}".format(self._expected_congestion))
+        logger.info("Dest Mean Congestion Result: {}".format(self._dst_mean_congestion))
 
         self._initial_weights = train_loaded_dict["initial_weights"]
 
@@ -93,38 +95,32 @@ class RL_Env(Env):
     def _sample_tm(self, tm_set):
         # we need to make the TM change slowly in time, currently it changes every step kind of drastically
         for idx, tuple_element in enumerate(tm_set):
-            tm, opt, oblv = tuple_element
-            yield tm, opt, oblv
+            tm, opt = tuple_element
+            yield tm, opt
 
     def _init_all_observations(self):
         def __create_episode(_episode_len, set_gen):
             _episode_tms = list()
             _episode_optimals = list()
-            _episode_oblivious = list()
             for _ in range(_episode_len):
-                tm, opt, oblv = next(set_gen)
+                tm, opt = next(set_gen)
                 _episode_tms.append(tm)
                 _episode_optimals.append(opt)
-                _episode_oblivious.append(oblv)
-            return _episode_tms, _episode_optimals, _episode_oblivious
+            return _episode_tms, _episode_optimals
 
         def __create_observation(_num_observations, set_gen):
             _observations_episodes = list()
             _observations_episodes_optimals = list()
-            _observations_episodes_oblivious = list()
             for _ in range(_num_observations):
-                _episode_tms, _episode_optimals, _episode_oblivious = __create_episode(self._history_length + self._episode_len, set_gen)
+                _episode_tms, _episode_optimals = __create_episode(self._history_length + self._episode_len, set_gen)
                 _observations_episodes.append(np.array(_episode_tms))
                 _observations_episodes_optimals.append(np.array(_episode_optimals))
-                _observations_episodes_oblivious.append(np.array(_episode_oblivious))
-            return np.array(_observations_episodes), np.array(_observations_episodes_optimals), np.array(_observations_episodes_oblivious)
+            return np.array(_observations_episodes), np.array(_observations_episodes_optimals)
 
         train_set_gen = self._sample_tm(self._tms)
         test_set_gen = self._sample_tm(self._tms_test)
-        self._train_observations, self._opt_train_observations, self._oblv_train_observations = __create_observation(self._num_train_observations,
-                                                                                                                     train_set_gen)
-        self._test_observations, self._opt_test_observations, self._oblv_test_observations = __create_observation(self._num_test_observations,
-                                                                                                                  test_set_gen)
+        self._train_observations, self._opt_train_observations = __create_observation(self._num_train_observations, train_set_gen)
+        self._test_observations, self._opt_test_observations = __create_observation(self._num_test_observations, test_set_gen)
         # self._validate_data()
 
     def _validate_data(self):
@@ -218,5 +214,3 @@ class RL_Env(Env):
     def set_train_observations(self, train_observations):
         self._train_observations = train_observations[0]
         self._opt_train_observations = train_observations[1]
-
-
