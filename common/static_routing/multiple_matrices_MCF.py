@@ -178,24 +178,6 @@ def __create_weighted_traffic_matrices(n, tms_list, probability_distribution=Non
     return [(probability_distribution[i], t[0]) for i, t in enumerate(tms_list[0:n])]
 
 
-def reduce_src_dst_spr_to_dst_spr(net: NetworkClass, src_dst_splitting_ratios):
-    dst_splitting_ratios = np.zeros(shape=(net.get_num_nodes, net.get_num_nodes, net.get_num_nodes), dtype=np.float64)
-    for t in net.nodes:
-        relevant_flow = list(filter(lambda f: f[1] == t, net.get_all_pairs()))
-        for u in net.nodes:
-            non_zero = 0
-            s = np.zeros(shape=(net.get_num_nodes), dtype=np.float64)
-            for src, dst in relevant_flow:
-                if sum(src_dst_splitting_ratios[src, dst, u]) > 0:
-                    s += src_dst_splitting_ratios[src, dst, u]
-                    non_zero += 1
-            if non_zero > 0:
-                s /= non_zero
-                dst_splitting_ratios[t][u] = s
-
-    return dst_splitting_ratios
-
-
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for dump file")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
@@ -212,17 +194,11 @@ if __name__ == "__main__":
 
     traffic_matrix_list = __create_weighted_traffic_matrices(number_of_matrices, loaded_dict["tms"], shuffling=False)
 
-    expected_objective, bt_per_matrix, necessary_capacity_per_matrix_dict, src_dst_splitting_ratios = multiple_tms_mcf_LP_solver(
-        net,
-        traffic_matrix_list)
-
-    dst_splitting_ratios = reduce_src_dst_spr_to_dst_spr(net, src_dst_splitting_ratios)
-
+    expected_objective, bt_per_matrix, necessary_capacity_per_matrix_dict, src_dst_splitting_ratios = multiple_tms_mcf_LP_solver(net,
+                                                                                                                                 traffic_matrix_list)
     traffic_distribution = Optimizer_Abstract(net)
-    dst_mean_congestion = np.mean(
-        [traffic_distribution._calculating_traffic_distribution(dst_splitting_ratios, t[0])[0] for t in
-         loaded_dict["tms"]])
-
+    dst_splitting_ratios = traffic_distribution.reduce_src_dst_spr_to_dst_spr(net, src_dst_splitting_ratios)
+    dst_mean_congestion = np.mean([traffic_distribution._calculating_traffic_distribution(dst_splitting_ratios, t[0])[0] for t in loaded_dict["tms"]])
 
     data = list()
     headers = ["# Matrix", "Congestion using multiple MCF - LP", "Congestion using LP optimal", "Ratio"]
