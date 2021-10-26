@@ -19,19 +19,25 @@ def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.start()
 
-    expected_objective, r_per_mtrx, necessary_capacity_per_tm = _aux_multiple_tms_mcf_LP_solver(net, traffic_matrix_list, gb_env)
-    return expected_objective, r_per_mtrx, necessary_capacity_per_tm
+    expected_objective, r_per_mtrx, necessary_capacity_per_tm, src_dst_splitting_ratios = _aux_multiple_tms_mcf_LP_solver(
+        net,
+        traffic_matrix_list,
+        gb_env)
+    return expected_objective, r_per_mtrx, necessary_capacity_per_tm, src_dst_splitting_ratios
 
 
-def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_env, expected_objective=None):
+def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_env,
+                                    expected_objective=None):
     """Preparation"""
-    mcf_problem = gb.Model(name="LP expected max congestion, given network topology, Traffic Matrices distribution", env=gurobi_env)
+    mcf_problem = gb.Model(name="LP expected max congestion, given network topology, Traffic Matrices distribution",
+                           env=gurobi_env)
     tms_list_length = len(traffic_matrices_list)
     demands_ratios = np.zeros(shape=(tms_list_length, net_direct.get_num_nodes, net_direct.get_num_nodes))
     aggregate_tm = sum(tm for _, tm in traffic_matrices_list)
     active_flows = extract_flows(aggregate_tm)
 
-    vars_flows_src_dst_per_edge = mcf_problem.addVars(active_flows, net_direct.edges, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
+    vars_flows_src_dst_per_edge = mcf_problem.addVars(active_flows, net_direct.edges, name="f", lb=0.0,
+                                                      vtype=GRB.CONTINUOUS)
     vars_bt_per_matrix = mcf_problem.addVars(tms_list_length, name="bt", lb=0.0, vtype=GRB.CONTINUOUS)
     mcf_problem.update()
 
@@ -56,26 +62,32 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
         edge_capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
         relevant_flows = list(filter(lambda src_dst: src_dst[1] != u, active_flows))
         for m_idx in range(tms_list_length):
-            m_link_load = sum(vars_flows_src_dst_per_edge[src, dst, u, v] * demands_ratios[m_idx, src, dst] for src, dst in relevant_flows)
+            m_link_load = sum(
+                vars_flows_src_dst_per_edge[src, dst, u, v] * demands_ratios[m_idx, src, dst] for src, dst in
+                relevant_flows)
             mcf_problem.addLConstr(m_link_load, GRB.LESS_EQUAL, edge_capacity * vars_bt_per_matrix[m_idx])
 
     for src, dst in active_flows:
         # Flow conservation at the source
-        __flow_from_src = sum(vars_flows_src_dst_per_edge[src, dst, src, v] for _, v in net_direct.out_edges_by_node(src))
+        __flow_from_src = sum(
+            vars_flows_src_dst_per_edge[src, dst, src, v] for _, v in net_direct.out_edges_by_node(src))
         __flow_to_src = sum(vars_flows_src_dst_per_edge[src, dst, u, src] for u, _ in net_direct.in_edges_by_node(src))
         mcf_problem.addLConstr(__flow_from_src - __flow_to_src == aggregate_tm[src, dst])
 
         # Flow conservation at the destination
         __flow_to_dst = sum(vars_flows_src_dst_per_edge[src, dst, u, dst] for u, _ in net_direct.in_edges_by_node(dst))
         mcf_problem.addLConstr(__flow_to_dst == aggregate_tm[src, dst])
-        mcf_problem.addConstrs((vars_flows_src_dst_per_edge[src, dst, dst, v] == 0.0 for _, v in net_direct.out_edges_by_node(dst)))
+        mcf_problem.addConstrs(
+            (vars_flows_src_dst_per_edge[src, dst, dst, v] == 0.0 for _, v in net_direct.out_edges_by_node(dst)))
 
         for u in net_direct.nodes:
             if u in (src, dst):
                 continue
             # Flow conservation at transit node
-            __flow_from_u = sum(vars_flows_src_dst_per_edge[src, dst, u, v_out] for _, v_out in net_direct.out_edges_by_node(u))
-            __flow_to_u = sum(vars_flows_src_dst_per_edge[src, dst, v_in, u] for v_in, _ in net_direct.in_edges_by_node(u))
+            __flow_from_u = sum(
+                vars_flows_src_dst_per_edge[src, dst, u, v_out] for _, v_out in net_direct.out_edges_by_node(u))
+            __flow_to_u = sum(
+                vars_flows_src_dst_per_edge[src, dst, v_in, u] for v_in, _ in net_direct.in_edges_by_node(u))
             mcf_problem.addLConstr(__flow_from_u == __flow_to_u)
 
     mcf_problem.update()
@@ -102,7 +114,8 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
 
     __validate_solution(net_direct, aggregate_tm, flows_src_dst_per_edge)
 
-    necessary_capacity_per_matrix = np.zeros(shape=(tms_list_length + 1, net_direct.get_num_nodes, net_direct.get_num_nodes))
+    necessary_capacity_per_matrix = np.zeros(
+        shape=(tms_list_length + 1, net_direct.get_num_nodes, net_direct.get_num_nodes))
     for m_idx in range(tms_list_length):
         for u, v in net_direct.edges:
             relevant_flows = list(filter(lambda src_dst: src_dst[1] != u, active_flows))
@@ -110,9 +123,25 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
                 flows_src_dst_per_edge[src, dst, u, v] * demands_ratios[m_idx, u, v] for src, dst in relevant_flows)
 
     for u, v in net_direct.edges:
-        necessary_capacity_per_matrix[tms_list_length, u, v] = sum(flows_src_dst_per_edge[src, dst, u, v] for src, dst in active_flows)
+        necessary_capacity_per_matrix[tms_list_length, u, v] = sum(
+            flows_src_dst_per_edge[src, dst, u, v] for src, dst in active_flows)
 
-    return expected_objective, bt_per_mtrx, necessary_capacity_per_matrix
+    src_dst_splitting_ratios = np.zeros(
+        shape=(net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_nodes),
+        dtype=np.float64)
+
+    for src, dst in active_flows:
+        flow = (src, dst)
+        for u in net_direct.nodes:
+            if u == dst:
+                continue
+            flow_out_u = sum(flows_src_dst_per_edge[flow + out_arch] for out_arch in net_direct.out_edges_by_node(u))
+            if flow_out_u > 0.0:
+                for _, v in net_direct.out_edges_by_node(u):
+                    src_dst_splitting_ratios[src, dst, u, v] = flows_src_dst_per_edge[(src, dst, u, v)] / flow_out_u
+                assert error_bound(sum(src_dst_splitting_ratios[(src, dst)][u]), 1.0)
+
+    return expected_objective, bt_per_mtrx, necessary_capacity_per_matrix, src_dst_splitting_ratios
 
 
 def __validate_solution(net_direct, aggregate_tm, flows_src_dst_per_edge):
@@ -164,7 +193,8 @@ if __name__ == "__main__":
 
     traffic_matrix_list = __create_weighted_traffic_matrices(number_of_matrices, loaded_dict["tms"], shuffling=False)
 
-    expected_objective, bt_per_matrix, necessary_capacity_per_matrix_dict = multiple_tms_mcf_LP_solver(net, traffic_matrix_list)
+    expected_objective, bt_per_matrix, necessary_capacity_per_matrix_dict = multiple_tms_mcf_LP_solver(net,
+                                                                                                       traffic_matrix_list)
 
     data = list()
     headers = ["# Matrix", "Congestion using multiple MCF - LP", "Congestion using LP optimal", "Ratio"]
