@@ -3,6 +3,7 @@ from common.utils import extract_flows, load_dump_file, error_bound, extract_lp_
 from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.logger import *
+from common.RL_Envs.optimizer_abstract import Optimizer_Abstract
 from sys import argv
 import gurobipy as gb
 from gurobipy import GRB
@@ -215,7 +216,14 @@ if __name__ == "__main__":
         net,
         traffic_matrix_list)
 
-    reduce_src_dst_spr_to_dst_spr(net, src_dst_splitting_ratios)
+    dst_splitting_ratios = reduce_src_dst_spr_to_dst_spr(net, src_dst_splitting_ratios)
+
+    traffic_distribution = Optimizer_Abstract(net)
+    dst_mean_congestion = np.mean(
+        [traffic_distribution._calculating_traffic_distribution(dst_splitting_ratios, t[0])[0] for t in
+         loaded_dict["tms"]])
+
+
     data = list()
     headers = ["# Matrix", "Congestion using multiple MCF - LP", "Congestion using LP optimal", "Ratio"]
     new_list = list()
@@ -225,5 +233,5 @@ if __name__ == "__main__":
         data.append([idx, bt_per_matrix[idx], t_elem[1], bt_per_matrix[idx] / t_elem[1]])
         new_list.append((t_elem[0], bt_per_matrix[idx], None))
     print(tabulate(data, headers=headers))
-    print("LP Expected Objective :{}".format(expected_objective))
     print("Averaged Congestion :{}".format(np.mean(list(bt_per_matrix.values()))))
+    print("Dest Mean Congestion Result: {}".format((dst_mean_congestion)))
