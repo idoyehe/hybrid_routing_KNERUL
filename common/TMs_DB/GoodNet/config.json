@@ -18,6 +18,6 @@
     "batch_size": 32,
     "weights_factor": 1,
     "weight_lb": 1,
-    "weight_ub": 1
+    "weight_ub": 15
   }
 }
