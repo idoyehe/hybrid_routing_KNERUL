@@ -151,7 +151,6 @@ class RL_Env(Env):
         self._observations_tms = self._test_observations if self._testing else self._train_observations
         self._observations_length = self._num_test_observations if self._testing else self._num_train_observations
         self._optimal_values = self._opt_test_observations if self._testing else self._opt_train_observations
-        self._oblivious_values = self._oblv_test_observations if self._testing else self._oblv_train_observations
 
     @property
     def observation_space(self):

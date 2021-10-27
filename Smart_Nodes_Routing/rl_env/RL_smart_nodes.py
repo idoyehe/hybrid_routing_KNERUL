@@ -64,7 +64,6 @@ class RL_Smart_Nodes(RL_Env):
     def _process_action_get_cost(self, links_weights):
         tm = self._observations_tms[self._current_observation_index][self._tm_start_index + self._history_length]
         optimal_congestion = self._optimal_values[self._current_observation_index][self._tm_start_index + self._history_length]
-        oblivious_congestion = self._oblivious_values[self._current_observation_index][self._tm_start_index + self._history_length]
         max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = self.optimizer_step(
             links_weights, tm, optimal_congestion)
 
@@ -72,7 +71,6 @@ class RL_Smart_Nodes(RL_Env):
 
         logger.debug("optimal Congestion :{}".format(optimal_congestion))
         logger.debug("Max Congestion :{}".format(max_congestion))
-        logger.debug("oblivious Congestion :{}".format(oblivious_congestion))
         logger.debug("Congestion Ratio :{}".format(max_congestion/optimal_congestion))
 
         return cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
