@@ -9,11 +9,14 @@ from sys import argv
 import numpy as np
 import gurobipy as gb
 from gurobipy import GRB
+from platform import system
+import os, pickle
 
 
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for dump file")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
+    parser.add_argument("-save", "--save_dump", type=eval, help="Save the results in ad dump", default=True)
     options = parser.parse_args(args)
     return options
 
@@ -46,20 +49,16 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
 
 def oblivious_routing_scheme(net: NetworkClass):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
+    gb_env.setParam(GRB.Param.LogToConsole, Consts.LOG_TO_CONSOLE)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.setParam(GRB.Param.Method, Consts.BARRIER_METHOD)
+    gb_env.setParam(GRB.Param.Crossover, Consts.CROSSOVER)
+    gb_env.setParam(GRB.Param.BarConvTol, Consts.BAR_CONV_TOL)
     gb_env.start()
 
     oblivious_congestion, src_dst_splitting_ratio = aux_oblivious_routing_scheme(net, gb_env)
-
-    while True:
-        try:
-            oblivious_congestion, src_dst_splitting_ratio = aux_oblivious_routing_scheme(net, gb_env, oblivious_congestion - 0.001)
-            print("****** Gurobi Failure ******")
-        except Exception as e:
-            return oblivious_congestion, src_dst_splitting_ratio
+    return oblivious_congestion, src_dst_splitting_ratio
 
 
 def aux_oblivious_routing_scheme(net: NetworkClass, gurobi_env, oblivious_ratio=None) -> object:
@@ -83,13 +82,13 @@ def aux_oblivious_routing_scheme(net: NetworkClass, gurobi_env, oblivious_ratio=
         # Flow conservation at the source
         _flow_out_from_source = sum(flow_src_dst_edge_vars_dict[flow + out_arch] for out_arch in net_directed.out_edges_by_node(src))
         oblivious_lp.addConstrs((flow_src_dst_edge_vars_dict[flow + in_arch] == 0.0 for in_arch in net_directed.in_edges_by_node(src)))
-        oblivious_lp.addLConstr(_flow_out_from_source, GRB.EQUAL, 1.0, name="generate_demand: {}".format(flow))
+        oblivious_lp.addLConstr(_flow_out_from_source, GRB.EQUAL, 1.0)
 
         # Flow conservation at the destination
         _flow_out_from_dest = oblivious_lp.addConstrs(
             (flow_src_dst_edge_vars_dict[flow + out_arch] == 0.0 for out_arch in net_directed.out_edges_by_node(dst)))
         _flow_in_to_dest = sum(flow_src_dst_edge_vars_dict[flow + in_arch] for in_arch in net_directed.in_edges_by_node(dst))
-        oblivious_lp.addLConstr(_flow_in_to_dest, GRB.EQUAL, 1.0, name="absorb_demand: {}".format(flow))
+        oblivious_lp.addLConstr(_flow_in_to_dest, GRB.EQUAL, 1.0)
 
         for u in net_directed.nodes:
             if u in flow:
@@ -107,7 +106,7 @@ def aux_oblivious_routing_scheme(net: NetworkClass, gurobi_env, oblivious_ratio=
 
     for _e in net_directed.edges:
         _e_h_sum = sum(pi_edges_vars_dict[_e + _h] * net_directed.get_edge_key(_h, EdgeConsts.CAPACITY_STR) for _h in net_directed.edges)
-        oblivious_lp.addLConstr(_e_h_sum, GRB.LESS_EQUAL, r_var, "SUM(cap(h)*pi_e_(h)<=r;{})".format(_e))
+        oblivious_lp.addLConstr(_e_h_sum, GRB.LESS_EQUAL, r_var)
         capacity_e = net_directed.get_edge_key(_e, EdgeConsts.CAPACITY_STR)
         oblivious_lp.addConstrs((flow_src_dst_edge_vars_dict[flow + _e] <= pe_edges_vars_dict[_e + flow] * capacity_e for flow in active_flows))
 
@@ -157,7 +156,9 @@ def aux_oblivious_routing_scheme(net: NetworkClass, gurobi_env, oblivious_ratio=
 
 
 if __name__ == "__main__":
-    dump_path = _getOptions().dumped_path
+    args = _getOptions()
+    dump_path = args.dumped_path
+    save_dump = args.save_dump
     loaded_dict = load_dump_file(dump_path)
     topology_gml = loaded_dict["url"]
     net = NetworkClass(topology_zoo_loader(topology_gml))
@@ -165,5 +166,24 @@ if __name__ == "__main__":
     print("The oblivious ratio for {} is {}".format(net.get_title, oblivious_ratio))
     traffic_matrix_list = loaded_dict["tms"]
     traffic_distribution = Optimizer_Abstract(net)
-    oblivious_mean_congestion = np.mean([traffic_distribution._calculating_src_dst_traffic_distribution(src_dst_splitting_ratios, t[0])[0] for t in traffic_matrix_list])
+    oblivious_mean_congestion = np.mean(
+        [traffic_distribution._calculating_src_dst_traffic_distribution(src_dst_splitting_ratios, t[0])[0] for t in traffic_matrix_list])
     print("Oblivious Mean Congestion Result: {}".format((oblivious_mean_congestion)))
+    if save_dump:
+        dict2dump = {
+            "oblivious_ratio": oblivious_ratio,
+            "url": topology_gml,
+            "oblivious_mean_cong": oblivious_mean_congestion,
+            "src_dst_splitting_ratios": src_dst_splitting_ratios}
+
+        folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_title)
+        file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}\\{}_oblivious_result".format(net.get_title, net.get_title)
+
+        if system() == "Linux" or system() == "Darwin":
+            file_name = file_name.replace("\\", "/")
+            folder_name = folder_name.replace("\\", "/")
+
+        os.makedirs(folder_name, exist_ok=True)
+        dump_file = open(file_name, 'wb')
+        pickle.dump(dict2dump, dump_file)
+        dump_file.close()

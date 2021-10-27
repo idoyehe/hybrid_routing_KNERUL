@@ -15,15 +15,16 @@ from tabulate import tabulate
 
 def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
+    gb_env.setParam(GRB.Param.LogToConsole, Consts.LOG_TO_CONSOLE)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
+    gb_env.setParam(GRB.Param.Method, Consts.BARRIER_METHOD)
+    gb_env.setParam(GRB.Param.Crossover, Consts.CROSSOVER)
+    gb_env.setParam(GRB.Param.BarConvTol, Consts.BAR_CONV_TOL)
     gb_env.start()
 
-    expected_objective, r_per_mtrx, necessary_capacity_per_tm, src_dst_splitting_ratios = _aux_multiple_tms_mcf_LP_solver(
-        net,
-        traffic_matrix_list,
-        gb_env)
+    expected_objective, r_per_mtrx, necessary_capacity_per_tm, src_dst_splitting_ratios = _aux_multiple_tms_mcf_LP_solver(net, traffic_matrix_list,
+                                                                                                                          gb_env)
     return expected_objective, r_per_mtrx, necessary_capacity_per_tm, src_dst_splitting_ratios
 
 
