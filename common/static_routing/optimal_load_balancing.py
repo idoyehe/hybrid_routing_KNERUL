@@ -28,7 +28,7 @@ def __validate_solution(net_direct, destinations, tm, flows_dests_per_edge):
 
 def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, return_spr=False):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.LogToConsole, Consts.LOG_TO_CONSOLE)
+    gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.start()

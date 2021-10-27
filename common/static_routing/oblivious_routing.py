@@ -49,7 +49,7 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
 
 def oblivious_routing_scheme(net: NetworkClass):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.LogToConsole, Consts.LOG_TO_CONSOLE)
+    gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.setParam(GRB.Param.Method, Consts.BARRIER_METHOD)
