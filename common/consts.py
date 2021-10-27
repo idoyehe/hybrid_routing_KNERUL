@@ -9,9 +9,9 @@ class Consts:
     ZERO = 1e-2
     ERROR_BOUND = 1e-3
     OUTPUT_FLAG = 0
-    FEASIBILITY_TOL = 1e-9
+    FEASIBILITY_TOL = 1e-4
     BARRIER_METHOD = 2
-    NUMERIC_FOCUS = 3
+    NUMERIC_FOCUS = 1
     MAX_ITER = 500
     ROUND = 6
     WEIGHT_STR = 'weight'
