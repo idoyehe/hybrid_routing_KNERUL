@@ -1,5 +1,5 @@
 from common.utils import error_bound, extract_lp_values, load_dump_file
-from common.RL_Envs.optimizer_abstract import Optimizer_Abstract
+from common.static_routing.multiple_matrices_traffic_distribution import multiple_matrices_traffic_distribution
 from common.network_class import NetworkClass
 from common.consts import EdgeConsts, Consts
 from common.logger import *
@@ -164,10 +164,8 @@ if __name__ == "__main__":
     net = NetworkClass(topology_zoo_loader(topology_gml))
     oblivious_ratio, src_dst_splitting_ratios = oblivious_routing_scheme(net)
     print("The oblivious ratio for {} is {}".format(net.get_title, oblivious_ratio))
-    traffic_matrix_list = loaded_dict["tms"]
-    traffic_distribution = Optimizer_Abstract(net)
-    oblivious_mean_congestion = np.mean(
-        [traffic_distribution._calculating_src_dst_traffic_distribution(src_dst_splitting_ratios, t[0])[0] for t in traffic_matrix_list])
+    traffic_matrix_list = np.array([t[0] for t in loaded_dict["tms"]])
+    oblivious_mean_congestion, bt_per_mtrx = multiple_matrices_traffic_distribution(net, traffic_matrix_list, src_dst_splitting_ratios)
     print("Oblivious Mean Congestion Result: {}".format((oblivious_mean_congestion)))
     if save_dump:
         dict2dump = {
