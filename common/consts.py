@@ -11,7 +11,7 @@ class Consts:
     OUTPUT_FLAG = 0
     FEASIBILITY_TOL = 1e-9
     BARRIER_METHOD = 2
-    NUMERIC_FOCUS = 2
+    NUMERIC_FOCUS = 3
     CROSSOVER = -1
     BAR_CONV_TOL = 1e-4
     MAX_ITER = 500
