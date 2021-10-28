@@ -26,22 +26,22 @@ def __validate_solution(net_direct, destinations, tm, flows_dests_per_edge):
             assert error_bound(from_src - to_src, tm[src, dst])
 
 
-def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix):
+def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, return_spr=False):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.start()
-    opt_ratio, necessary_capacity = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env)
+    return_tuple = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, return_spr)
     while True:
         try:
-            opt_ratio, necessary_capacity = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, opt_ratio - 0.001)
+            return_tuple = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, return_spr, opt_ratio - 0.001)
             print("****** Gurobi Failure ******")
         except Exception as e:
-            return np.round(opt_ratio, Consts.ROUND), necessary_capacity
+            return return_tuple
 
 
-def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, gurobi_env, opt_ratio_value=None):
+def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, gurobi_env, return_spr=False, opt_ratio_value=None):
     net_direct = net
     opt_lp_problem = gb.Model(name="LP problem for optimal load balancing, given network and TM", env=gurobi_env)
 
@@ -90,18 +90,34 @@ def aux_optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, guro
         opt_lp_problem.printStats()
         opt_lp_problem.printQuality()
 
-    flows_dests_per_edge = extract_lp_values(vars_flows_dests_per_edge)
+    flows_dst_per_edge = extract_lp_values(vars_flows_dests_per_edge)
     del vars_flows_dests_per_edge
     opt_lp_problem.close()
 
-    __validate_solution(net_direct, destinations, traffic_matrix, flows_dests_per_edge)
+    __validate_solution(net_direct, destinations, traffic_matrix, flows_dst_per_edge)
 
     necessary_capacity = np.zeros(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float64)
     max_congested_link = 0
     for u, v in net_direct.edges:
         edge_capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
-        necessary_capacity[u, v] = sum(flows_dests_per_edge[dst, u, v] for dst in destinations)
-        max_congested_link = max(max_congested_link,necessary_capacity[u, v]/edge_capacity)
+        necessary_capacity[u, v] = sum(flows_dst_per_edge[dst, u, v] for dst in destinations)
+        max_congested_link = max(max_congested_link, necessary_capacity[u, v] / edge_capacity)
 
     assert error_bound(max_congested_link, opt_ratio_value)
+    max_congested_link = np.round(max_congested_link, Consts.ROUND)
+
+    if return_spr:
+        dst_splitting_ratio = np.zeros(shape=(net_direct.get_num_nodes, net_direct.get_num_nodes, net_direct.get_num_nodes), dtype=np.float)
+        for dst in net_direct.nodes:
+            for u in net_direct.nodes:
+                if u == dst:
+                    continue
+                flow_out_u = sum(flows_dst_per_edge[(dst, u, v)] for _, v in net_direct.out_edges_by_node(u))
+                if flow_out_u > 0.0:
+                    for _, v in net_direct.out_edges_by_node(u):
+                        dst_splitting_ratio[dst, u, v] = flows_dst_per_edge[(dst, u, v)] / flow_out_u
+                    assert error_bound(sum(dst_splitting_ratio[dst][u]), 1.0)
+
+        return max_congested_link, necessary_capacity, dst_splitting_ratio
+
     return max_congested_link, necessary_capacity
