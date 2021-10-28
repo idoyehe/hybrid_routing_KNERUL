@@ -7,7 +7,7 @@ from common.consts import TMType
 from common.RL_Envs.optimizer_abstract import Optimizer_Abstract
 from multiple_matrices_MCF import multiple_tms_mcf_LP_solver
 from argparse import ArgumentParser
-from Link_State_Routing_PEFT.gradiant_decent.original_PEFT import PEFT_main_loop
+from Link_State_Routing_PEFT.gradiant_decent.original_PEFT import PEFT_training_loop_with_init
 from sys import argv
 import os
 import numpy as np
@@ -31,7 +31,7 @@ def _getOptions(args=argv[1:]):
 
 
 def get_initial_weights(net, traffic_matrix, necessary_capacity):
-    w_u_v, PEFT_congestion = PEFT_main_loop(net, traffic_matrix, necessary_capacity)
+    w_u_v = PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity, 1.0)
     return w_u_v
 
 

@@ -1,8 +1,11 @@
+import torch
+import torch.nn as nn
 from argparse import ArgumentParser
 from common.static_routing.optimal_load_balancing import optimal_load_balancing_LP_solver
 from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
-from common.utils import load_dump_file
+from common.logger import logger
+from common.utils import load_dump_file, DEVICE
 from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
 from Learning_to_Route.rl_softmin_history.soft_min_optimizer import SoftMinOptimizer
 from sys import argv
@@ -17,68 +20,92 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def __initialize_all_weights(net: NetworkClass):
-    return np.ones(shape=(net.get_num_edges), dtype=np.float64) * 10
+class PEFT_Model(nn.Module):
+    """Custom Pytorch model for PEFT gradient optimization.
+    """
+
+    def __init__(self, network: NetworkClass, traffic_matrix, factor=10):
+        super().__init__()
+        self._network: NetworkClass = network
+        # initialize weights with random numbers
+        weights = self.__initialize_all_weights(factor)
+        # make weights torch parameters
+        self._weights = nn.Parameter(weights)
+        self._traffic_matrix = traffic_matrix
+        self._softMin = SoftMinOptimizer(self._network, -1)
+        self._peft_traffic = PEFTOptimizer(self._network)
+        self._peft_current_flows_values = None
+        self._set_necessary_capacity()
+        self._lr = 1 / np.max(self._necessary_capacity)
+        self._lr /= 5
+        self.forward()
+
+    def _set_necessary_capacity(self):
+        self._optimal_value, self._necessary_capacity = optimal_load_balancing_LP_solver(self._network, self._traffic_matrix)
+
+    def __initialize_all_weights(self, factor):
+        return torch.ones(size=(self._network.get_num_edges,), dtype=torch.float64, device=DEVICE, requires_grad=True) * factor
+
+    def forward(self):
+        PEFT_congestion, _, _, _, self._peft_current_flows_values = self._peft_traffic.step(self._weights.detach().numpy(), self._traffic_matrix,
+                                                                                            self._optimal_value)
+        softMin_congestion = self._softMin.step(self._weights.detach().numpy(), self._traffic_matrix, self._optimal_value)[0]
+        logger.info('PEFT Congestion Vs. Optimal= {}'.format(PEFT_congestion / self._optimal_value))
+        logger.info('SoftMin Congestion Vs. Optimal= {}'.format(softMin_congestion / self._optimal_value))
+
+    def backward(self):
+        self._weights.grad = torch.zeros_like(self._weights, device=DEVICE, requires_grad=False)
+        for u, v in self._network.edges:
+            edge_idx = self._network.get_edge2id(u, v)
+            self._weights.grad[edge_idx] = self._necessary_capacity[u, v] - self._peft_current_flows_values[edge_idx]
+
+    def loss(self):
+        net = self._network
+        delta = sum(np.abs(self._peft_current_flows_values[net.get_edge2id(u, v)] - self._necessary_capacity[u, v]) for u, v in net.edges)
+        logger.info('loss= {}'.format(delta))
+        return delta
+
+    @property
+    def get_learning_rate(self):
+        return self._lr
+
+    @property
+    def get_weights(self):
+        return self._weights.detach().numpy()
 
 
-def __stop_loop(net: NetworkClass, current_flows_values, necessary_capacity,stop_threshold):
-    delta = 0
-    for u, v in net.edges:
-        edge_idx = net.get_edge2id(u, v)
-        delta += np.abs(current_flows_values[edge_idx] - necessary_capacity[u, v])
-    print('sum[|necessary_capacity_dict - current_flows_values|] = {}'.format(delta))
-    return delta < stop_threshold
+class PEFT_Model_With_Init(PEFT_Model):
+    def __init__(self, network: NetworkClass, traffic_matrix, necessary_capacity, opt_value, factor=10):
+        self._optimal_value = opt_value
+        self._necessary_capacity = necessary_capacity
+        super(PEFT_Model_With_Init, self).__init__(network, traffic_matrix, factor)
+
+    def _set_necessary_capacity(self):
+        pass
 
 
-def __gradient_decent_update(net: NetworkClass, w_u_v, step_size, current_flows_values, necessary_capacity):
-    assert necessary_capacity.shape == (net.get_num_nodes, net.get_num_nodes)
-    new_w_u_v = np.zeros_like(w_u_v, dtype=np.float64)
-    for u, v in net.edges:
-        edge_idx = net.get_edge2id(u, v)
-        new_w_u_v[edge_idx] = max(0, w_u_v[edge_idx] - step_size * (necessary_capacity[u, v] - current_flows_values[edge_idx]))
-    del w_u_v
-    return new_w_u_v
+def PEFT_training_loop(net, traffic_matrix, stop_threshold=0.5, factor=10):
+    peft_model = PEFT_Model(net, traffic_matrix, factor)
+    torch_optimizer = torch.optim.ASGD(peft_model.parameters(), lr=peft_model.get_learning_rate)
+    while peft_model.loss() > stop_threshold:
+        peft_model.backward()
+        torch_optimizer.step()
+        torch_optimizer.zero_grad()
+        peft_model.forward()
+
+    return peft_model.get_weights
 
 
-def PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value=1,stop_threshold=0.3):
-    step_size = 1 / np.max(necessary_capacity)
-    PEFT_traffic_distribution = PEFTOptimizer(net)
-    softMin_traffic_distribution = SoftMinOptimizer(net, -1)
-    w_u_v = __initialize_all_weights(net)
-    PEFT_congestion, _, _, _, current_flows_values = PEFT_traffic_distribution.step(w_u_v, traffic_matrix, None)
-    softMin_congestion, _, _, _, _ = softMin_traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
-    print('PEFT Congestion Vs. Optimal = {}'.format(PEFT_congestion / optimal_value))
-    print('SoftMin Congestion Vs. Optimal = {}'.format(softMin_congestion / optimal_value))
+def PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity, opt_value=1.0, stop_threshold=0.5, factor=15):
+    peft_model = PEFT_Model_With_Init(net, traffic_matrix, necessary_capacity, opt_value, factor)
+    torch_optimizer = torch.optim.ASGD(peft_model.parameters(), lr=peft_model.get_learning_rate)
+    while peft_model.loss() > stop_threshold:
+        peft_model.backward()
+        torch_optimizer.step()
+        torch_optimizer.zero_grad()
+        peft_model.forward()
 
-    while __stop_loop(net, current_flows_values, necessary_capacity,stop_threshold) == False:
-        w_u_v = __gradient_decent_update(net, w_u_v, step_size, current_flows_values, necessary_capacity)
-        PEFT_congestion, _, _, _, current_flows_values = PEFT_traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
-        softMin_congestion, _, _, _, _ = softMin_traffic_distribution.step(w_u_v, traffic_matrix, optimal_value)
-        print('Congestion Vs. Optimal = {}'.format(PEFT_congestion / optimal_value))
-        print('Congestion_2 Vs. Optimal = {}'.format(softMin_congestion / optimal_value))
-
-    PEFT_congestion, _, _, _, _ = PEFT_traffic_distribution.step(w_u_v, traffic_matrix, None)
-    return w_u_v, PEFT_congestion
-
-
-def experiment(traffic_matrix_list, w_u_v, baseline_objective, r_per_mtrx):
-    traffic_distribution = PEFTOptimizer(net, None)
-    heursitic_value = 0
-
-    data = list()
-    headers = ["# Matrix",
-               "Congestion heuristic link weights",
-               "Congestion using multiple MCF - LP",
-               "Congestion using LP optimal",
-               "Congestion Ratio, link weights / multiple MCF"]
-    for idx, (pr, tm, opt) in enumerate(traffic_matrix_list):
-        max_congestion, _, _, _, _ = traffic_distribution.step(w_u_v, tm, None)
-        heursitic_value += pr * max_congestion
-        data.append([idx, max_congestion, r_per_mtrx[idx], opt, max_congestion / r_per_mtrx[idx]])
-
-    print(tabulate(data, headers=headers))
-    print("Heuristic objective Vs. expected objective baseline: {}".format(heursitic_value / baseline_objective))
-    return heursitic_value
+    return peft_model.get_weights
 
 
 if __name__ == "__main__":
@@ -86,11 +113,6 @@ if __name__ == "__main__":
     dumped_path = options.dumped_path
     loaded_dict = load_dump_file(dumped_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
-
     traffic_matrix = loaded_dict["tms"][0][0]
-
-    optimal_value, necessary_capacity = optimal_load_balancing_LP_solver(net, traffic_matrix)
-
-    w_u_v, PEFT_congestion = PEFT_main_loop(net, traffic_matrix, necessary_capacity, optimal_value)
-
-    print(w_u_v)
+    weights = PEFT_training_loop(net, traffic_matrix)
+    print("Link Weights:\n{}".format(weights))
