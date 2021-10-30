@@ -5,7 +5,7 @@ from common.static_routing.optimal_load_balancing import optimal_load_balancing_
 from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.logger import logger
-from common.utils import load_dump_file, DEVICE
+from common.utils import load_dump_file
 from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
 from Learning_to_Route.rl_softmin_history.soft_min_optimizer import SoftMinOptimizer
 from sys import argv
@@ -44,7 +44,7 @@ class PEFT_Model(nn.Module):
         self._optimal_value, self._necessary_capacity = optimal_load_balancing_LP_solver(self._network, self._traffic_matrix)
 
     def __initialize_all_weights(self, factor):
-        return torch.ones(size=(self._network.get_num_edges,), dtype=torch.float64, device=DEVICE, requires_grad=True) * factor
+        return torch.ones(size=(self._network.get_num_edges,), dtype=torch.float64, device="cpu", requires_grad=True) * factor
 
     def forward(self):
         PEFT_congestion, _, _, _, self._peft_current_flows_values = self._peft_traffic.step(self._weights.detach().numpy(), self._traffic_matrix,
@@ -54,7 +54,7 @@ class PEFT_Model(nn.Module):
         logger.info('SoftMin Congestion Vs. Optimal= {}'.format(softMin_congestion / self._optimal_value))
 
     def backward(self):
-        self._weights.grad = torch.zeros_like(self._weights, device=DEVICE, requires_grad=False)
+        self._weights.grad = torch.zeros_like(self._weights, device="cpu", requires_grad=False)
         for u, v in self._network.edges:
             edge_idx = self._network.get_edge2id(u, v)
             self._weights.grad[edge_idx] = self._necessary_capacity[u, v] - self._peft_current_flows_values[edge_idx]
