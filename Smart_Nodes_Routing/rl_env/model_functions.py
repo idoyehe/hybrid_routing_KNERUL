@@ -101,6 +101,7 @@ def greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
         smart_nodes_set = list(filter(lambda n: len(net.out_edges_by_node(n)) > 1, net.nodes))
 
     smart_nodes_set = find_nodes_subsets(smart_nodes_set, number_smart_nodes)
+    smart_nodes_set.append(tuple())
     traffic_matrix_list = _create_random_TMs_list(traffic_matrix_list)
     matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net,
                                                               traffic_matrix_list=traffic_matrix_list,
