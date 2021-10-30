@@ -288,15 +288,10 @@ class NetworkClass(object):
         return self._chosen_pairs
 
     def get_node_degree(self, node_id):
-        adj = self.get_adjacency
-        return np.sum(adj[node_id])
+        return self.get_graph.degree[node_id]
 
-    def get_degrees(self):
-        deg_list = list()
-        for node in self.nodes:
-            deg_list.append(self.get_node_degree(node))
-
-        return deg_list
+    def get_sorted_degrees(self):
+        return sorted(self.get_graph.degree, key=lambda x: x[1], reverse=True)
 
     def store_network_object(self, file_path, env_train_observation):
         self.env_train_observation = env_train_observation
@@ -328,3 +323,4 @@ if __name__ == "__main__":
     net = NetworkClass(get_base_graph())
     adj = net.get_adjacency
     pairs = net.get_all_pairs()
+
