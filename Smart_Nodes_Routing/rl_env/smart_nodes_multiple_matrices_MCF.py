@@ -184,6 +184,8 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
         __validate_flows(net_direct, smart_nodes, flows_src_dst_per_node, traffic_matrices_list, demands_ratios, spr_src_dst_per_sn_edges,
                          destination_based_spr)
 
+    logger.info("{} -> Done!".format(mcf_problem.ModelName))
+
     return expected_objective, spr_src_dst_per_sn_edges
 
 
