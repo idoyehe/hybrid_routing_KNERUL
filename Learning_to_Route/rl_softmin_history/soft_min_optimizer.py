@@ -36,6 +36,9 @@ class SoftMinOptimizer(Optimizer_Abstract):
         exp_val = np.exp(self._softMin_gamma * distance_via_neighbor)
         normalizer = np.sum(exp_val, axis=1)
         exp_val = np.transpose(np.transpose(exp_val) / normalizer)
+        exp_val = np.round(exp_val,4)
+        normalizer = np.sum(exp_val, axis=1)
+        exp_val = np.transpose(np.transpose(exp_val) / normalizer)
         exp_val[dest, :] = 0.0
         assert all(error_bound(int(u != dest), sum(exp_val[u])) for u in self._network.nodes)
         return exp_val
