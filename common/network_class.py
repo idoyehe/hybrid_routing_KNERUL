@@ -266,7 +266,7 @@ class NetworkClass(object):
             self._flows = []
 
             for src, dst in self.get_all_pairs():
-                flow_size = self._outgoing_capacity[src] * self._ingoing_capacity[dst] / self._total_capacity
+                flow_size = np.round(self._outgoing_capacity[src] * self._ingoing_capacity[dst] / self._total_capacity,4)
                 self._flows.append((src, dst, scale * flow_size))
         return self._flows
 
