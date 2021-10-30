@@ -2,6 +2,7 @@ from common.utils import extract_flows, load_dump_file, error_bound, extract_lp_
 from common.network_class import NetworkClass
 import numpy as np
 import numpy.linalg as npl
+import warnings
 
 
 def multiple_matrices_traffic_distribution(net_direct: NetworkClass, traffic_matrices_list, src_dst_splitting_ratios):
@@ -31,8 +32,11 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct, traffic_matrices_list, src_dst_s
         demand[src] = aggregate_tm[src, dst]
         assert all(psi[dst][:] == 0)
         assert psi.shape == (net_direct.get_num_nodes, net_direct.get_num_nodes)
-        flows_src2dest_per_node[(src, dst)] = demand @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
-
+        try:
+            flows_src2dest_per_node[(src, dst)] = demand @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
+        except npl.LinAlgError as e:
+            warnings.warn(str(e))
+            flows_src2dest_per_node[(src, dst)] = demand @ npl.pinv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
     for tm_idx in range(tms_list_length):
         tm_total_load_per_link = np.zeros(shape=(net_direct.get_num_edges), dtype=np.float64)
         for u, v in net_direct.edges:
