@@ -11,13 +11,13 @@
     "test_file": "Bell_South_tms_51X51_length_1024_gravity_sparsity_0.3",
     "num_train_observations": 512,
     "num_test_observations": 1024,
-    "policy_updates": 1100,
+    "policy_updates": 1500,
     "n_envs": 1,
     "n_steps": 320,
     "learning_rate": 0.003,
-    "batch_size": 32,
+    "batch_size": 64,
     "weights_factor": 1,
-    "weight_lb": 1,
-    "weight_ub": 15
+    "weight_lb": 0.7,
+    "weight_ub": 16
   }
 }
