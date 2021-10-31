@@ -99,7 +99,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
             else:
                 m_link_load = sum(vars_flows_src_dst_per_node[src, dst, u] * demands_ratios[m_idx, src, dst] * destination_based_spr[dst, u, v]
                                   for src, dst in reduced_flows)
-            mcf_problem.addLConstr(m_link_load, GRB.LESS_EQUAL, edge_capacity * vars_bt_per_matrix[m_idx])
+            mcf_problem.addLConstr(m_link_load * Consts.SCALE, GRB.LESS_EQUAL, edge_capacity * vars_bt_per_matrix[m_idx] * Consts.SCALE)
 
     for src, dst in active_flows:
         # Flow conservation at the dst
@@ -199,6 +199,7 @@ def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traf
     gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
+    gb_env.setParam(GRB.Param.Method, Consts.PRIMAL_SIMPLEX)
     gb_env.start()
 
     expected_objective, splitting_ratios_per_src_dst_edge = \

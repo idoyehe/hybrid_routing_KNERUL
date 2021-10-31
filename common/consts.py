@@ -15,12 +15,12 @@ class Consts:
     BARRIER_METHOD = 2
     NUMERIC_FOCUS = 3
     CROSSOVER = -1
+    SCALE = 1e1
     BAR_CONV_TOL = 1e-4
     MAX_ITER = 500
     ROUND = 6
     WEIGHT_STR = 'weight'
     CAPACITY_STR = 'capacity'
-
 
     # initial weight assignment strategy
     ONE_OVER_CAPACITY = 0
