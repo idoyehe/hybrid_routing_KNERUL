@@ -7,8 +7,8 @@
     "policy_updates": 500
   },
   "learning": {
-    "train_file": "GoodNet_tms_17X17_length_512_gravity_sparsity_0.3",
-    "test_file": "GoodNet_tms_17X17_length_1024_gravity_sparsity_0.3",
+    "train_file": "GoodNet_tms_17X17_length_2048_gravity_sparsity_0.3",
+    "test_file": "GoodNet_tms_17X17_length_4096_gravity_sparsity_0.3",
     "num_train_observations": 512,
     "num_test_observations": 1024,
     "policy_updates": 1100,
@@ -17,7 +17,7 @@
     "learning_rate": 0.003,
     "batch_size": 32,
     "weights_factor": 1,
-    "weight_lb": 0.7,
-    "weight_ub": 13
+    "weight_lb": 0.8,
+    "weight_ub": 8
   }
 }
