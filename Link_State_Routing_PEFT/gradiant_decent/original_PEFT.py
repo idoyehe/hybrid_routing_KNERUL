@@ -41,15 +41,19 @@ class PEFT_Model(nn.Module):
         self.forward()
 
     def _set_necessary_capacity(self):
-        self._optimal_value, self._necessary_capacity = optimal_load_balancing_LP_solver(self._network, self._traffic_matrix)
+        self._optimal_value, self._necessary_capacity = optimal_load_balancing_LP_solver(self._network,
+                                                                                         self._traffic_matrix)
 
     def __initialize_all_weights(self, factor):
-        return torch.ones(size=(self._network.get_num_edges,), dtype=torch.float64, device="cpu", requires_grad=True) * factor
+        return torch.ones(size=(self._network.get_num_edges,), dtype=torch.float64, device="cpu",
+                          requires_grad=True) * factor
 
     def forward(self):
-        PEFT_congestion, _, _, _, self._peft_current_flows_values = self._peft_traffic.step(self._weights.detach().numpy(), self._traffic_matrix,
-                                                                                            self._optimal_value)
-        softMin_congestion = self._softMin.step(self._weights.detach().numpy(), self._traffic_matrix, self._optimal_value)[0]
+        PEFT_congestion, _, _, _, self._peft_current_flows_values = self._peft_traffic.step(
+            self._weights.detach().numpy(), self._traffic_matrix,
+            self._optimal_value)
+        softMin_congestion = \
+        self._softMin.step(self._weights.detach().numpy(), self._traffic_matrix, self._optimal_value)[0]
         logger.info('PEFT Congestion Vs. Optimal= {}'.format(PEFT_congestion / self._optimal_value))
         logger.info('SoftMin Congestion Vs. Optimal= {}'.format(softMin_congestion / self._optimal_value))
 
@@ -61,7 +65,9 @@ class PEFT_Model(nn.Module):
 
     def loss(self):
         net = self._network
-        delta = sum(np.abs(self._peft_current_flows_values[net.get_edge2id(u, v)] - self._necessary_capacity[u, v]) for u, v in net.edges)
+        delta = sum(
+            np.abs(self._peft_current_flows_values[net.get_edge2id(u, v)] - self._necessary_capacity[u, v]) for u, v in
+            net.edges)
         logger.info('loss= {}'.format(delta))
         return delta
 
@@ -72,6 +78,14 @@ class PEFT_Model(nn.Module):
     @property
     def get_weights(self):
         return self._weights.detach().numpy()
+
+    def step(self):
+        new_weights = torch.zeros_like(self._weights)
+        for u, v in self._network.edges:
+            edge_idx = self._network.get_edge2id(u, v)
+            new_weights[edge_idx] = self._weights[edge_idx] - self._lr * self._weights.grad[edge_idx]
+
+        self._weights = nn.Parameter(new_weights)
 
 
 class PEFT_Model_With_Init(PEFT_Model):
@@ -86,11 +100,10 @@ class PEFT_Model_With_Init(PEFT_Model):
 
 def PEFT_training_loop(net, traffic_matrix, stop_threshold=0.5, factor=10):
     peft_model = PEFT_Model(net, traffic_matrix, factor)
-    torch_optimizer = torch.optim.ASGD(peft_model.parameters(), lr=peft_model.get_learning_rate)
     while peft_model.loss() > stop_threshold:
         peft_model.backward()
-        torch_optimizer.step()
-        torch_optimizer.zero_grad()
+        peft_model.step()
+        peft_model.zero_grad()
         peft_model.forward()
 
     return peft_model.get_weights
@@ -98,11 +111,10 @@ def PEFT_training_loop(net, traffic_matrix, stop_threshold=0.5, factor=10):
 
 def PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity, opt_value=1.0, stop_threshold=0.5, factor=15):
     peft_model = PEFT_Model_With_Init(net, traffic_matrix, necessary_capacity, opt_value, factor)
-    torch_optimizer = torch.optim.ASGD(peft_model.parameters(), lr=peft_model.get_learning_rate)
     while peft_model.loss() > stop_threshold:
         peft_model.backward()
-        torch_optimizer.step()
-        torch_optimizer.zero_grad()
+        peft_model.step()
+        peft_model.zero_grad()
         peft_model.forward()
 
     return peft_model.get_weights
