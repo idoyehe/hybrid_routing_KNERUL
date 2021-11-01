@@ -4398,8 +4398,6 @@ INFO:********* Agent is Loaded *********
 ---------------------------------------
 INFO:***************** Iteration 0 Finished ******************
 INFO:***** Iteration 1, Evaluating Smart Node  *****
-INFO:LP Submit to Solve Multiple Matrices MCF Problem Finding Smart Nodes Source-Target Routing Scheme
-INFO:LP Submit to Solve Multiple Matrices MCF Problem Finding Smart Nodes Source-Target Routing Scheme
 INFO:Smart Nodes Set      Expected Objective
 -----------------  --------------------
 (0, 1, 2, 3)                    1.36946

@@ -4397,35 +4397,6 @@ INFO:********* Agent is Loaded *********
 |    value_loss           | 0.0261     |
 ----------------------------------------
 INFO:***************** Iteration 0 Finished ******************
-INFO:***** Iteration 1, Evaluating Smart Node  *****
-Changed value of parameter LogToConsole to 0
-   Prev: 1  Min: 0  Max: 1  Default: 1
-Changed value of parameter NumericFocus to 3
-   Prev: 0  Min: 0  Max: 3  Default: 0
-Changed value of parameter FeasibilityTol to 1e-09
-   Prev: 1e-06  Min: 1e-09  Max: 0.01  Default: 1e-06
-INFO:LP Submit to Solve Multiple Matrices MCF Problem Finding Smart Nodes Source-Target Routing Scheme
-Changed value of parameter LogToConsole to 0
-   Prev: 1  Min: 0  Max: 1  Default: 1
-Changed value of parameter NumericFocus to 3
-   Prev: 0  Min: 0  Max: 3  Default: 0
-Changed value of parameter FeasibilityTol to 1e-09
-   Prev: 1e-06  Min: 1e-09  Max: 0.01  Default: 1e-06
-INFO:LP Submit to Solve Multiple Matrices MCF Problem Finding Smart Nodes Source-Target Routing Scheme
-Changed value of parameter LogToConsole to 0
-   Prev: 1  Min: 0  Max: 1  Default: 1
-Changed value of parameter NumericFocus to 3
-   Prev: 0  Min: 0  Max: 3  Default: 0
-Changed value of parameter FeasibilityTol to 1e-09
-   Prev: 1e-06  Min: 1e-09  Max: 0.01  Default: 1e-06
-INFO:LP Submit to Solve Multiple Matrices MCF Problem Finding Smart Nodes Source-Target Routing Scheme
-Changed value of parameter LogToConsole to 0
-   Prev: 1  Min: 0  Max: 1  Default: 1
-Changed value of parameter NumericFocus to 3
-   Prev: 0  Min: 0  Max: 3  Default: 0
-Changed value of parameter FeasibilityTol to 1e-09
-   Prev: 1e-06  Min: 1e-09  Max: 0.01  Default: 1e-06
-INFO:LP Submit to Solve Multiple Matrices MCF Problem Finding Smart Nodes Source-Target Routing Scheme
 INFO:Smart Nodes Set      Expected Objective
 -----------------  --------------------
 (0,)                            1.47489
