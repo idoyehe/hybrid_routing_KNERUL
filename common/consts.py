@@ -8,7 +8,7 @@ Created on 6 Feb 2017
 class Consts:
     ZERO = 1e-2
     ERROR_BOUND = 1e-3
-    OUTPUT_FLAG = 1
+    OUTPUT_FLAG = 0
     FEASIBILITY_TOL = 1e-7
     PRIMAL_SIMPLEX = 0
     DUAL_SIMPLEX = 1
