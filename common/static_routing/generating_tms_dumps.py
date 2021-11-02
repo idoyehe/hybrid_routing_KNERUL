@@ -47,7 +47,7 @@ def _dump_tms_and_opt(net: NetworkClass, url, matrix_sparsity: float, tm_type, i
 
     optimal_src_dst_splitting_ratios = expected_objective = initial_weights = dst_mean_congestion = None
     if initial_weights_clac:
-        traffic_matrices_list = [(1 / total_matrices, tm) for tm, _ in tms]
+        traffic_matrices_list = [tm for tm, _ in tms]
         expected_objective, _, necessary_capacity_per_tm, optimal_src_dst_splitting_ratios = multiple_tms_mcf_LP_solver(net, traffic_matrices_list)
         aggregate_tm = sum(tm for _, tm in traffic_matrices_list)
         initial_weights = get_initial_weights(net, aggregate_tm, necessary_capacity_per_tm[-1])

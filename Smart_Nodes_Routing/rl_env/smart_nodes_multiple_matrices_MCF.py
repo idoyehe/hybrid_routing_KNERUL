@@ -57,7 +57,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
     demands_ratios = np.zeros_like(traffic_matrices_list, dtype=np.float64)
     aggregate_tm = np.sum(traffic_matrices_list, axis=0)
     active_flows = extract_flows(aggregate_tm)
-
+    tm_prob = 1 / tms_list_length
     # extracting demands ratios per single matrix
     for m_idx, tm in enumerate(traffic_matrices_list):
         for src, dst in active_flows:
@@ -70,12 +70,12 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
 
     mcf_problem.update()
     """form objective"""
-    total_objective = (1 / tms_list_length) * vars_bt_per_matrix.sum()
+    total_objective = vars_bt_per_matrix.sum()
 
     if expected_objective is None:
         mcf_problem.setObjective(total_objective, GRB.MINIMIZE)
     else:
-        mcf_problem.addLConstr(total_objective, GRB.LESS_EQUAL, expected_objective)
+        mcf_problem.addLConstr(total_objective * tm_prob, GRB.LESS_EQUAL, expected_objective)
 
     mcf_problem.update()
 
@@ -157,7 +157,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
         mcf_problem.printQuality()
 
     if expected_objective is None:
-        expected_objective = total_objective.getValue()
+        expected_objective = tm_prob * total_objective.getValue()
 
     flows_src_dst_per_node = extract_lp_values(vars_flows_src_dst_per_node, Consts.ROUND)
     flows_src_dst_per_sn_edges = extract_lp_values(vars_flows_src_dst_per_sn_edges, Consts.ROUND)

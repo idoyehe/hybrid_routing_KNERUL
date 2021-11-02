@@ -15,11 +15,11 @@ from tabulate import tabulate
 
 def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.OutputFlag, 1)
+    gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.setParam(GRB.Param.Method, Consts.BARRIER_METHOD)
-    gb_env.setParam(GRB.Param.Crossover, 0)
+    gb_env.setParam(GRB.Param.Crossover, Consts.CROSSOVER)
     gb_env.setParam(GRB.Param.BarConvTol, Consts.BAR_CONV_TOL)
     gb_env.start()
 
@@ -35,8 +35,9 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
                            env=gurobi_env)
     tms_list_length = len(traffic_matrices_list)
     demands_ratios = np.zeros(shape=(tms_list_length, net_direct.get_num_nodes, net_direct.get_num_nodes))
-    aggregate_tm = sum(tm for _, tm in traffic_matrices_list)
+    aggregate_tm = sum(traffic_matrices_list)
     active_flows = extract_flows(aggregate_tm)
+    tm_prob = 1 / tms_list_length
 
     vars_flows_src_dst_per_edge = mcf_problem.addVars(active_flows, net_direct.edges, name="f", lb=0.0,
                                                       vtype=GRB.CONTINUOUS)
@@ -44,17 +45,17 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
     mcf_problem.update()
 
     """Building Constraints"""
-    total_objective = sum(tm_prb * vars_bt_per_matrix[m_idx] for m_idx, (tm_prb, _) in enumerate(traffic_matrices_list))
+    total_objective = vars_bt_per_matrix.sum()
 
     if expected_objective is None:
         mcf_problem.setObjective(total_objective, GRB.MINIMIZE)
     else:
-        mcf_problem.addLConstr(total_objective, GRB.LESS_EQUAL, expected_objective)
+        mcf_problem.addLConstr(total_objective * tm_prob, GRB.LESS_EQUAL, expected_objective)
 
     mcf_problem.update()
 
     # extracting demands ratios per single matrix
-    for m_idx, (_, tm) in enumerate(traffic_matrices_list):
+    for m_idx, tm in enumerate(traffic_matrices_list):
         for src, dst in active_flows:
             assert aggregate_tm[src, dst] > 0
             demands_ratios[m_idx, src, dst] = tm[src, dst] / aggregate_tm[src, dst]
@@ -108,7 +109,7 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
         mcf_problem.printQuality()
 
     if expected_objective is None:
-        expected_objective = total_objective.getValue()
+        expected_objective = tm_prob * total_objective.getValue()
 
     flows_src_dst_per_edge = extract_lp_values(vars_flows_src_dst_per_edge)
     bt_per_mtrx = extract_lp_values(vars_bt_per_matrix)
