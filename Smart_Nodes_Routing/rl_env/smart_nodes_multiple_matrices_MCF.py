@@ -199,9 +199,7 @@ def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traf
     gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
-    gb_env.setParam(GRB.Param.Method, Consts.BARRIER_METHOD)
-    gb_env.setParam(GRB.Param.Crossover, 0)
-    gb_env.setParam(GRB.Param.BarConvTol, Consts.BAR_CONV_TOL)
+    gb_env.setParam(GRB.Param.Method, Consts.PRIMAL_SIMPLEX)
     gb_env.start()
 
     expected_objective, splitting_ratios_per_src_dst_edge = \
