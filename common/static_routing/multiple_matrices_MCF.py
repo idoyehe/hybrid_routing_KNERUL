@@ -19,7 +19,7 @@ def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.setParam(GRB.Param.Method, Consts.BARRIER_METHOD)
-    gb_env.setParam(GRB.Param.Crossover, Consts.CROSSOVER)
+    gb_env.setParam(GRB.Param.Crossover, 0)
     gb_env.setParam(GRB.Param.BarConvTol, Consts.BAR_CONV_TOL)
     gb_env.start()
 
