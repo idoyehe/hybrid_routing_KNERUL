@@ -1,7 +1,7 @@
 from common.utils import error_bound, extract_lp_values, load_dump_file
 from common.static_routing.multiple_matrices_traffic_distribution import multiple_matrices_traffic_distribution
 from common.network_class import NetworkClass
-from common.consts import EdgeConsts, Consts
+from common.consts import EdgeConsts, Consts, DumpsConsts
 from common.logger import *
 from common.topologies import topology_zoo_loader
 from argparse import ArgumentParser
@@ -161,18 +161,18 @@ if __name__ == "__main__":
     save_dump = args.save_dump
     loaded_dict = load_dump_file(dump_path)
     topology_gml = loaded_dict["url"]
+
     net = NetworkClass(topology_zoo_loader(topology_gml))
     oblivious_ratio, src_dst_splitting_ratios = oblivious_routing_scheme(net)
     print("The oblivious ratio for {} is {}".format(net.get_title, oblivious_ratio))
-    traffic_matrix_list = np.array([t[0] for t in loaded_dict["tms"]])
+    traffic_matrix_list = np.array([t[0] for t in loaded_dict[DumpsConsts.TMs]])
     oblivious_mean_congestion, bt_per_mtrx = multiple_matrices_traffic_distribution(net, traffic_matrix_list, src_dst_splitting_ratios)
     print("Oblivious Mean Congestion Result: {}".format((oblivious_mean_congestion)))
     if save_dump:
-        dict2dump = {
-            "oblivious_ratio": oblivious_ratio,
-            "url": topology_gml,
-            "oblivious_mean_cong": oblivious_mean_congestion,
-            "src_dst_splitting_ratios": src_dst_splitting_ratios}
+        dict2dump = dict()
+        dict2dump[DumpsConsts.OBLIVIOUS_RATIO] = oblivious_ratio
+        dict2dump[DumpsConsts.OBLIVIOUS_MEAN_CONGESTION] = oblivious_mean_congestion
+        dict2dump[DumpsConsts.OBLIVIOUS_SRC_DST_SPR] = src_dst_splitting_ratios
 
         folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_title)
         file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}\\{}_oblivious_result".format(net.get_title, net.get_title)

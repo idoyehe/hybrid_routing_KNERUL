@@ -41,10 +41,14 @@ class TMType:
 
 class DumpsConsts:
     TMs = "tms"
-    NET_PATH = "net_path"
+    NET_PATH = "url"
     EXPECTED_CONGESTION = "expected_congestion"
     INITIAL_WEIGHTS = "initial_weights"
     OPTIMAL_SPLITTING_RATIOS = "optimal_splitting_ratios"
     DEST_EXPECTED_CONGESTION = "dest_expected_congestion"
     MATRIX_SPARSITY = "matrix_sparsity"
     MATRIX_TYPE = "matrix_type"
+    OBLIVIOUS_RATIO = "oblivious_ratio"
+    OBLIVIOUS_MEAN_CONGESTION = "oblivious_mean_congestion"
+    OBLIVIOUS_SRC_DST_SPR = "oblivious_src_dst_spr"
+
