@@ -1,5 +1,5 @@
-from size_consts import SizeConsts
-from consts import Consts
+from common.size_consts import SizeConsts
+from common.consts import EdgeConsts
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
@@ -60,7 +60,7 @@ class NetworkGraph:
             outgoing_degree = outgoing_degree_per_vertex[current_vertex]
             all_edges_list.extend(self.__single_vertex_outgoing_edges__(current_vertex=current_vertex, outgoing_degree=outgoing_degree))
 
-        self.inner_graph.add_weighted_edges_from(all_edges_list, weight=Consts.CAPACITY_STR)
+        self.inner_graph.add_weighted_edges_from(all_edges_list, weight=EdgeConsts.CAPACITY_STR)
 
     def draw_network_graph(self):
         nx.draw(self.inner_graph, with_labels=True, font_weight='bold')
@@ -74,6 +74,6 @@ class NetworkGraph:
         if self.avg_capacity is None:
             for i in range(self.get_num_nodes):
                 for j in nx.neighbors(self.inner_graph, i):
-                    c += self[i][j][Consts.CAPACITY_STR]
+                    c += self[i][j][EdgeConsts.CAPACITY_STR]
             self.avg_capacity = c / self.get_num_nodes
         return self.avg_capacity
