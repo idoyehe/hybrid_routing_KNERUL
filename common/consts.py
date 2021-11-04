@@ -2,11 +2,11 @@ class Consts:
     ZERO = 1e-2
     ERROR_BOUND = 1e-3
     OUTPUT_FLAG = 0
-    FEASIBILITY_TOL = 1e-8
+    FEASIBILITY_TOL = 1e-7
     PRIMAL_SIMPLEX = 0
     DUAL_SIMPLEX = 1
     BARRIER_METHOD = 2
-    NUMERIC_FOCUS = 3
+    NUMERIC_FOCUS = 2
     CROSSOVER = -1
     SCALE = 1e1
     BAR_CONV_TOL = 1e-4
