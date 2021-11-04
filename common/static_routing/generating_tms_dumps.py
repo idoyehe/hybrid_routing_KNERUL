@@ -39,8 +39,7 @@ def _get_initial_weights(net, traffic_matrix, necessary_capacity):
 
 
 def calculating_expected_congestion(net_direct, traffic_matrices_list, calc_initial_weights_flag: bool = False):
-    expected_objective, _, necessary_capacity_per_tm, optimal_src_dst_splitting_ratios = \
-        multiple_tms_mcf_LP_solver(net_direct, traffic_matrices_list)
+    expected_objective, _, necessary_capacity_per_tm, optimal_src_dst_splitting_ratios = multiple_tms_mcf_LP_solver(net_direct, traffic_matrices_list)
     aggregate_tm = sum(traffic_matrices_list)
     initial_weights = None
     if calc_initial_weights_flag:
@@ -142,14 +141,14 @@ if __name__ == "__main__":
         dumps_dict = load_dump_file(dump_path)
         tms_opt_zipped_list = dumps_dict[DumpsConsts.TMs]
 
-    traffic_matrix_list = list(zip(*tms_opt_zipped_list))
+    traffic_matrix_list = list(list(zip(*tms_opt_zipped_list))[0])
     expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = calculating_expected_congestion(
         net_direct,
         traffic_matrix_list,
         initial_weights)
 
     filename: str = dump_dictionary(net_direct=net_direct, net_path=topology_url,
-                                    tms_opt_zipped_list=tms_opt_zipped_list, matrix_sparsity=sparsity,
+                                    tms_opt_zipped_list=tms_opt_zipped_list, matrix_sparsity=matrix_sparsity,
                                     tm_type=tm_type,
                                     expected_congestion=expected_objective,
                                     optimal_src_dst_splitting_ratios=optimal_src_dst_splitting_ratios,
