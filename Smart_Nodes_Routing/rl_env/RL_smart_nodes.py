@@ -91,5 +91,5 @@ class RL_Smart_Nodes(RL_Env):
 
     def softMin_initial_expected_congestion(self):
         dst_splitting_ratios = self._optimizer.calculating_destination_based_spr(self._initial_weights)
-        a = np.mean([super(SmartNodesOptimizer,self._optimizer)._calculating_traffic_distribution(dst_splitting_ratios, tm[0])[0] for tm in self._train_observations])
+        a = np.mean([super(SmartNodesOptimizer,self._optimizer)._calculating_traffic_distribution(dst_splitting_ratios, tm[0])[0] for tm in self._test_observations])
         logger.info("SoftMin Initial Expected Congestion: {}".format(a))

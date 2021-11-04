@@ -15,7 +15,8 @@ import os, pickle
 
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for dump file")
-    parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file")
+    parser.add_argument("-train_file", "--train_file", type=str, help="The path for the dumped train file")
+    parser.add_argument("-test_file", "--test_file", type=str, help="The path for the dumped test file")
     parser.add_argument("-save", "--save_dump", type=eval, help="Save the results in ad dump", default=True)
     options = parser.parse_args(args)
     return options
@@ -49,11 +50,11 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
 
 def oblivious_routing_scheme(net: NetworkClass):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
+    gb_env.setParam(GRB.Param.OutputFlag, 1)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.setParam(GRB.Param.Method, Consts.BARRIER_METHOD)
-    gb_env.setParam(GRB.Param.Crossover, Consts.CROSSOVER)
+    gb_env.setParam(GRB.Param.Crossover, 0)
     gb_env.setParam(GRB.Param.BarConvTol, Consts.BAR_CONV_TOL)
     gb_env.start()
 
@@ -119,7 +120,6 @@ def aux_oblivious_routing_scheme(net: NetworkClass, gurobi_env, oblivious_ratio=
     try:
         logger.info("LP Submit to Solve {}".format(oblivious_lp.ModelName))
         oblivious_lp.update()
-        oblivious_lp.write("oblivious_lp.mps")
         oblivious_lp.optimize()
         assert oblivious_lp.Status == GRB.OPTIMAL
 
@@ -157,21 +157,30 @@ def aux_oblivious_routing_scheme(net: NetworkClass, gurobi_env, oblivious_ratio=
 
 if __name__ == "__main__":
     args = _getOptions()
-    dump_path = args.dumped_path
+    train_file = args.train_file
+    test_file = args.test_file
     save_dump = args.save_dump
-    loaded_dict = load_dump_file(dump_path)
-    topology_gml = loaded_dict["url"]
+    train_loaded_dict = load_dump_file(train_file)
+    test_loaded_dict = load_dump_file(test_file)
+
+    topology_gml = train_loaded_dict[DumpsConsts.NET_PATH]
 
     net = NetworkClass(topology_zoo_loader(topology_gml))
     oblivious_ratio, src_dst_splitting_ratios = oblivious_routing_scheme(net)
     print("The oblivious ratio for {} is {}".format(net.get_title, oblivious_ratio))
-    traffic_matrix_list = np.array([t[0] for t in loaded_dict[DumpsConsts.TMs]])
-    oblivious_mean_congestion, bt_per_mtrx = multiple_matrices_traffic_distribution(net, traffic_matrix_list, src_dst_splitting_ratios)
-    print("Oblivious Mean Congestion Result: {}".format((oblivious_mean_congestion)))
+
+    train_tms = np.array(list(zip(*train_loaded_dict[DumpsConsts.TMs]))[0])
+    train_oblivious_mean_congestion, bt_per_mtrx = multiple_matrices_traffic_distribution(net, train_tms, src_dst_splitting_ratios)
+    print("Train Tms: Oblivious Mean Congestion Result: {}".format((train_oblivious_mean_congestion)))
+
+    test_tms = np.array(list(zip(*test_loaded_dict[DumpsConsts.TMs]))[0])
+    test_oblivious_mean_congestion, bt_per_mtrx = multiple_matrices_traffic_distribution(net, test_tms, src_dst_splitting_ratios)
+    print("Test Tms: Oblivious Mean Congestion Result: {}".format((test_oblivious_mean_congestion)))
+
     if save_dump:
         dict2dump = dict()
         dict2dump[DumpsConsts.OBLIVIOUS_RATIO] = oblivious_ratio
-        dict2dump[DumpsConsts.OBLIVIOUS_MEAN_CONGESTION] = oblivious_mean_congestion
+        dict2dump[DumpsConsts.OBLIVIOUS_MEAN_CONGESTION] = (train_oblivious_mean_congestion, test_oblivious_mean_congestion)
         dict2dump[DumpsConsts.OBLIVIOUS_SRC_DST_SPR] = src_dst_splitting_ratios
 
         folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_title)
