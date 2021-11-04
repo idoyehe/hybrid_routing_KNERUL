@@ -1,10 +1,3 @@
-'''
-Created on 6 Feb 2017
-
-@author: asafvaladarsky
-'''
-
-
 class Consts:
     ZERO = 1e-2
     ERROR_BOUND = 1e-3
