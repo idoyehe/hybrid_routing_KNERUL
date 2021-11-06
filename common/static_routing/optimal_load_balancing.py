@@ -35,7 +35,7 @@ def optimal_load_balancing_LP_solver(net: NetworkClass, traffic_matrix, return_s
     return_tuple = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, return_spr)
     while True:
         try:
-            return_tuple = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, return_spr, opt_ratio - 0.001)
+            return_tuple = aux_optimal_load_balancing_LP_solver(net, traffic_matrix, gb_env, return_spr, return_tuple[0] - 0.001)
             print("****** Gurobi Failure ******")
         except Exception as e:
             return return_tuple
