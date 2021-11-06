@@ -6,6 +6,7 @@ from gym import Env, spaces
 from common.network_class import *
 from common.RL_Envs.rl_env_consts import EnvConsts, ExtraData
 from common.utils import load_dump_file
+from common.consts import DumpsConsts
 from common.topologies import topology_zoo_loader
 from .optimizer_abstract import Optimizer_Abstract
 import random
@@ -28,31 +29,28 @@ class RL_Env(Env):
 
         train_loaded_dict = load_dump_file(file_name=path_dumped)
         test_loaded_dict = load_dump_file(file_name=test_file)
-        self._network = NetworkClass(topology_zoo_loader(url=train_loaded_dict["url"]))
-        self._expected_congestion = train_loaded_dict["expected_congestion"]
-        self._dst_mean_congestion = train_loaded_dict["dst_mean_congestion"]
+        self._network = NetworkClass(topology_zoo_loader(url=train_loaded_dict[DumpsConsts.NET_PATH]))
+        self._expected_congestion = train_loaded_dict[DumpsConsts.EXPECTED_CONGESTION]
+        self._dst_mean_congestion = train_loaded_dict[DumpsConsts.DEST_EXPECTED_CONGESTION]
         logger.info("Expected Congestion: {}".format(self._expected_congestion))
         logger.info("Dest Mean Congestion Result: {}".format(self._dst_mean_congestion))
 
-        self._initial_weights = train_loaded_dict["initial_weights"]
+        self._initial_weights = train_loaded_dict[DumpsConsts.INITIAL_WEIGHTS]
 
-        self._tms = train_loaded_dict["tms"]
+        self._tms = train_loaded_dict[DumpsConsts.TMs]
         random.shuffle(self._tms)
         self._tms = self._tms[0:num_train_observations]
 
-        self._tms_test = test_loaded_dict["tms"]
+        self._tms_test = test_loaded_dict[DumpsConsts.TMs]
         random.shuffle(self._tms_test)
         self._tms_test = self._tms_test[0:num_test_observations]
-        self._tm_type = train_loaded_dict["tms_type"]
+        self._tm_type = train_loaded_dict[DumpsConsts.MATRIX_TYPE]
 
         assert len(self._tms) == num_train_observations
         assert len(self._tms_test) == num_test_observations
 
-        if "oblivious_routing" in train_loaded_dict.keys():
-            self._oblivious_routing_per_edge = train_loaded_dict["oblivious_routing"]["per_edge"]
-            self._oblivious_routing_per_flow = train_loaded_dict["oblivious_routing"]["per_flow"]
-        else:
-            self._oblivious_routing_per_edge = self._oblivious_routing_per_flow = None
+
+        self._oblivious_routing_per_edge =  None
 
         del train_loaded_dict, test_loaded_dict
         self._network = self._network

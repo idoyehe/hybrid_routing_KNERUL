@@ -18,10 +18,6 @@ class Consts:
 class EdgeConsts:
     WEIGHT_STR = 'weight'
     CAPACITY_STR = 'capacity'
-    TTL_FLOW_STR = 'ttl_flow'
-
-    MAX_WEIGHT = 50
-    MIN_WEIGHT = 1
 
 
 class TMType:
@@ -44,4 +40,3 @@ class DumpsConsts:
     OBLIVIOUS_RATIO = "oblivious_ratio"
     OBLIVIOUS_MEAN_CONGESTION = "oblivious_mean_congestion"
     OBLIVIOUS_SRC_DST_SPR = "oblivious_src_dst_spr"
-

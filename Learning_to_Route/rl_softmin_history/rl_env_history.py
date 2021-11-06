@@ -92,4 +92,4 @@ class RL_Env_History(RL_Env):
 
     def testing(self, _testing):
         super(RL_Env_History, self).testing(_testing)
-        self._optimizer = SoftMinOptimizer(self._network, self._oblivious_routing_per_edge, testing=_testing)
+        self._optimizer = SoftMinOptimizer(self._network, EnvConsts.SOFTMIN_GAMMA, testing=_testing)
