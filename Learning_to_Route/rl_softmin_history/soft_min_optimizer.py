@@ -1,11 +1,3 @@
-"""
-Created on 29 Jun 2017
-@author: asafvaladarsky
-
-refactoring on 24/04/2020
-@by: Ido Yehezkel
-"""
-
 from common.RL_Envs.rl_env_consts import EnvConsts
 from common.RL_Envs.optimizer_abstract import *
 

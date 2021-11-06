@@ -6,7 +6,6 @@ import gurobipy as gb
 from gurobipy import GRB, tupledict
 from common.utils import error_bound, extract_flows
 import numpy as np
-from random import shuffle
 
 
 def __validate_splitting_ratios(net_direct, smart_nodes, flows_src_dst_per_node, active_flows, spr_src_dst_per_sn_edges):
