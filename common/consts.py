@@ -8,7 +8,7 @@ class Consts:
     BARRIER_METHOD = 2
     NUMERIC_FOCUS = 3
     CROSSOVER = -1
-    SCALE_FLAG = 2
+    SCALE_FLAG = 3
     SCALE = 1e2
     BAR_CONV_TOL = 1e-4
     MAX_ITER = 500

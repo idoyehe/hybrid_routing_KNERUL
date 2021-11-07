@@ -11,7 +11,7 @@
     "test_file": "T-lex_tms_12X12_length_1024_gravity_sparsity_0.3",
     "num_train_observations": 512,
     "num_test_observations": 1024,
-    "policy_updates": 5000,
+    "policy_updates": 10,
     "n_envs": 1,
     "n_steps": 320,
     "learning_rate": 0.003,
