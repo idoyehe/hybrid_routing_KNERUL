@@ -28,7 +28,7 @@ class SoftMinOptimizer(Optimizer_Abstract):
         exp_val = np.exp(self._softMin_gamma * distance_via_neighbor)
         normalizer = np.sum(exp_val, axis=1)
         exp_val = np.transpose(np.transpose(exp_val) / normalizer)
-        exp_val = np.round(exp_val,4)
+        exp_val = np.round(exp_val,3)
         normalizer = np.sum(exp_val, axis=1)
         exp_val = np.transpose(np.transpose(exp_val) / normalizer)
         exp_val[dest, :] = 0.0

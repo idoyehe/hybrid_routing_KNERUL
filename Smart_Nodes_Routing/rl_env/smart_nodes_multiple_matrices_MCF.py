@@ -89,21 +89,17 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
             mcf_problem.addLConstr(vars_flows_src_dst_per_node[src, dst, s_n], GRB.EQUAL, out_flow_per_src_dst)
     mcf_problem.update()
 
-
     for m_idx, tm in enumerate(traffic_matrices_list):
         tms_active_flows = extract_flows(tm)
-        for u,v in net_direct.edges:
+        for u, v in net_direct.edges:
             edge_capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
             reduced_flows = list(filter(lambda src_dst: src_dst[1] != u, tms_active_flows))
             if u in smart_nodes:
-                m_link_load = sum(
-                    vars_flows_src_dst_per_sn_edges[src, dst, u, v] * demands_ratios[m_idx, src, dst] for src, dst in
-                    reduced_flows)
+                m_link_load = sum(vars_flows_src_dst_per_sn_edges[src, dst, u, v] * demands_ratios[m_idx, src, dst] for src, dst in reduced_flows)
             else:
-                m_link_load = sum(vars_flows_src_dst_per_node[src, dst, u] * demands_ratios[m_idx, src, dst] * destination_based_spr[dst, u, v]
-                                  for src, dst in reduced_flows)
+                m_link_load = sum(vars_flows_src_dst_per_node[src, dst, u] * demands_ratios[m_idx, src, dst] * destination_based_spr[dst, u, v] for src, dst in reduced_flows)
 
-            mcf_problem.addLConstr(m_link_load * Consts.SCALE, GRB.LESS_EQUAL, edge_capacity * vars_bt_per_matrix[m_idx]* Consts.SCALE)
+            mcf_problem.addLConstr(m_link_load * Consts.SCALE, GRB.LESS_EQUAL, edge_capacity * vars_bt_per_matrix[m_idx] * Consts.SCALE)
 
     for src, dst in active_flows:
         # Flow conservation at the dst
@@ -205,6 +201,7 @@ def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traf
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.setParam(GRB.Param.Method, Consts.PRIMAL_SIMPLEX)
     gb_env.setParam(GRB.Param.ScaleFlag, Consts.SCALE_FLAG)
+    gb_env.setParam(GRB.Param.Presolve, 2)
     gb_env.start()
 
     expected_objective, splitting_ratios_per_src_dst_edge = \

@@ -61,13 +61,12 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
             demands_ratios[m_idx, src, dst] = tm[src, dst] / aggregate_tm[src, dst]
             assert 0 <= demands_ratios[m_idx, src, dst] <= 1
 
-    for u, v in net_direct.edges:
-        edge_capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
-        relevant_flows = list(filter(lambda src_dst: src_dst[1] != u, active_flows))
-        for m_idx in range(tms_list_length):
-            m_link_load = sum(
-                vars_flows_src_dst_per_edge[src, dst, u, v] * demands_ratios[m_idx, src, dst] for src, dst in
-                relevant_flows)
+    for m_idx, tm in enumerate(traffic_matrices_list):
+        tm_active_flows = extract_flows(tm)
+        for u, v in net_direct.edges:
+            edge_capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
+            reduced_flows = list(filter(lambda src_dst: src_dst[1] != u, tm_active_flows))
+            m_link_load = sum(vars_flows_src_dst_per_edge[src, dst, u, v] * demands_ratios[m_idx, src, dst] for src, dst in reduced_flows)
             mcf_problem.addLConstr(m_link_load, GRB.LESS_EQUAL, edge_capacity * vars_bt_per_matrix[m_idx])
 
     for src, dst in active_flows:
