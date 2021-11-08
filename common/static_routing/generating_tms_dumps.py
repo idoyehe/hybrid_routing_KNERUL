@@ -1,3 +1,6 @@
+import sys
+sys.path.append("/home/idoye/PycharmProjects/Research_Implementing")
+
 from common.data_generation.tm_generation import one_sample_tm_base
 from optimal_load_balancing import optimal_load_balancing_LP_solver
 from common.logger import logger
