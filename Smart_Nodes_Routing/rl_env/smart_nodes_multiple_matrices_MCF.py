@@ -69,12 +69,12 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
 
     mcf_problem.update()
     """form objective"""
-    total_objective = vars_bt_per_matrix.sum()
+    total_objective = vars_bt_per_matrix.sum() * tm_prob
 
     if expected_objective is None:
         mcf_problem.setObjective(total_objective, GRB.MINIMIZE)
     else:
-        mcf_problem.addLConstr(total_objective * tm_prob, GRB.LESS_EQUAL, expected_objective)
+        mcf_problem.addLConstr(total_objective, GRB.LESS_EQUAL, expected_objective)
 
     mcf_problem.update()
 
@@ -157,7 +157,7 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
         mcf_problem.printQuality()
 
     if expected_objective is None:
-        expected_objective = tm_prob * total_objective.getValue()
+        expected_objective = total_objective.getValue()
 
     flows_src_dst_per_node = extract_lp_values(vars_flows_src_dst_per_node, Consts.ROUND)
     flows_src_dst_per_sn_edges = extract_lp_values(vars_flows_src_dst_per_sn_edges, Consts.ROUND)
@@ -196,12 +196,12 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
 
 def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traffic_matrix_list, destination_based_spr):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
+    gb_env.setParam(GRB.Param.OutputFlag, 1)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
-    gb_env.setParam(GRB.Param.Method, Consts.PRIMAL_SIMPLEX)
+    gb_env.setParam(GRB.Param.Method, Consts.PRIMAL_DUAL_SIMPLEX)
     gb_env.setParam(GRB.Param.ScaleFlag, Consts.SCALE_FLAG)
-    gb_env.setParam(GRB.Param.Presolve, 2)
+    gb_env.setParam(GRB.Param.Presolve, Consts.PRESOLVE)
     gb_env.start()
 
     expected_objective, splitting_ratios_per_src_dst_edge = \

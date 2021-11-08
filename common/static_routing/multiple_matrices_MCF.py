@@ -45,12 +45,12 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
     mcf_problem.update()
 
     """Building Constraints"""
-    total_objective = vars_bt_per_matrix.sum()
+    total_objective = vars_bt_per_matrix.sum() * tm_prob
 
     if expected_objective is None:
         mcf_problem.setObjective(total_objective, GRB.MINIMIZE)
     else:
-        mcf_problem.addLConstr(total_objective * tm_prob, GRB.LESS_EQUAL, expected_objective)
+        mcf_problem.addLConstr(total_objective, GRB.LESS_EQUAL, expected_objective)
 
     mcf_problem.update()
 
@@ -108,7 +108,7 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
         mcf_problem.printQuality()
 
     if expected_objective is None:
-        expected_objective = tm_prob * total_objective.getValue()
+        expected_objective = total_objective.getValue()
 
     flows_src_dst_per_edge = extract_lp_values(vars_flows_src_dst_per_edge)
     bt_per_mtrx = extract_lp_values(vars_bt_per_matrix)
