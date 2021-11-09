@@ -9,7 +9,7 @@ from common.network_class import NetworkClass
 from common.RL_Envs.rl_env_consts import *
 from common.utils import find_nodes_subsets, SEPERATOR, DEVICE
 from Smart_Nodes_Routing.rl_env.RL_smart_nodes import RL_Smart_Nodes
-from Smart_Nodes_Routing.rl_env.smart_nodes_multiple_matrices_MCF import matrices_mcf_LP_with_smart_nodes_solver
+from Smart_Nodes_Routing.rl_env.smart_nodes_multiple_matrices_MCF_2 import matrices_mcf_LP_with_smart_nodes_solver
 import numpy as np
 import json
 from functools import partial
