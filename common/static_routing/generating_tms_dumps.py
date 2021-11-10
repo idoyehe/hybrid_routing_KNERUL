@@ -87,10 +87,10 @@ def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_z
     dict2dump = dict()
     dict2dump[DumpsConsts.TMs] = tms_opt_zipped_list
     dict2dump[DumpsConsts.NET_PATH] = net_path
-    dict2dump[DumpsConsts.EXPECTED_CONGESTION] = expected_congestion
+    dict2dump[DumpsConsts.EXPECTED_CONGESTION] = np.round(expected_congestion,4)
     dict2dump[DumpsConsts.INITIAL_WEIGHTS] = initial_weights
     dict2dump[DumpsConsts.OPTIMAL_SPLITTING_RATIOS] = optimal_src_dst_splitting_ratios
-    dict2dump[DumpsConsts.DEST_EXPECTED_CONGESTION] = dst_mean_congestion
+    dict2dump[DumpsConsts.DEST_EXPECTED_CONGESTION] = np.round(dst_mean_congestion,4)
     dict2dump[DumpsConsts.MATRIX_SPARSITY] = matrix_sparsity
     dict2dump[DumpsConsts.MATRIX_TYPE] = tm_type
 

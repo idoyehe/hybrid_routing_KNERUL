@@ -29,4 +29,5 @@ if __name__ == "__main__":
 
     traffic_distribution = Optimizer_Abstract(net)
     mean_tm_congestion = np.mean([traffic_distribution._calculating_traffic_distribution(dst_splitting_ratio, t)[0] for t in traffic_matrix_list])
+    mean_tm_congestion = np.round(mean_tm_congestion,4)
     print("Mean Traffic Matrix routing scheme congestion: {}".format(mean_tm_congestion))
