@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("/home/idoye/PycharmProjects/Research_Implementing")
 
 from common.data_generation.tm_generation import one_sample_tm_base
@@ -32,6 +33,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-e_p", "--elephant_percentage", type=float, help="The percentage of elephant flows")
     parser.add_argument("-n_e", "--network_elephant", type=float, help="The network elephant expectancy", default=400)
     parser.add_argument("-n_m", "--network_mice", type=float, help="The network mice expectancy", default=150)
+    parser.add_argument("-tail", "--tail_str", type=str, help="String to add in end of the file", default="")
     options = parser.parse_args(args)
     return options
 
@@ -78,7 +80,7 @@ def generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, 
     return tms_opt_zipped_list
 
 
-def dump_dictionary(net_direct: NetworkClass, net_path: str, tms_opt_zipped_list, matrix_sparsity: float, tm_type,
+def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_zipped_list, matrix_sparsity: float, tm_type,
                     expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion,
                     static_pairs: bool, elephant_percentage: float, network_elephant, network_mice,
                     total_matrices: int):
@@ -111,6 +113,7 @@ def dump_dictionary(net_direct: NetworkClass, net_path: str, tms_opt_zipped_list
     if tm_type == TMType.BIMODAL:
         file_name += "_elephant_percentage_{}".format(elephant_percentage)
 
+    file_name += "_{}".format(tail_str)
     os.makedirs(folder_name, exist_ok=True)
     dump_file = open(file_name, 'wb')
     pickle.dump(dict2dump, dump_file)
@@ -132,6 +135,7 @@ if __name__ == "__main__":
     total_matrices = args.total_matrices
     dump_path = args.dumped_path
     initial_weights = args.initial_weights
+    tail_str = args.tail_str
 
     if dump_path is None:
         tms_opt_zipped_list = generate_traffic_matrix_baseline(net=net_direct, matrix_sparsity=matrix_sparsity,
@@ -150,7 +154,7 @@ if __name__ == "__main__":
         traffic_matrix_list,
         initial_weights)
 
-    filename: str = dump_dictionary(net_direct=net_direct, net_path=topology_url,
+    filename: str = dump_dictionary(tail_str=tail_str, net_direct=net_direct, net_path=topology_url,
                                     tms_opt_zipped_list=tms_opt_zipped_list, matrix_sparsity=matrix_sparsity,
                                     tm_type=tm_type,
                                     expected_congestion=expected_objective,
