@@ -1,3 +1,4 @@
+import warnings
 from common.logger import *
 from common.network_class import NetworkClass, nx
 import numpy as np
@@ -166,7 +167,12 @@ class Optimizer_Abstract(object):
             demand[src] = tm[src, dst]
             assert all(psi[dst][:] == 0)
             assert psi.shape == (net_direct.get_num_nodes, net_direct.get_num_nodes)
-            flows_src2dest_per_node[(src, dst)] = demand @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
+            try:
+                flows_src2dest_per_node[(src, dst)] = demand @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
+            except:
+                warnings.warn("Singular")
+                flows_src2dest_per_node[(src, dst)] = demand @ npl.pinv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
+
 
         if logger.level == logging.DEBUG:
             self.__validate_src_dst_flow(net_direct, tm, flows_src2dest_per_node, src_dst_splitting_ratios)
