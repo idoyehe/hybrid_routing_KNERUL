@@ -7,17 +7,17 @@
     "policy_updates": 250
   },
   "learning": {
-    "train_file": "ScaleFree30Nodes_tms_30X30_length_2048_gravity_sparsity_0.3",
-    "test_file": "ScaleFree30Nodes_tms_30X30_length_4096_gravity_sparsity_0.3",
-    "num_train_observations": 2048,
-    "num_test_observations": 4096,
-    "policy_updates": 1100,
+    "train_file": "ScaleFree30Nodes_tms_30X30_length_1024_gravity_sparsity_0.3_train",
+    "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_gravity_sparsity_0.3_train",
+    "num_train_observations": 1024,
+    "num_test_observations": 1024,
+    "policy_updates": 1500,
     "n_envs": 1,
     "n_steps": 320,
     "learning_rate": 0.003,
     "batch_size": 64,
     "weights_factor": 1,
     "weight_lb": 0.7,
-    "weight_ub": 20
+    "weight_ub": 14
   }
 }
