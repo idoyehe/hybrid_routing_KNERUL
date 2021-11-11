@@ -37,7 +37,6 @@ class PEFT_Model(nn.Module):
         self._peft_current_flows_values = None
         self._set_necessary_capacity()
         self._lr = 1 / np.max(self._necessary_capacity)
-        self._lr /= 5
         self.forward()
 
     def _set_necessary_capacity(self):
@@ -53,7 +52,7 @@ class PEFT_Model(nn.Module):
             self._weights.detach().numpy(), self._traffic_matrix,
             self._optimal_value)
         softMin_congestion = \
-        self._softMin.step(self._weights.detach().numpy(), self._traffic_matrix, self._optimal_value)[0]
+            self._softMin.step(self._weights.detach().numpy(), self._traffic_matrix, self._optimal_value)[0]
         logger.info('PEFT Congestion Vs. Optimal= {}'.format(PEFT_congestion / self._optimal_value))
         logger.info('SoftMin Congestion Vs. Optimal= {}'.format(softMin_congestion / self._optimal_value))
 
@@ -109,8 +108,9 @@ def PEFT_training_loop(net, traffic_matrix, stop_threshold=0.5, factor=10):
     return peft_model.get_weights
 
 
-def PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity, opt_value=1.0, stop_threshold=0.5, factor=15):
+def PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity, opt_value=1.0, stop_threshold=0.5, factor=10):
     peft_model = PEFT_Model_With_Init(net, traffic_matrix, necessary_capacity, opt_value, factor)
+    # opt = torch.optim.SGD(peft_model.parameters(), lr=peft_model.get_learning_rate, momentum=0.9)
     while peft_model.loss() > stop_threshold:
         peft_model.backward()
         peft_model.step()
@@ -125,6 +125,22 @@ if __name__ == "__main__":
     dumped_path = options.dumped_path
     loaded_dict = load_dump_file(dumped_path)
     net = NetworkClass(topology_zoo_loader(loaded_dict["url"]))
-    traffic_matrix = loaded_dict["tms"][0][0]
-    weights = PEFT_training_loop(net, traffic_matrix)
-    print("Link Weights:\n{}".format(weights))
+    # traffic_matrix = loaded_dict["tms"][0][0]
+    traffic_matrix = sum(list(zip(*loaded_dict["tms"]))[0])
+    traffic = SoftMinOptimizer(net, -1)
+    optimal_splitting_ratios = loaded_dict['optimal_splitting_ratios']
+    total_load_per_link = traffic._calculating_src_dst_traffic_distribution(optimal_splitting_ratios, traffic_matrix)[4]
+    necessary_capacity = np.zeros(shape=(net.get_num_nodes, net.get_num_nodes), dtype=np.float64)
+    for u, v in net.edges:
+        necessary_capacity[u, v] = total_load_per_link[net.get_edge2id(u, v)]
+    pass
+    weights = PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity)
+    # print("Link Weights:\n{}".format(weights))
+    # assert loaded_dict['initial_weights'] is None
+    loaded_dict['initial_weights'] = weights
+
+    import pickle
+
+    dump_file = open(dumped_path, 'wb')
+    pickle.dump(loaded_dict, dump_file)
+    dump_file.close()
