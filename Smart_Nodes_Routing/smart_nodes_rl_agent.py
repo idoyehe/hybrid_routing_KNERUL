@@ -1,8 +1,8 @@
 from common.logger import logger
-from rl_env.model_functions import model_learn, greedy_best_smart_nodes_and_spr, model_continue_learning, run_testing
+from rl_env.model_functions import model_learn, greedy_best_smart_nodes_and_spr, model_continue_learning, run_testing,get_json_file_from_cfg
 from argparse import ArgumentParser
 from sys import argv
-
+from common.utils import load_dump_file
 
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
@@ -26,12 +26,17 @@ if __name__ == "__main__":
     load_network = args.load_network
     num_of_iterations = args.number_of_iterations
     policy_updates = args.policy_updates
+    config = get_json_file_from_cfg(config_folder)
 
+    lp_file = config_folder + config["lp_file"]
+    lp_tms = load_dump_file(lp_file)["tms"]
+
+    PRE_POLICY_UPDATE = 0
     if load_agent is None:
         logger.info("********* Iteration 0 Starts *********")
         model, single_env, weights_factor = model_learn(config_folder, "Iteration_0", load_agent, load_network)
     else:
-        model, single_env, weights_factor = model_learn(config_folder, "Iteration_0", load_agent, load_network, policy_updates=policy_updates)
+        model, single_env, weights_factor = model_learn(config_folder, "Iteration_0", load_agent, load_network, policy_updates=PRE_POLICY_UPDATE)
 
         logger.info("***************** Iteration 0 Finished ******************")
 
@@ -43,7 +48,7 @@ if __name__ == "__main__":
         destination_based_sprs = single_env.get_optimizer.calculating_destination_based_spr(link_weights)
         env_train_observations = single_env.get_train_observations
 
-        best_smart_nodes = greedy_best_smart_nodes_and_spr(single_env.get_network, env_train_observations[0], destination_based_sprs,
+        best_smart_nodes = greedy_best_smart_nodes_and_spr(single_env.get_network, lp_tms, destination_based_sprs,
                                                            number_smart_nodes, smart_nodes_set)
 
         current_smart_nodes = best_smart_nodes[0]

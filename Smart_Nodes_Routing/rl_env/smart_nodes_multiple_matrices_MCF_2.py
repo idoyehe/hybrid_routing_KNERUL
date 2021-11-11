@@ -189,7 +189,6 @@ def matrices_mcf_LP_with_smart_nodes_solver(smart_nodes, net: NetworkClass, traf
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
     gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.setParam(GRB.Param.Method, Consts.PRIMAL_DUAL_SIMPLEX)
-    gb_env.setParam(GRB.Param.ScaleFlag, Consts.SCALE_FLAG)
     gb_env.setParam(GRB.Param.Presolve, Consts.PRESOLVE)
     gb_env.start()
 

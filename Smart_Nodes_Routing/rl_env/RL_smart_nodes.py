@@ -29,7 +29,8 @@ class RL_Smart_Nodes(RL_Env):
 
         assert isinstance(self._optimizer, Optimizer_Abstract)
         self._diagnostics = list()
-        self.softMin_initial_expected_congestion()
+        if logger.level == logging.DEBUG:
+            self.softMin_initial_expected_congestion()
 
 
     def _set_action_space(self):

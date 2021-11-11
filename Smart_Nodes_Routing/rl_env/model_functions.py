@@ -73,6 +73,13 @@ def build_clean_smart_nodes_model(model_envs, learning_rate: float, n_steps: int
 
     return ppo_model
 
+def get_json_file_from_cfg(config_folder:str):
+    config_path = config_folder + "config.json"
+    json_file = open(config_path, 'r')
+    config = json.load(json_file)["learning"]
+    json_file.close()
+    return config
+
 
 def load_network_and_update_env(network_file: str, env):
     net: NetworkClass = NetworkClass.load_network_object(network_file)
@@ -92,6 +99,7 @@ def run_testing(model, env, num_test_observations):
         rewards_list.append(reward)
 
     mean_reward = np.mean(rewards_list)
+    mean_reward = np.round(mean_reward,4)
     print("Agent average performance: {}".format(mean_reward * -1))
     return mean_reward
 
@@ -101,7 +109,6 @@ def greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
         smart_nodes_set = list(filter(lambda n: len(net.out_edges_by_node(n)) > 1, net.nodes))
 
     smart_nodes_set = find_nodes_subsets(smart_nodes_set, number_smart_nodes)
-    smart_nodes_set.append(tuple())
     traffic_matrix_list = _create_random_TMs_list(traffic_matrix_list)
     matrices_mcf_LP_with_smart_nodes_solver_wrapper = partial(matrices_mcf_LP_with_smart_nodes_solver, net=net,
                                                               traffic_matrix_list=traffic_matrix_list,
@@ -122,10 +129,7 @@ def greedy_best_smart_nodes_and_spr(net, traffic_matrix_list, destination_based_
 
 def model_learn(config_folder: str, learning_title: str, model_path: str = None, net_path: str = None, policy_updates: int = None) -> (
         PPO, RL_Smart_Nodes):
-    config_path = config_folder + "config.json"
-    json_file = open(config_path, 'r')
-    config = json.load(json_file)["learning"]
-    json_file.close()
+    config = get_json_file_from_cfg(config_folder)
     train_file = config_folder + config["train_file"]
     test_file = config_folder + config["test_file"]
     num_train_observations = config["num_train_observations"]
