@@ -1,3 +1,6 @@
+import sys
+sys.path.append("/home/idoye/PycharmProjects/Research_Implementing")
+
 from common.logger import logger
 from rl_env.model_functions import model_learn, greedy_best_smart_nodes_and_spr, model_continue_learning, run_testing,get_json_file_from_cfg
 from argparse import ArgumentParser

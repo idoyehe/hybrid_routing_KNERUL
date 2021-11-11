@@ -1,5 +1,4 @@
 import sys
-
 sys.path.append("/home/idoye/PycharmProjects/Research_Implementing")
 
 from common.data_generation.tm_generation import one_sample_tm_base
