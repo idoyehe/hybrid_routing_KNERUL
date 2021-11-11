@@ -22,6 +22,7 @@ def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env.setParam(GRB.Param.Crossover, Consts.CROSSOVER)
     gb_env.setParam(GRB.Param.BarConvTol, Consts.BAR_CONV_TOL)
     gb_env.setParam(GRB.Param.Presolve, Consts.PRESOLVE)
+    gb_env.setParam(GRB.Param.Threads, 6)
     gb_env.start()
 
     expected_objective, r_per_mtrx, necessary_capacity_per_tm, src_dst_splitting_ratios = _aux_multiple_tms_mcf_LP_solver(net, traffic_matrix_list,
