@@ -1,4 +1,5 @@
 import sys
+
 sys.path.append("/home/idoye/PycharmProjects/Research_Implementing")
 
 from common.data_generation.tm_generation import one_sample_tm_base
@@ -86,10 +87,10 @@ def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_z
     dict2dump = dict()
     dict2dump[DumpsConsts.TMs] = tms_opt_zipped_list
     dict2dump[DumpsConsts.NET_PATH] = net_path
-    dict2dump[DumpsConsts.EXPECTED_CONGESTION] = np.round(expected_congestion,4)
+    dict2dump[DumpsConsts.EXPECTED_CONGESTION] = np.round(expected_congestion, 4) if expected_congestion is not None else expected_congestion
     dict2dump[DumpsConsts.INITIAL_WEIGHTS] = initial_weights
     dict2dump[DumpsConsts.OPTIMAL_SPLITTING_RATIOS] = optimal_src_dst_splitting_ratios
-    dict2dump[DumpsConsts.DEST_EXPECTED_CONGESTION] = np.round(dst_mean_congestion,4)
+    dict2dump[DumpsConsts.DEST_EXPECTED_CONGESTION] = np.round(dst_mean_congestion, 4) if dst_mean_congestion is not None else dst_mean_congestion
     dict2dump[DumpsConsts.MATRIX_SPARSITY] = matrix_sparsity
     dict2dump[DumpsConsts.MATRIX_TYPE] = tm_type
 
@@ -148,10 +149,10 @@ if __name__ == "__main__":
         tms_opt_zipped_list = dumps_dict[DumpsConsts.TMs]
 
     traffic_matrix_list = list(list(zip(*tms_opt_zipped_list))[0])
-    expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = calculating_expected_congestion(
-        net_direct,
-        traffic_matrix_list,
-        initial_weights)
+    expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = calculating_expected_congestion(net_direct,
+                                                                                                                                 traffic_matrix_list,
+                                                                                                                                 initial_weights)
+
 
     filename: str = dump_dictionary(tail_str=tail_str, net_direct=net_direct, net_path=topology_url,
                                     tms_opt_zipped_list=tms_opt_zipped_list, matrix_sparsity=matrix_sparsity,
