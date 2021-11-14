@@ -84,8 +84,6 @@ def get_json_file_from_cfg(config_folder:str):
 def load_network_and_update_env(network_file: str, env):
     net: NetworkClass = NetworkClass.load_network_object(network_file)
     env.set_network_smart_nodes_and_spr(net.get_smart_nodes, net.get_smart_nodes_spr)
-    env.set_train_observations(net.env_train_observation)
-
     return net, env
 
 
