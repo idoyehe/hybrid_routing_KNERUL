@@ -30,8 +30,8 @@ class RL_Env(Env):
         train_loaded_dict = load_dump_file(file_name=path_dumped)
         test_loaded_dict = load_dump_file(file_name=test_file)
         self._network = NetworkClass(topology_zoo_loader(url=train_loaded_dict[DumpsConsts.NET_PATH]))
-        self._expected_congestion = train_loaded_dict[DumpsConsts.EXPECTED_CONGESTION]
-        self._dst_mean_congestion = train_loaded_dict[DumpsConsts.DEST_EXPECTED_CONGESTION]
+        self._expected_congestion = test_loaded_dict[DumpsConsts.EXPECTED_CONGESTION]
+        self._dst_mean_congestion = test_loaded_dict[DumpsConsts.DEST_EXPECTED_CONGESTION]
         logger.info("Expected Congestion: {}".format(self._expected_congestion))
         logger.info("Dest Mean Congestion Result: {}".format(self._dst_mean_congestion))
 
