@@ -149,9 +149,11 @@ if __name__ == "__main__":
         tms_opt_zipped_list = dumps_dict[DumpsConsts.TMs]
 
     traffic_matrix_list = list(list(zip(*tms_opt_zipped_list))[0])
-    expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = calculating_expected_congestion(net_direct,
-                                                                                                                                 traffic_matrix_list,
-                                                                                                                                 initial_weights)
+    # expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = calculating_expected_congestion(net_direct,
+    #                                                                                                                              traffic_matrix_list,
+    #                                                                                                                              initial_weights)
+
+    expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = None,None,None,None
 
 
     filename: str = dump_dictionary(tail_str=tail_str, net_direct=net_direct, net_path=topology_url,
