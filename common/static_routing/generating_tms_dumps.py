@@ -64,6 +64,7 @@ def calculating_expected_congestion(net_direct, traffic_matrices_list, calc_init
 def generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, tm_type, static_pairs: bool,
                                      elephant_percentage: float, network_elephant, network_mice, total_matrices: int):
     logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices))
+    optimal_mean = 0
     tms_opt_zipped_list = list()
     for index in range(total_matrices):
         tm = one_sample_tm_base(graph=net,
@@ -73,14 +74,17 @@ def generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, 
                                 elephant_percentage=elephant_percentage, network_elephant=network_elephant,
                                 network_mice=network_mice)
 
-        opt_ratio, _ = optimal_load_balancing_LP_solver(net, tm)
-
-        tms_opt_zipped_list.append((tm, opt_ratio))
-        logger.info("Current TM {} with optimal routing {}".format(index, opt_ratio))
+        opt_congestion, _ = optimal_load_balancing_LP_solver(net, tm)
+        optimal_mean += opt_congestion
+        tms_opt_zipped_list.append((tm, opt_congestion))
+        logger.info("Current TM {} with optimal routing {}".format(index, opt_congestion))
+    optimal_mean /= total_matrices
+    logger.info("Optimal Congestion Expected: {}".format(optimal_mean))
     return tms_opt_zipped_list
 
 
-def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_zipped_list, matrix_sparsity: float, tm_type,
+def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_zipped_list, matrix_sparsity: float,
+                    tm_type,
                     expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion,
                     static_pairs: bool, elephant_percentage: float, network_elephant, network_mice,
                     total_matrices: int):

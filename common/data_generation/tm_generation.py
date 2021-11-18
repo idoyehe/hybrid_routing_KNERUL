@@ -21,16 +21,15 @@ def __bimodal_generation(_, pairs, percent, big=400, small=150, std=20):
 
     shuffle(pairs)
     num_big_pairs_selected = int(np.ceil(len(pairs) * percent))
-
     for i, pair in enumerate(pairs):
-        f_size_mb = -1
-        while f_size_mb < 0:
+        f_size_Gb = -1
+        while f_size_Gb < 0:
             if i < num_big_pairs_selected:
-                f_size_mb = np.random.normal(big, std)
+                f_size_Gb = np.random.normal(big, std)
             else:
-                f_size_mb = np.random.normal(small, std)
+                f_size_Gb = np.random.normal(small, std)
 
-        flows.append((pair[0], pair[1], f_size_mb))
+        flows.append((pair[0], pair[1], f_size_Gb))
 
     return flows
 
