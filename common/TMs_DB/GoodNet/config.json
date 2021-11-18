@@ -7,12 +7,12 @@
     "policy_updates": 500
   },
   "learning": {
-    "train_file": "GoodNet_tms_17X17_length_1024_gravity_sparsity_0.3_train",
-    "test_file": "GoodNet_tms_17X17_length_1024_gravity_sparsity_0.3_test_0",
-    "lp_file":"GoodNet_tms_17X17_length_1024_gravity_sparsity_0.3_LP",
-    "num_train_observations": 1024,
-    "num_test_observations": 1024,
-    "policy_updates": 1500,
+    "train_file": "GoodNet_tms_17X17_length_512_bimodal_sparsity_1.0_elephant_percentage_0.2_train",
+    "test_file": "GoodNet_tms_17X17_length_512_bimodal_sparsity_1.0_elephant_percentage_0.2_train",
+    "lp_file":"GoodNet_tms_17X17_length_512_bimodal_sparsity_1.0_elephant_percentage_0.2_LP",
+    "num_train_observations": 512,
+    "num_test_observations": 512,
+    "policy_updates": 0,
     "n_envs": 1,
     "n_steps": 320,
     "learning_rate": 0.003,
