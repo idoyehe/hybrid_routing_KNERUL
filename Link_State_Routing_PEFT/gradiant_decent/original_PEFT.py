@@ -44,8 +44,7 @@ class PEFT_Model(nn.Module):
                                                                                          self._traffic_matrix)
 
     def __initialize_all_weights(self, factor):
-        return torch.ones(size=(self._network.get_num_edges,), dtype=torch.float64, device="cpu",
-                          requires_grad=True) * factor
+        return torch.ones(size=(self._network.get_num_edges,), dtype=torch.float64, device="cpu", requires_grad=True) * factor
 
     def forward(self):
         PEFT_congestion, _, _, _, self._peft_current_flows_values = self._peft_traffic.step(
