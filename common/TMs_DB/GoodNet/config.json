@@ -9,9 +9,9 @@
   "learning": {
     "train_file": "GoodNet_tms_17X17_length_1024_bimodal_sparsity_0.3_elephant_percentage_0.2_train",
     "test_file": "GoodNet_tms_17X17_length_1024_bimodal_sparsity_0.3_elephant_percentage_0.2_test_0",
-    "lp_file":"GoodNet_tms_17X17_length_1024_bimodal_sparsity_0.3_elephant_percentage_0.2_train",
-    "num_train_observations": 512,
-    "num_test_observations": 512,
+    "lp_file":"GoodNet_tms_17X17_length_1024_bimodal_sparsity_0.3_elephant_percentage_0.2_LP",
+    "num_train_observations": 1024,
+    "num_test_observations": 1024,
     "policy_updates": 1500,
     "n_envs": 1,
     "n_steps": 320,
