@@ -16,6 +16,15 @@ def __uniform_generation(g, pairs, scale=1.0):
     return [(src, dst, scale * np.random.uniform(lower_bound, upper_bound)) for src, dst in pairs]
 
 
+def __poisson_generation(g, pairs, scale=1.0):
+    all_gravity_flows = g.gravity_traffic_map(scale)
+    flows_list = list()
+    for src, dst in pairs:
+        _poisson_lambda = np.random.uniform(1, 25)
+        flows_list.append((src, dst, np.random.poisson(_poisson_lambda)))
+    return flows_list
+
+
 def __bimodal_generation(_, pairs, percent, big=400, small=150, std=20):
     flows = []
 
@@ -50,6 +59,8 @@ def __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs=Fal
         get_flows = __gravity_generation
     elif flow_generation_type == TMType.UNIFORM:
         get_flows = __uniform_generation
+    elif flow_generation_type == TMType.POISSON:
+        get_flows = __poisson_generation
     else:
         raise Exception("No exists traffic matrix type")
 

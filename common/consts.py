@@ -29,6 +29,7 @@ class TMType:
     BIMODAL = "bimodal"
     GRAVITY = "gravity"
     UNIFORM = "uniform"
+    POISSON = "poisson"
 
 
 class DumpsConsts:
