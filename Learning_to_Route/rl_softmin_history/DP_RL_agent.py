@@ -2,7 +2,7 @@ from common.logger import logger
 from stable_baselines3.ppo import MlpPolicy
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
-from stable_baselines3.common.cmd_util import make_vec_env
+from stable_baselines3.common.env_util import make_vec_env
 from gym import envs, register
 from argparse import ArgumentParser
 from sys import argv

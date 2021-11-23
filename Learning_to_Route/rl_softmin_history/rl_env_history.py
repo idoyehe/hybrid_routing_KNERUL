@@ -35,16 +35,10 @@ class RL_Env_History(RL_Env):
     def step(self, links_weights):
         info = dict()
 
-        cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, \
-        total_load_per_link = self._process_action_get_cost(links_weights)
+        cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
+            self._process_action_get_cost(links_weights)
+
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
-
-        oblivious_value = self._oblivious_values[self._current_observation_index][self._tm_start_index + self._history_length]
-
-        if self._testing:
-            info[ExtraData.LINK_WEIGHTS] = np.array(links_weights)
-            info[ExtraData.LOAD_PER_LINK] = np.array(total_load_per_link)
-            info[ExtraData.MOST_CONGESTED_LINK] = most_congested_link
 
         info[ExtraData.REWARD_OVER_FUTURE] = cost_congestion_ratio
         self._diagnostics.append(info)
@@ -68,15 +62,17 @@ class RL_Env_History(RL_Env):
         max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
             self.optimizer_step(links_weights, tm, optimal_val)
 
-        cost_congestion_ratio = max_congestion / optimal_val
+        if self._testing:
+            cost_congestion_ratio = max_congestion
+        else:
+            cost_congestion_ratio = max_congestion / optimal_val
 
-        if cost_congestion_ratio < 1.0:
-            try:
-                assert error_bound(cost_congestion_ratio, optimal_val)
-            except Exception as _:
-                logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
-                            "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion,
-                                                                                optimal_val))
+            if cost_congestion_ratio < 1.0:
+                try:
+                    assert error_bound(cost_congestion_ratio, optimal_val)
+                except Exception as _:
+                    logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
+                                "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion, optimal_val))
 
         cost_congestion_ratio = max(cost_congestion_ratio, 1.0)
         logger.debug("SoftMin  Congestion :{}".format(max_congestion))
