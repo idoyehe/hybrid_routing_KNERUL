@@ -18,27 +18,30 @@ def __uniform_generation(g, pairs, scale=1.0):
 
 def __poisson_generation(g, pairs, scale=1.0):
     all_gravity_flows = g.gravity_traffic_map(scale)
+    lower_bound = min([flow for _, _, flow in all_gravity_flows])
+    upper_bound = max([flow for _, _, flow in all_gravity_flows])
     flows_list = list()
     for src, dst in pairs:
-        _poisson_lambda = np.random.uniform(1, 25)
+        _poisson_lambda = np.random.uniform(lower_bound, upper_bound)
         flows_list.append((src, dst, np.random.poisson(_poisson_lambda)))
     return flows_list
 
 
-def __bimodal_generation(_, pairs, percent, big=400, small=150, std=20):
+def __bimodal_generation(_, pairs, g_1_ratio, g_1=(800, 100), g_2=(400, 100)):
     flows = []
-
+    g_1_mean, g_1_std = g_1
+    g_2_mean, g_2_std = g_2
     shuffle(pairs)
-    num_big_pairs_selected = int(np.ceil(len(pairs) * percent))
+    num_g_1_pairs_selected = int(np.ceil(len(pairs) * g_1_ratio))
     for i, pair in enumerate(pairs):
-        f_size_Gb = -1
-        while f_size_Gb < 0:
-            if i < num_big_pairs_selected:
-                f_size_Gb = np.random.normal(big, std)
+        f_size = -1
+        while f_size < 0:
+            if i < num_g_1_pairs_selected:
+                f_size = np.random.normal(g_1_mean, g_1_std)
             else:
-                f_size_Gb = np.random.normal(small, std)
+                f_size = np.random.normal(g_2_mean, g_2_std)
 
-        flows.append((pair[0], pair[1], f_size_Gb))
+        flows.append((pair[0], pair[1], f_size))
 
     return flows
 
@@ -48,13 +51,12 @@ def __const_generation(_, pairs, const_value):
     return flows
 
 
-def __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs=False, elephant_percentage=0.2, big=400,
-                  small=150):
+def __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs, g_1_ratio, g_1, g_2):
     if flow_generation_type == TMType.CONST:
         const_value = np.mean(graph.get_edges_capacities()) / 10
         get_flows = partial(__const_generation, const_value=const_value)
     elif flow_generation_type == TMType.BIMODAL:
-        get_flows = partial(__bimodal_generation, percent=elephant_percentage, big=big, small=small)
+        get_flows = partial(__bimodal_generation, g_1_ratio=g_1_ratio, g_1=g_1, g_2=g_2)
     elif flow_generation_type == TMType.GRAVITY:
         get_flows = __gravity_generation
     elif flow_generation_type == TMType.UNIFORM:
@@ -68,9 +70,8 @@ def __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs=Fal
     return get_flows(graph, pairs)
 
 
-def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, static_pairs=False, elephant_percentage=None,
-                     big=400, small=150):
-    tm = __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs, elephant_percentage, big, small)
+def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, static_pairs, g_1_ratio, g_1, g_2):
+    tm = __generate_tm(graph, matrix_sparsity, flow_generation_type, static_pairs, g_1_ratio, g_1, g_2)
     num_nodes = graph.get_num_nodes
 
     tm_mat = np.zeros((num_nodes, num_nodes), dtype=np.float64)
@@ -79,10 +80,7 @@ def __raw_sample_mat(graph, matrix_sparsity, flow_generation_type, static_pairs=
     return tm_mat
 
 
-def one_sample_tm_base(graph, matrix_sparsity, tm_type, static_pairs=False, elephant_percentage=0.2,
-                       network_elephant=400,
-                       network_mice=150):
-    tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, static_pairs, elephant_percentage, big=network_elephant,
-                          small=network_mice)
+def one_sample_tm_base(graph, matrix_sparsity, tm_type, static_pairs=False, g_1_ratio=0.2, g_1=(800, 100), g_2=(400, 100)):
+    tm = __raw_sample_mat(graph, matrix_sparsity, tm_type, static_pairs, g_1_ratio, g_1, g_2)
     assert np.all(tm >= 0)
     return tm

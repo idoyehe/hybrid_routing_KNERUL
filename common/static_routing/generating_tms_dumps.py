@@ -1,7 +1,3 @@
-import sys
-
-sys.path.append("/home/idoye/PycharmProjects/Research_Implementing")
-
 from common.data_generation.tm_generation import one_sample_tm_base
 from optimal_load_balancing import optimal_load_balancing_LP_solver
 from common.logger import logger
@@ -25,21 +21,20 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-topo", "--topology_url", type=str, help="The url to load graph topology from")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path for the dumped file", default=None)
     parser.add_argument("-init_w", "--initial_weights", type=eval, help="Calculate Initial Weights", default=False)
-    parser.add_argument("-n", "--total_matrices", type=int, help="The number of total matrices", default=20000)
+    parser.add_argument("-n", "--total_matrices", type=int, help="The number of total matrices", default=1024)
     parser.add_argument("-sp", "--sparsity", type=float, help="The sparsity of the matrix", default=0.3)
-    parser.add_argument("-stat_p", "--static_pairs", type=bool, help="Where the pairs with traffic are static",
-                        default=False)
+    parser.add_argument("-stat_p", "--static_pairs", type=bool, help="Where the pairs with traffic are static", default=False)
     parser.add_argument("-m_type", "--tm_type", type=str, help="The type of the matrix", default=TMType.GRAVITY)
-    parser.add_argument("-e_p", "--elephant_percentage", type=float, help="The percentage of elephant flows")
-    parser.add_argument("-n_e", "--network_elephant", type=float, help="The network elephant expectancy", default=400)
-    parser.add_argument("-n_m", "--network_mice", type=float, help="The network mice expectancy", default=150)
+    parser.add_argument("-g_1_r", "--g_1_ratio", type=float, help="The percentage of G_1 flows")
+    parser.add_argument("-g_1", "--g_1", type=eval, help="The network G_1 flow distribution properties", default=None)
+    parser.add_argument("-g_2", "--g_2", type=eval, help="The network G_2 flow distribution properties", default=None)
     parser.add_argument("-tail", "--tail_str", type=str, help="String to add in end of the file", default="")
     options = parser.parse_args(args)
     return options
 
 
 def _get_initial_weights(net, traffic_matrix, necessary_capacity):
-    w_u_v = PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity, 1.0)
+    w_u_v = PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity)
     return w_u_v
 
 
@@ -51,43 +46,35 @@ def calculating_expected_congestion(net_direct, traffic_matrices_list, calc_init
         initial_weights = _get_initial_weights(net_direct, aggregate_tm, necessary_capacity_per_tm[-1])
 
     traffic_distribution = Optimizer_Abstract(net_direct)
-    dst_splitting_ratios = traffic_distribution.reduce_src_dst_spr_to_dst_spr(net_direct,
-                                                                              optimal_src_dst_splitting_ratios)
-    dst_mean_congestion = np.mean(
-        [traffic_distribution._calculating_traffic_distribution(dst_splitting_ratios, t)[0] for t in
-         traffic_matrices_list])
+    dst_splitting_ratios = traffic_distribution.reduce_src_dst_spr_to_dst_spr(net_direct, optimal_src_dst_splitting_ratios)
+    dst_mean_congestion = np.mean([traffic_distribution._calculating_traffic_distribution(dst_splitting_ratios, t)[0] for t in traffic_matrices_list])
+
     logger.info("Expected Congestion :{}".format(expected_objective))
     logger.info("Dest Mean Congestion Result: {}".format((dst_mean_congestion)))
     return expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion
 
 
 def generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, tm_type, static_pairs: bool,
-                                     elephant_percentage: float, network_elephant, network_mice, total_matrices: int):
+                                     g_1_ratio: float, g_1: tuple, g_2: tuple, total_matrices: int):
     logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices))
-    optimal_mean = 0
+    lb_expected_congestion = 0
     tms_opt_zipped_list = list()
     for index in range(total_matrices):
-        tm = one_sample_tm_base(graph=net,
-                                matrix_sparsity=matrix_sparsity,
-                                static_pairs=static_pairs,
-                                tm_type=tm_type,
-                                elephant_percentage=elephant_percentage, network_elephant=network_elephant,
-                                network_mice=network_mice)
+        tm = one_sample_tm_base(graph=net, matrix_sparsity=matrix_sparsity, static_pairs=static_pairs,
+                                tm_type=tm_type, g_1_ratio=g_1_ratio, g_1=g_1, g_2=g_2)
 
         opt_congestion, _ = optimal_load_balancing_LP_solver(net, tm)
-        optimal_mean += opt_congestion
+        lb_expected_congestion += opt_congestion
         tms_opt_zipped_list.append((tm, opt_congestion))
         logger.info("Current TM {} with optimal routing {}".format(index, opt_congestion))
-    optimal_mean /= total_matrices
-    logger.info("Optimal Congestion Expected: {}".format(optimal_mean))
+    lb_expected_congestion /= total_matrices
+    logger.info("Lower Bound Expected Congestion: {}".format(lb_expected_congestion))
     return tms_opt_zipped_list
 
 
 def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_zipped_list, matrix_sparsity: float,
-                    tm_type,
-                    expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion,
-                    static_pairs: bool, elephant_percentage: float, network_elephant, network_mice,
-                    total_matrices: int):
+                    tm_type, expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion,
+                    static_pairs: bool, g_1_ratio: float, g_1, g_2, total_matrices: int):
     dict2dump = dict()
     dict2dump[DumpsConsts.TMs] = tms_opt_zipped_list
     dict2dump[DumpsConsts.NET_PATH] = net_path
@@ -115,7 +102,7 @@ def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_z
         folder_name = folder_name.replace("\\", "/")
 
     if tm_type == TMType.BIMODAL:
-        file_name += "_elephant_percentage_{}".format(elephant_percentage)
+        file_name += "_g_1_ratio_{}".format(g_1_ratio)
 
     file_name += "_{}".format(tail_str)
     os.makedirs(folder_name, exist_ok=True)
@@ -133,20 +120,19 @@ if __name__ == "__main__":
     matrix_sparsity = args.sparsity
     tm_type = args.tm_type
     static_pairs = args.static_pairs
-    elephant_percentage = args.elephant_percentage
-    network_elephant = args.network_elephant
-    network_mice = args.network_mice
     total_matrices = args.total_matrices
     dump_path = args.dumped_path
     initial_weights = args.initial_weights
+    g_1_ratio = args.g_1_ratio
+    g_1 = args.g_1
+    g_2 = args.g_2
     tail_str = args.tail_str
 
     if dump_path is None:
         tms_opt_zipped_list = generate_traffic_matrix_baseline(net=net_direct, matrix_sparsity=matrix_sparsity,
                                                                tm_type=tm_type, static_pairs=static_pairs,
-                                                               elephant_percentage=elephant_percentage,
-                                                               network_elephant=network_elephant,
-                                                               network_mice=network_mice, total_matrices=total_matrices)
+                                                               g_1_ratio=g_1_ratio, g_1=g_1, g_2=g_2,
+                                                               total_matrices=total_matrices)
 
     else:
         dumps_dict = load_dump_file(dump_path)
@@ -165,8 +151,6 @@ if __name__ == "__main__":
                                     initial_weights=initial_weights,
                                     dst_mean_congestion=dst_mean_congestion,
                                     static_pairs=static_pairs,
-                                    elephant_percentage=elephant_percentage,
-                                    network_elephant=network_elephant,
-                                    network_mice=network_mice,
+                                    g_1_ratio=g_1_ratio, g_1=g_1, g_2=g_2,
                                     total_matrices=total_matrices)
     print("Dumps the Tms to:\n{}".format(filename))
