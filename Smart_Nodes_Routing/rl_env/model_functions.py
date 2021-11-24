@@ -87,17 +87,19 @@ def load_network_and_update_env(network_file: str, env):
     return net, env
 
 
-def run_testing(model, env, num_test_observations):
+def run_testing(model, env, num_test_observations, link_weights=None):
     env.testing(True)
     rewards_list = list()
+    predict_link_weights = link_weights is None
     for _ in range(num_test_observations):
         obs = env.reset()
-        link_weights, _ = model.predict(env.reset(), deterministic=True)
+        if predict_link_weights:
+            link_weights, _ = model.predict(env.reset(), deterministic=True)
         _, reward, dones, info = env.step(link_weights)
         rewards_list.append(reward)
 
     mean_reward = np.mean(rewards_list)
-    mean_reward = np.round(mean_reward,4)
+    mean_reward = np.round(mean_reward, 4)
     print("Agent average performance: {}".format(mean_reward * -1))
     return mean_reward
 
