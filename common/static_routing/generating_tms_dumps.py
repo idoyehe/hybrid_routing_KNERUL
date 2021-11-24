@@ -122,7 +122,7 @@ if __name__ == "__main__":
     static_pairs = args.static_pairs
     total_matrices = args.total_matrices
     dump_path = args.dumped_path
-    initial_weights = args.initial_weights
+    initial_weights_flag = args.initial_weights
     g_1_ratio = args.g_1_ratio
     g_1 = args.g_1
     g_2 = args.g_2
@@ -139,10 +139,10 @@ if __name__ == "__main__":
         tms_opt_zipped_list = dumps_dict[DumpsConsts.TMs]
 
     traffic_matrix_list = list(list(zip(*tms_opt_zipped_list))[0])
+    # expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = None,None,None,None
     expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = calculating_expected_congestion(net_direct,
                                                                                                                                  traffic_matrix_list,
-                                                                                                                                 initial_weights)
-
+                                                                                                                                 initial_weights_flag)
     filename: str = dump_dictionary(tail_str=tail_str, net_direct=net_direct, net_path=topology_url,
                                     tms_opt_zipped_list=tms_opt_zipped_list, matrix_sparsity=matrix_sparsity,
                                     tm_type=tm_type,
