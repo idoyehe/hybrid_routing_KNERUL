@@ -1,4 +1,5 @@
 from common.consts import TMType
+from common.network_class import NetworkClass
 import numpy as np
 from functools import partial
 from random import shuffle
@@ -9,15 +10,15 @@ def __gravity_generation(g, pairs, scale=1.0):
     return [flow for flow in all_gravity_flows if flow[0:2] in pairs]
 
 
-def __uniform_generation(g, pairs, scale=1.0):
-    all_gravity_flows = g.gravity_traffic_map(scale)
+def __uniform_generation(net: NetworkClass, pairs, scale=1.0):
+    all_gravity_flows = net.gravity_traffic_map(scale)
     lower_bound = min([flow for _, _, flow in all_gravity_flows])
     upper_bound = max([flow for _, _, flow in all_gravity_flows])
     return [(src, dst, scale * np.random.uniform(lower_bound, upper_bound)) for src, dst in pairs]
 
 
-def __poisson_generation(g, pairs, scale=1.0):
-    all_gravity_flows = g.gravity_traffic_map(scale)
+def __poisson_generation(net: NetworkClass, pairs, scale=1.0):
+    all_gravity_flows = net.gravity_traffic_map(scale)
     lower_bound = min([flow for _, _, flow in all_gravity_flows])
     upper_bound = max([flow for _, _, flow in all_gravity_flows])
     flows_list = list()
@@ -27,21 +28,24 @@ def __poisson_generation(g, pairs, scale=1.0):
     return flows_list
 
 
-def __bimodal_generation(_, pairs, g_1_ratio, g_1=(800, 100), g_2=(400, 100)):
+def __bimodal_generation(net: NetworkClass, pairs, g_1_ratio, g_1=(800, 100), g_2=(400, 100)):
     flows = []
+    elephant_percentages = net.elephant_percentages()
     g_1_mean, g_1_std = g_1
     g_2_mean, g_2_std = g_2
     shuffle(pairs)
     num_g_1_pairs_selected = int(np.ceil(len(pairs) * g_1_ratio))
-    for i, pair in enumerate(pairs):
+    for i, (src, dst) in enumerate(pairs):
+        coin = np.random.random_sample()
+        ep_flag = coin <= elephant_percentages[src]
         f_size = -1
         while f_size < 0:
-            if i < num_g_1_pairs_selected:
+            if ep_flag:
                 f_size = np.random.normal(g_1_mean, g_1_std)
             else:
                 f_size = np.random.normal(g_2_mean, g_2_std)
 
-        flows.append((pair[0], pair[1], f_size))
+        flows.append((src, dst, f_size))
 
     return flows
 

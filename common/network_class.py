@@ -42,6 +42,7 @@ class NetworkClass(object):
         self._flows = None
         self._title = None
         self._chosen_pairs = None
+        self._elephant_percentages = None
         self._smart_nodes: tuple = tuple()
         self._smart_nodes_spr: dict = dict()
         print("Network {} has been created".format(self.get_title))
@@ -266,9 +267,19 @@ class NetworkClass(object):
             self._flows = []
 
             for src, dst in self.get_all_pairs():
-                flow_size = np.round(self._outgoing_capacity[src] * self._ingoing_capacity[dst] / self._total_capacity,4)
+                flow_size = np.round(self._outgoing_capacity[src] * self._ingoing_capacity[dst] / self._total_capacity, 4)
                 self._flows.append((src, dst, scale * flow_size))
         return self._flows
+
+    def elephant_percentages(self):
+        if self._elephant_percentages is None:
+            self.__capacity_map()
+            self._elephant_percentages = np.zeros(shape=(self.get_num_nodes,), dtype=np.float64)
+            for u in self.nodes:
+                self._elephant_percentages[u] = self._outgoing_capacity[u] / self._total_capacity
+
+            assert error_bound(np.sum(self._elephant_percentages),1.0)
+        return self._elephant_percentages
 
     def __randomize_pairs(self, percent):
         all_pairs_copy = list(self.get_all_pairs())
@@ -323,4 +334,3 @@ if __name__ == "__main__":
     net = NetworkClass(get_base_graph())
     adj = net.get_adjacency
     pairs = net.get_all_pairs()
-
