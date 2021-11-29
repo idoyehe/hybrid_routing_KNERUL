@@ -7,18 +7,18 @@
     "policy_updates": 250
   },
   "learning": {
-    "train_file": "ScaleFree30Nodes_tms_30X30_length_1024_poisson_sparsity_0.1_train",
-    "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_poisson_sparsity_0.1_test_0",
-    "lp_file": "ScaleFree30Nodes_tms_30X30_length_4096_poisson_sparsity_0.1_LP",
+    "train_file": "ScaleFree30Nodes_tms_30X30_length_1024_bimodal_sparsity_0.5_g_1_ratio_1.0_train",
+    "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_bimodal_sparsity_0.5_g_1_ratio_1.0_test_0",
+    "lp_file": "ScaleFree30Nodes_tms_30X30_length_1024_bimodal_sparsity_0.5_g_1_ratio_1.0_LP",
     "num_train_observations": 1024,
     "num_test_observations": 1024,
-    "policy_updates": 0,
+    "policy_updates": 1000,
     "n_envs": 1,
-    "n_steps": 320,
+    "n_steps": 384,
     "learning_rate": 0.003,
-    "batch_size": 64,
+    "batch_size": 128,
     "weights_factor": 1,
-    "weight_lb": 0.7,
-    "weight_ub": 14
+    "weight_lb": 0.8,
+    "weight_ub": 12
   }
 }
