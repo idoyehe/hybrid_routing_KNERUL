@@ -25,7 +25,6 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-sp", "--sparsity", type=float, help="The sparsity of the matrix", default=0.3)
     parser.add_argument("-stat_p", "--static_pairs", type=bool, help="Where the pairs with traffic are static", default=False)
     parser.add_argument("-m_type", "--tm_type", type=str, help="The type of the matrix", default=TMType.GRAVITY)
-    parser.add_argument("-g_1_r", "--g_1_ratio", type=float, help="The percentage of G_1 flows")
     parser.add_argument("-g_1", "--g_1", type=eval, help="The network G_1 flow distribution properties", default=None)
     parser.add_argument("-g_2", "--g_2", type=eval, help="The network G_2 flow distribution properties", default=None)
     parser.add_argument("-tail", "--tail_str", type=str, help="String to add in end of the file", default="")
@@ -55,13 +54,13 @@ def calculating_expected_congestion(net_direct, traffic_matrices_list, calc_init
 
 
 def generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, tm_type, static_pairs: bool,
-                                     g_1_ratio: float, g_1: tuple, g_2: tuple, total_matrices: int):
+                                     g_1: tuple, g_2: tuple, total_matrices: int):
     logger.info("Generating baseline of traffic matrices to evaluate of length {}".format(total_matrices))
     lb_expected_congestion = 0
     tms_opt_zipped_list = list()
     for index in range(total_matrices):
         tm = one_sample_tm_base(graph=net, matrix_sparsity=matrix_sparsity, static_pairs=static_pairs,
-                                tm_type=tm_type, g_1_ratio=g_1_ratio, g_1=g_1, g_2=g_2)
+                                tm_type=tm_type, g_1=g_1, g_2=g_2)
 
         opt_congestion, _ = optimal_load_balancing_LP_solver(net, tm)
         lb_expected_congestion += opt_congestion
@@ -74,7 +73,7 @@ def generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, 
 
 def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_zipped_list, matrix_sparsity: float,
                     tm_type, expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion,
-                    static_pairs: bool, g_1_ratio: float, g_1, g_2, total_matrices: int):
+                    static_pairs: bool, g_1, g_2, total_matrices: int):
     dict2dump = dict()
     dict2dump[DumpsConsts.TMs] = tms_opt_zipped_list
     dict2dump[DumpsConsts.NET_PATH] = net_path
@@ -101,9 +100,6 @@ def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_z
         file_name = file_name.replace("\\", "/")
         folder_name = folder_name.replace("\\", "/")
 
-    if tm_type == TMType.BIMODAL:
-        file_name += "_g_1_ratio_{}".format(g_1_ratio)
-
     file_name += "_{}".format(tail_str)
     os.makedirs(folder_name, exist_ok=True)
     dump_file = open(file_name, 'wb')
@@ -123,7 +119,6 @@ if __name__ == "__main__":
     total_matrices = args.total_matrices
     dump_path = args.dumped_path
     initial_weights_flag = args.initial_weights
-    g_1_ratio = args.g_1_ratio
     g_1 = args.g_1
     g_2 = args.g_2
     tail_str = args.tail_str
@@ -131,8 +126,7 @@ if __name__ == "__main__":
     if dump_path is None:
         tms_opt_zipped_list = generate_traffic_matrix_baseline(net=net_direct, matrix_sparsity=matrix_sparsity,
                                                                tm_type=tm_type, static_pairs=static_pairs,
-                                                               g_1_ratio=g_1_ratio, g_1=g_1, g_2=g_2,
-                                                               total_matrices=total_matrices)
+                                                               g_1=g_1, g_2=g_2, total_matrices=total_matrices)
 
     else:
         dumps_dict = load_dump_file(dump_path)
@@ -150,7 +144,6 @@ if __name__ == "__main__":
                                     optimal_src_dst_splitting_ratios=optimal_src_dst_splitting_ratios,
                                     initial_weights=initial_weights,
                                     dst_mean_congestion=dst_mean_congestion,
-                                    static_pairs=static_pairs,
-                                    g_1_ratio=g_1_ratio, g_1=g_1, g_2=g_2,
+                                    static_pairs=static_pairs, g_1=g_1, g_2=g_2,
                                     total_matrices=total_matrices)
     print("Dumps the Tms to:\n{}".format(filename))
