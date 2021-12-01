@@ -58,7 +58,7 @@ def build_clean_smart_nodes_env(train_file: str,
 def build_clean_smart_nodes_model(model_envs, learning_rate: float, n_steps: int,
                                   batch_size: int,
                                   mlp_arch=None,
-                                  log_std_init=-3,
+                                  log_std_init=-1,
                                   gamma: float = EnvConsts.GAMMA) -> PPO:
     if mlp_arch is None:
         mlp_arch = [1]

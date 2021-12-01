@@ -59,8 +59,7 @@ if __name__ == "__main__":
 
         logger.info("********** Iteration {}, Smart Nodes:{}  ***********".format(i, current_smart_nodes))
         logger.info("********* Iteration {} Starts, Agent is learning *********".format(i))
-        # learning_title = "Iteration_{}".format(i)
-        learning_title = "GoodNet_agent_baseline_3_smart_node"
+        learning_title = "Iteration_{}".format(i)
         model, single_env = model_continue_learning(model, single_env, learning_title, policy_updates=policy_updates)
 
     logger.info("========================== Learning Process is Done =================================")
