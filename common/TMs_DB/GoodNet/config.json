@@ -7,18 +7,18 @@
     "policy_updates": 500
   },
   "learning": {
-    "train_file": "GoodNet_tms_17X17_length_1024_bimodal_sparsity_0.5_g_1_ratio_1.0_train",
-    "test_file": "GoodNet_tms_17X17_length_1024_bimodal_sparsity_0.5_g_1_ratio_1.0_test_0",
-    "lp_file":"GoodNet_tms_17X17_length_2048_bimodal_sparsity_0.5_g_1_ratio_1.0_LP",
+    "train_file": "GoodNet_tms_17X17_length_1024_bimodal_sparsity_0.4_train",
+    "test_file": "GoodNet_tms_17X17_length_1024_bimodal_sparsity_0.4_test_0",
+    "lp_file":"GoodNet_tms_17X17_length_1024_bimodal_sparsity_0.4_LP",
     "num_train_observations": 1024,
     "num_test_observations": 1024,
-    "policy_updates": 0,
+    "policy_updates": 1000,
     "n_envs": 1,
     "n_steps": 384,
     "learning_rate": 0.003,
     "batch_size": 128,
     "weights_factor": 1,
     "weight_lb": 1,
-    "weight_ub": 12
+    "weight_ub": 7
   }
 }
