@@ -7,9 +7,9 @@
     "policy_updates": 250
   },
   "learning": {
-    "train_file": "ScaleFree30Nodes_tms_30X30_length_1024_bimodal_sparsity_0.5_g_1_ratio_1.0_train",
-    "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_bimodal_sparsity_0.5_g_1_ratio_1.0_test_0",
-    "lp_file": "ScaleFree30Nodes_tms_30X30_length_1024_bimodal_sparsity_0.5_g_1_ratio_1.0_LP",
+    "train_file": "ScaleFree30Nodes_tms_30X30_length_1024_bimodal_sparsity_0.4_train",
+    "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_bimodal_sparsity_0.4_test_0",
+    "lp_file": "ScaleFree30Nodes_tms_30X30_length_1024_bimodal_sparsity_0.4_LP",
     "num_train_observations": 1024,
     "num_test_observations": 1024,
     "policy_updates": 1000,
@@ -19,6 +19,6 @@
     "batch_size": 128,
     "weights_factor": 1,
     "weight_lb": 0.8,
-    "weight_ub": 13
+    "weight_ub": 10
   }
 }
