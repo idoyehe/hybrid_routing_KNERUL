@@ -7,9 +7,9 @@
     "policy_updates": 500
   },
   "learning": {
-    "train_file": "Claranet_tms_15X15_length_1024_gravity_sparsity_0.3_train",
-    "test_file": "Claranet_tms_15X15_length_1024_gravity_sparsity_0.3_test_0",
-    "lp_file":"Claranet_tms_15X15_length_1024_gravity_sparsity_0.3_LP",
+    "train_file": "Claranet_tms_15X15_length_1024_bimodal_sparsity_0.4_train",
+    "test_file": "Claranet_tms_15X15_length_1024_bimodal_sparsity_0.4_test_0",
+    "lp_file":"Claranet_tms_15X15_length_2048_bimodal_sparsity_0.4_LP",
     "num_train_observations": 1024,
     "num_test_observations": 1024,
     "policy_updates": 1000,
@@ -18,7 +18,7 @@
     "learning_rate": 0.003,
     "batch_size": 128,
     "weights_factor": 1,
-    "weight_lb": 1,
-    "weight_ub": 11.5
+    "weight_lb": 0.9,
+    "weight_ub": 8
   }
 }
