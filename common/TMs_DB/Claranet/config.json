@@ -9,7 +9,7 @@
   "learning": {
     "train_file": "Claranet_tms_15X15_length_1024_bimodal_sparsity_0.4_train",
     "test_file": "Claranet_tms_15X15_length_1024_bimodal_sparsity_0.4_test_0",
-    "lp_file":"Claranet_tms_15X15_length_2048_bimodal_sparsity_0.4_LP",
+    "lp_file":"Claranet_tms_15X15_length_4096_bimodal_sparsity_0.4_LP",
     "num_train_observations": 1024,
     "num_test_observations": 1024,
     "policy_updates": 1000,
