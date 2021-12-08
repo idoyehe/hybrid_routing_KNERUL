@@ -194,7 +194,7 @@ if __name__ == "__main__":
     test_oblivious_mean_congestion_2 = np.round(multiple_matrices_traffic_distribution(net, test_tms_2, src_dst_splitting_ratios)[0], 4)
     print("2: Test Tms: Oblivious Mean Congestion Result: {}".format((test_oblivious_mean_congestion_2)))
 
-    lp_tms = np.array(list(zip(*lp_file[DumpsConsts.TMs]))[0])
+    lp_tms = np.array(list(zip(*lp_loaded_dict[DumpsConsts.TMs]))[0])
     lp_oblivious_mean_congestion = np.round(multiple_matrices_traffic_distribution(net, lp_tms, src_dst_splitting_ratios)[0], 4)
     print("LP Tms: Oblivious Mean Congestion Result: {}".format((lp_oblivious_mean_congestion)))
 
