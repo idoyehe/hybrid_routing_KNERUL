@@ -15,10 +15,11 @@ import os, pickle
 
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for dump file")
-    parser.add_argument("-train_file", "--train_file", type=str, help="The path for the dumped train file")
+    parser.add_argument("-train", "--train_file", type=str, help="The path for the dumped train file")
     parser.add_argument("-test_0", "--test_file_0", type=str, help="The path for the dumped test file")
     parser.add_argument("-test_1", "--test_file_1", type=str, help="The path for the dumped test file")
     parser.add_argument("-test_2", "--test_file_2", type=str, help="The path for the dumped test file")
+    parser.add_argument("-lp", "--lp_file", type=str, help="The path for the dumped LP train file")
     parser.add_argument("-save", "--save_dump", type=eval, help="Save the results in ad dump", default=True)
     options = parser.parse_args(args)
     return options
@@ -163,11 +164,13 @@ if __name__ == "__main__":
     test_file_0 = args.test_file_0
     test_file_1 = args.test_file_1
     test_file_2 = args.test_file_2
+    lp_file = args.lp_file
     save_dump = args.save_dump
     train_loaded_dict = load_dump_file(train_file)
     test_loaded_dict_0 = load_dump_file(test_file_0)
     test_loaded_dict_1 = load_dump_file(test_file_1)
     test_loaded_dict_2 = load_dump_file(test_file_2)
+    lp_loaded_dict = load_dump_file(lp_file)
 
     topology_gml = train_loaded_dict[DumpsConsts.NET_PATH]
 
@@ -191,11 +194,19 @@ if __name__ == "__main__":
     test_oblivious_mean_congestion_2 = np.round(multiple_matrices_traffic_distribution(net, test_tms_2, src_dst_splitting_ratios)[0], 4)
     print("2: Test Tms: Oblivious Mean Congestion Result: {}".format((test_oblivious_mean_congestion_2)))
 
+    lp_tms = np.array(list(zip(*lp_file[DumpsConsts.TMs]))[0])
+    lp_oblivious_mean_congestion = np.round(multiple_matrices_traffic_distribution(net, lp_tms, src_dst_splitting_ratios)[0], 4)
+    print("LP Tms: Oblivious Mean Congestion Result: {}".format((lp_oblivious_mean_congestion)))
+
     if save_dump:
         dict2dump = dict()
         dict2dump[DumpsConsts.OBLIVIOUS_RATIO] = oblivious_ratio
         dict2dump[DumpsConsts.OBLIVIOUS_MEAN_CONGESTION] = \
-            (train_oblivious_mean_congestion, test_oblivious_mean_congestion_0, test_oblivious_mean_congestion_1, test_oblivious_mean_congestion_2)
+            (train_oblivious_mean_congestion,
+             test_oblivious_mean_congestion_0,
+             test_oblivious_mean_congestion_1,
+             test_oblivious_mean_congestion_2,
+             lp_oblivious_mean_congestion)
         dict2dump[DumpsConsts.OBLIVIOUS_SRC_DST_SPR] = src_dst_splitting_ratios
 
         folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net.get_title)
