@@ -15,9 +15,9 @@ from tabulate import tabulate
 
 def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env = gb.Env(empty=True)
-    gb_env.setParam(GRB.Param.OutputFlag, 1)
-    gb_env.setParam(GRB.Param.NumericFocus, 2)
-    gb_env.setParam(GRB.Param.FeasibilityTol, 1e-7)
+    gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
+    gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
+    gb_env.setParam(GRB.Param.FeasibilityTol, Consts.FEASIBILITY_TOL)
     gb_env.setParam(GRB.Param.Method, Consts.PRIMAL_SIMPLEX)
     gb_env.setParam(GRB.Param.Presolve, Consts.PRESOLVE)
     gb_env.start()
