@@ -146,6 +146,6 @@ if __name__ == "__main__":
                                     optimal_src_dst_splitting_ratios=optimal_src_dst_splitting_ratios,
                                     initial_weights=initial_weights,
                                     dst_mean_congestion=dst_mean_congestion,
-                                    static_pairs=static_pairs, g_1=g_1, g_2=g_2,
+                                    static_pairs=static_pairs, g_1=g_1, g_2=g_2,g_1_ratio=g_1_ratio,
                                     total_matrices=total_matrices)
     print("Dumps the Tms to:\n{}".format(filename))
