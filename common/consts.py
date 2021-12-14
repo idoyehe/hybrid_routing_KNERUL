@@ -26,6 +26,7 @@ class EdgeConsts:
 class TMType:
     # TMs types
     CONST = "const"
+    CUSTOM_BIMODAL = "custom_bimodal"
     BIMODAL = "bimodal"
     GRAVITY = "gravity"
     UNIFORM = "uniform"
