@@ -73,7 +73,7 @@ def generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, 
 
 def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_zipped_list, matrix_sparsity: float,
                     tm_type, expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion,
-                    static_pairs: bool, g_1, g_2, total_matrices: int):
+                    static_pairs: bool,g_1_ratio, g_1, g_2, total_matrices: int):
     dict2dump = dict()
     dict2dump[DumpsConsts.TMs] = tms_opt_zipped_list
     dict2dump[DumpsConsts.NET_PATH] = net_path
@@ -83,6 +83,7 @@ def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_z
     dict2dump[DumpsConsts.DEST_EXPECTED_CONGESTION] = np.round(dst_mean_congestion, 4) if dst_mean_congestion is not None else dst_mean_congestion
     dict2dump[DumpsConsts.MATRIX_SPARSITY] = matrix_sparsity
     dict2dump[DumpsConsts.MATRIX_TYPE] = tm_type
+    dict2dump[DumpsConsts.G_1_RATIO] = g_1_ratio
 
     folder_name: str = os.getcwd() + "\\..\\TMs_DB\\{}".format(net_direct.get_title)
     file_name: str = os.getcwd() + "\\..\\TMs_DB\\{}\\{}_tms_{}X{}_length_{}_{}_sparsity_{}".format(

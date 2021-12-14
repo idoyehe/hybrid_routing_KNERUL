@@ -42,6 +42,7 @@ class DumpsConsts:
     DEST_EXPECTED_CONGESTION = "dest_expected_congestion"
     MATRIX_SPARSITY = "matrix_sparsity"
     MATRIX_TYPE = "matrix_type"
+    G_1_RATIO = "g_1_ratio"
     OBLIVIOUS_RATIO = "oblivious_ratio"
     OBLIVIOUS_MEAN_CONGESTION = "oblivious_mean_congestion"
     OBLIVIOUS_SRC_DST_SPR = "oblivious_src_dst_spr"
