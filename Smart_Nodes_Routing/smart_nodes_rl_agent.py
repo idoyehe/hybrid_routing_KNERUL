@@ -17,7 +17,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
     parser.add_argument("-l_net", "--load_network", type=str, help="Load a dumped Network object", default=None)
     parser.add_argument("-n_iter", "--number_of_iterations", type=int, help="Number of iteration", default=2)
-    parser.add_argument("-policy_updates", "--policy_updates", type=int, help="Number of policy updates", default=200)
+    parser.add_argument("-policy_updates", "--policy_updates", type=int, help="Number of policy updates", default=100)
     options = parser.parse_args(args)
     return options
 
