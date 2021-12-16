@@ -162,14 +162,16 @@ def _aux_mcf_LP_with_smart_nodes_solver(gurobi_env, net_direct: NetworkClass,
         reduced_flows = list(filter(lambda src_dst: src_dst[1] != u, active_flows))
         for src, dst in reduced_flows:
             flow_from_u_src2dst = flows_src_dst_per_node[src, dst, u]
-            if flow_from_u_src2dst == 0:
+            if flow_from_u_src2dst <= 0:
                 continue
+            assert flow_from_u_src2dst > 0.0
             assert len(net_direct.out_edges_by_node(u)) > 1
             spr_u_v_normalizer = 0
             for _, v in net_direct.out_edges_by_node(u):
                 flows_src_dst_per_edge[src, dst, u, v] = max(flows_src_dst_per_edge[src, dst, u, v], 0.0)
-                spr_src_dst_per_sn_edges[(src, dst, u, v)] = np.round(flows_src_dst_per_edge[src, dst, u, v] / flow_from_u_src2dst, 4)
-                spr_u_v_normalizer += spr_src_dst_per_sn_edges[(src, dst, u, v)]
+                spr_src_dst_per_sn_edges[(src, dst, u, v)] = flows_src_dst_per_edge[src, dst, u, v]
+                spr_u_v_normalizer += flows_src_dst_per_edge[src, dst, u, v]
+            assert spr_u_v_normalizer > 0
             for _, v in net_direct.out_edges_by_node(u):
                 spr_src_dst_per_sn_edges[(src, dst, u, v)] /= spr_u_v_normalizer
 
