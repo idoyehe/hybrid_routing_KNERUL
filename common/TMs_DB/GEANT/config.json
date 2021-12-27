@@ -12,7 +12,7 @@
     "lp_file": "GEANT_tms_34X34_length_2048_custom_bimodal_sparsity_0.4_LP",
     "num_train_observations": 1024,
     "num_test_observations": 1024,
-    "policy_updates": 0,
+    "policy_updates": 1200,
     "n_envs": 1,
     "n_steps": 384,
     "learning_rate": 0.003,
