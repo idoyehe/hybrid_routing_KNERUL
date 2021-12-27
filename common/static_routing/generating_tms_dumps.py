@@ -71,16 +71,16 @@ def generate_traffic_matrix_baseline(net: NetworkClass, matrix_sparsity: float, 
     return tms_opt_zipped_list
 
 
-def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_zipped_list, matrix_sparsity: float,
-                    tm_type, expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion,
-                    static_pairs: bool,g_1_ratio, g_1, g_2, total_matrices: int):
+def build_dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_zipped_list, matrix_sparsity: float,
+                          tm_type, expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion,
+                          static_pairs: bool, g_1_ratio, g_1, g_2, total_matrices: int):
     dict2dump = dict()
     dict2dump[DumpsConsts.TMs] = tms_opt_zipped_list
     dict2dump[DumpsConsts.NET_PATH] = net_path
-    dict2dump[DumpsConsts.EXPECTED_CONGESTION] = np.round(expected_congestion, 4) if expected_congestion is not None else expected_congestion
+    dict2dump[DumpsConsts.EXPECTED_CONGESTION] = expected_congestion
     dict2dump[DumpsConsts.INITIAL_WEIGHTS] = initial_weights
     dict2dump[DumpsConsts.OPTIMAL_SPLITTING_RATIOS] = optimal_src_dst_splitting_ratios
-    dict2dump[DumpsConsts.DEST_EXPECTED_CONGESTION] = np.round(dst_mean_congestion, 4) if dst_mean_congestion is not None else dst_mean_congestion
+    dict2dump[DumpsConsts.DEST_EXPECTED_CONGESTION] = dst_mean_congestion
     dict2dump[DumpsConsts.MATRIX_SPARSITY] = matrix_sparsity
     dict2dump[DumpsConsts.MATRIX_TYPE] = tm_type
     dict2dump[DumpsConsts.G_1_RATIO] = g_1_ratio
@@ -103,11 +103,14 @@ def dump_dictionary(tail_str, net_direct: NetworkClass, net_path: str, tms_opt_z
 
     file_name += "_{}".format(tail_str)
     os.makedirs(folder_name, exist_ok=True)
+
+    return file_name, dict2dump
+
+
+def dump_dictionary(file_name, dict2dump):
     dump_file = open(file_name, 'wb')
     pickle.dump(dict2dump, dump_file)
     dump_file.close()
-
-    return file_name
 
 
 if __name__ == "__main__":
@@ -118,34 +121,45 @@ if __name__ == "__main__":
     tm_type = args.tm_type
     static_pairs = args.static_pairs
     total_matrices = args.total_matrices
-    dump_path = args.dumped_path
+    filename = args.dumped_path
     initial_weights_flag = args.initial_weights
     g_1 = args.g_1
     g_2 = args.g_2
     g_1_ratio = args.g_1_ratio
     tail_str = args.tail_str
+    dict2dump = None
 
-    if dump_path is None:
+    if filename is None:
         tms_opt_zipped_list = generate_traffic_matrix_baseline(net=net_direct, matrix_sparsity=matrix_sparsity,
                                                                tm_type=tm_type, static_pairs=static_pairs, g_1_ratio=g_1_ratio,
                                                                g_1=g_1, g_2=g_2, total_matrices=total_matrices)
 
     else:
-        dumps_dict = load_dump_file(dump_path)
-        tms_opt_zipped_list = dumps_dict[DumpsConsts.TMs]
+        dict2dump = load_dump_file(filename)
+        tms_opt_zipped_list = dict2dump[DumpsConsts.TMs]
 
     traffic_matrix_list = list(list(zip(*tms_opt_zipped_list))[0])
     # expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = None,None,None,None
-    expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = calculating_expected_congestion(net_direct,
-                                                                                                                                 traffic_matrix_list,
-                                                                                                                                 initial_weights_flag)
-    filename: str = dump_dictionary(tail_str=tail_str, net_direct=net_direct, net_path=topology_url,
-                                    tms_opt_zipped_list=tms_opt_zipped_list, matrix_sparsity=matrix_sparsity,
-                                    tm_type=tm_type,
-                                    expected_congestion=expected_objective,
-                                    optimal_src_dst_splitting_ratios=optimal_src_dst_splitting_ratios,
-                                    initial_weights=initial_weights,
-                                    dst_mean_congestion=dst_mean_congestion,
-                                    static_pairs=static_pairs, g_1=g_1, g_2=g_2,g_1_ratio=g_1_ratio,
-                                    total_matrices=total_matrices)
+    expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = calculating_expected_congestion(net_direct,
+                                                                                                                                  traffic_matrix_list,
+                                                                                                                                  initial_weights_flag)
+
+    if filename is None:
+        filename, dict2dump = build_dump_dictionary(tail_str=tail_str, net_direct=net_direct, net_path=topology_url,
+                                                    tms_opt_zipped_list=tms_opt_zipped_list, matrix_sparsity=matrix_sparsity,
+                                                    tm_type=tm_type,
+                                                    expected_congestion=expected_congestion,
+                                                    optimal_src_dst_splitting_ratios=optimal_src_dst_splitting_ratios,
+                                                    initial_weights=initial_weights,
+                                                    dst_mean_congestion=dst_mean_congestion,
+                                                    static_pairs=static_pairs, g_1=g_1, g_2=g_2, g_1_ratio=g_1_ratio,
+                                                    total_matrices=total_matrices)
+
+    else:
+        assert filename is not None and dict2dump is not None
+        dict2dump[DumpsConsts.EXPECTED_CONGESTION] = expected_congestion
+        dict2dump[DumpsConsts.OPTIMAL_SPLITTING_RATIOS] = optimal_src_dst_splitting_ratios
+        dict2dump[DumpsConsts.DEST_EXPECTED_CONGESTION] = dst_mean_congestion
+
+    dump_dictionary(filename, dict2dump)
     print("Dumps the Tms to:\n{}".format(filename))
