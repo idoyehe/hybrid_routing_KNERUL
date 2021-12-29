@@ -8,7 +8,7 @@
   },
   "learning": {
     "train_file": "China_Telecom_tms_42X42_length_1024_custom_bimodal_sparsity_0.3_train",
-    "test_file": "China_Telecom_tms_42X42_length_1024_custom_bimodal_sparsity_0.3_test_0",
+    "test_file": "China_Telecom_tms_42X42_length_1024_custom_bimodal_sparsity_0.3_test_3",
     "lp_file": "China_Telecom_tms_42X42_length_4096_custom_bimodal_sparsity_0.3_LP",
     "num_train_observations": 1024,
     "num_test_observations": 1024,
