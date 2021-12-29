@@ -6,11 +6,11 @@ import warnings
 
 
 def multiple_matrices_traffic_distribution(net_direct: NetworkClass, traffic_matrices_list, src_dst_splitting_ratios):
-    expected_objective, r_per_mtrx = _aux_multiple_tms_mcf_LP_solver(net_direct, traffic_matrices_list, src_dst_splitting_ratios)
+    expected_objective, r_per_mtrx = _aux_multiple_tms_mcf_algebraic_solver(net_direct, traffic_matrices_list, src_dst_splitting_ratios)
     return expected_objective, r_per_mtrx
 
 
-def _aux_multiple_tms_mcf_LP_solver(net_direct, traffic_matrices_list, src_dst_splitting_ratios):
+def _aux_multiple_tms_mcf_algebraic_solver(net_direct, traffic_matrices_list, src_dst_splitting_ratios):
     """Preparation"""
     tms_list_length = len(traffic_matrices_list)
     demands_ratios = np.zeros(shape=(tms_list_length, net_direct.get_num_nodes, net_direct.get_num_nodes))
@@ -42,7 +42,7 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct, traffic_matrices_list, src_dst_s
         for u, v in net_direct.edges:
             edge_idx = net_direct.get_edge2id(u, v)
             tm_total_load_per_link[edge_idx] = sum(
-                (flows_src2dest_per_node[(src, dst)] * demands_ratios[tm_idx, src, dst])[u] * src_dst_splitting_ratios[src, dst, u, v] for src, dst in
+                (flows_src2dest_per_node[(src, dst)] * demands_ratios[tm_idx, src, dst])[u] * src_dst_splitting_ratios[src, dst][u, v] for src, dst in
                 active_flows)
 
         tm_congestion = tm_total_load_per_link / net_direct.get_edges_capacities()
