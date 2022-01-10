@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import make_interp_spline
 
 
 def plot_baselines_graphs(save_file, x_labels, y_labels, y_data, h_lines=None):
@@ -25,8 +24,10 @@ def plot_baselines_graphs(save_file, x_labels, y_labels, y_data, h_lines=None):
 
 
 if __name__ == "__main__":
-    x_labels_4 = ['Link Weight Heuristic', 'First RL Phase', '1 Smart Node', '2 Smart Nodes', '3 Smart Nodes', '4 Smart Nodes']
-    x_labels_5 = ['Link Weight Heuristic', 'First RL Phase', '1 Smart Node', '2 Smart Nodes', '3 Smart Nodes', '4 Smart Nodes', '5 Smart Nodes']
+    x_labels_4 = ['Link Weight Heuristic', 'First RL Phase', '1 Smart Node', '2 Smart Nodes', '3 Smart Nodes',
+                  '4 Smart Nodes']
+    x_labels_5 = ['Link Weight Heuristic', 'First RL Phase', '1 Smart Node', '2 Smart Nodes', '3 Smart Nodes',
+                  '4 Smart Nodes', '5 Smart Nodes']
     y_labels = ["RL Training Set",
                 "LP Training Set",
                 "Test_0",
@@ -35,7 +36,7 @@ if __name__ == "__main__":
                 "Test_3",
                 "Test_4"
                 ]
-    h_lines = [[None, "Oblivious routing scheme", "red"],[None, "Mean TM routing scheme", "blue"]]
+    h_lines = [[None, "Oblivious routing scheme", "red"], [None, "Mean TM routing scheme", "blue"]]
 
     # claranet gravity traffic plot
     h_lines[0][0] = 32.547
@@ -51,7 +52,8 @@ if __name__ == "__main__":
     plot_baselines_graphs(save_file, x_labels_4, y_labels, y_data, h_lines)
 
     # goodnet gravity traffic plot
-    h_lines[0] = 19.130
+    h_lines[0][0] = 19.130
+    h_lines[1][0] = 42.552
     y_data = [(18.295, 12.617, 11.321, 9.787, 9.149, 7.948, 6.519),
               (18.868, 12.506, 10.854, 9.117, 8.310, 5.860, 4.189),
               (17.965, 12.848, 11.476, 10.523, 9.952, 8.427, 6.712),
@@ -63,7 +65,8 @@ if __name__ == "__main__":
     plot_baselines_graphs(save_file, x_labels_5, y_labels, y_data, h_lines)
 
     # scale free 30 gravity traffic plot
-    h_lines[0] = 26.675
+    h_lines[0][0] = 26.675
+    h_lines[1][0] = 34.784
     y_data = [(24.544, 14.920, 14.304, 12.545, 10.125, 9.173),
               (23.749, 13.855, 12.867, 10.499, 8.659, 6.276),
               (24.617, 15.377, 14.546, 12.494, 10.335, 8.999),
@@ -75,7 +78,8 @@ if __name__ == "__main__":
     plot_baselines_graphs(save_file, x_labels_4, y_labels, y_data, h_lines)
 
     # GEANT gravity traffic plot
-    h_lines[0] = 48.530
+    h_lines[0][0] = 48.530
+    h_lines[1][0] = 67.114
     y_data = [(57.549, 14.100, 12.396, 10.434, 10.024, 9.813),
               (55.122, 13.178, 10.533, 8.373, 7.057, 6.860),
               (58.023, 13.732, 12.616, 10.432, 10.003, 9.680),
@@ -87,7 +91,8 @@ if __name__ == "__main__":
     plot_baselines_graphs(save_file, x_labels_4, y_labels, y_data, h_lines)
 
     # China Telecom gravity traffic plot
-    h_lines[0] = 52.701
+    h_lines[0][0] = 52.701
+    h_lines[1][0] = 61.051
     y_data = [(43.888, 25.574, 22.891, 19.217, 16.485, 14.665, 12.183),
               (43.856, 25.299, 22.574, 17.223, 13.234, 10.095, 8.326),
               (44.204, 24.490, 22.907, 18.628, 16.378, 14.441, 12.830),
@@ -99,7 +104,8 @@ if __name__ == "__main__":
     plot_baselines_graphs(save_file, x_labels_5, y_labels, y_data, h_lines)
 
     # claranet bimodal traffic plot
-    h_lines[0] = 14.134
+    h_lines[0][0] = 14.134
+    h_lines[1][0] = 20.256
     y_data = [(9.929, 8.081, 6.727, 5.743, 4.516, 4.327),
               (10.215, 7.454, 6.494, 5.856, 4.530, 4.313),
               (8.970, 7.754, 6.141, 5.319, 4.567, 4.234),
@@ -111,7 +117,8 @@ if __name__ == "__main__":
     plot_baselines_graphs(save_file, x_labels_4, y_labels, y_data, h_lines)
 
     # goodnet bimodal traffic plot
-    h_lines[0] = 2.713
+    h_lines[0][0] = 2.713
+    h_lines[1][0] = 13.939
     y_data = [(3.315, 2.549, 2.496, 1.928, 1.917, 1.549, 0.984),
               (2.956, 2.675, 2.653, 2.093, 1.730, 1.394, 0.755),
               (3.043, 2.495, 2.087, 2.017, 1.628, 1.525, 1.074),
@@ -123,7 +130,8 @@ if __name__ == "__main__":
     plot_baselines_graphs(save_file, x_labels_5, y_labels, y_data, h_lines)
 
     # claranet custom bimodal traffic plot
-    h_lines[0] = 16.368
+    h_lines[0][0] = 16.368
+    h_lines[1][0] = 24.303
     y_data = [(13.392, 11.105, 9.481, 8.303, 5.860, 5.426),
               (11.957, 10.476, 9.253, 8.346, 6.231, 5.388),
               (12.664, 11.320, 8.723, 6.751, 5.988, 4.752),
@@ -135,7 +143,8 @@ if __name__ == "__main__":
     plot_baselines_graphs(save_file, x_labels_4, y_labels, y_data, h_lines)
 
     # goodnet custom bimodal traffic plot
-    h_lines[0] = 4.488
+    h_lines[0][0] = 4.488
+    h_lines[1][0] = 19.378
     y_data = [(6.303, 5.826, 5.289, 4.178, 3.671, 2.630, 2.163),
               (6.841, 6.874, 5.300, 4.044, 3.084, 2.426, 1.887),
               (6.274, 5.822, 5.580, 4.240, 3.866, 3.522, 2.511),
@@ -144,4 +153,43 @@ if __name__ == "__main__":
               (6.916, 6.147, 5.187, 4.596, 3.813, 3.694, 2.815),
               (5.980, 5.126, 5.532, 4.202, 3.826, 3.560, 2.282)]
     save_file = 'goodnet_custom_bimodal.png'
+    plot_baselines_graphs(save_file, x_labels_5, y_labels, y_data, h_lines)
+
+    # scale free 30 custom bimodal traffic plot
+    h_lines[0][0] = 15.089
+    h_lines[1][0] = 7.809
+    y_data = [(3.481, 3.193, 3.128, 2.529, 2.236, 1.916),
+              (3.329, 3.199, 2.539, 1.902, 1.362, 0.886),
+              (3.559, 3.145, 2.822, 2.392, 2.189, 1.954),
+              (3.245, 2.793, 2.660, 2.475, 2.250, 1.987),
+              (3.396, 3.024, 2.849, 2.491, 2.376, 1.976),
+              (3.432, 2.919, 2.675, 2.426, 2.361, 1.937),
+              (3.135, 2.806, 2.626, 2.443, 2.084, 1.932)]
+    save_file = 'sf30_custom_bimodal.png'
+    plot_baselines_graphs(save_file, x_labels_4, y_labels, y_data, h_lines)
+
+    # # GEANT custom bimodal traffic plot
+    h_lines[0][0] = 1.169
+    h_lines[1][0] = 28.524
+    y_data = [(22.029, 21.349, 18.142, 12.681, 8.231, 0.077),
+              (23.050, 21.645, 17.612, 11.529, 7.722, 0.002),
+              (20.813, 22.444, 17.247, 11.911, 7.727, 0.045),
+              (21.925, 21.725, 18.091, 11.707, 7.321, 0.041),
+              (21.797, 22.364, 18.374, 11.798, 7.861, 0.096),
+              (21.386, 21.078, 18.203, 11.708, 7.870, 0.033),
+              (22.158, 22.971, 17.826, 12.408, 7.322, 0.059)]
+    save_file = 'geant_custom_bimodal.png'
+    plot_baselines_graphs(save_file, x_labels_4, y_labels, y_data, h_lines)
+
+    # China Telecom custom bimodal traffic plot
+    h_lines[0][0] = 0.047
+    h_lines[1][0] = 12.725
+    y_data = [(1.240, 0.723, 0.535, 0.106, 0.0099, 0.194, 0.553),
+              (1.417, 0.672, 0.223, 0.142, 0.1303, 0.097, 0.010),
+              (1.343, 0.628, 0.229, 0.053, 0.0066, 0.493, 0.604),
+              (1.136, 0.373, 0.177, 0.035, 0.6106, 0.432, 0.557),
+              (1.439, 0.682, 0.292, 0.057, 0.3127, 0.396, 0.229),
+              (1.358, 0.496, 0.325, 0.094, 0.0932, 0.153, 0.743),
+              (1.205, 0.610, 0.511, 0.070, 0.3433, 0.047, 0.270)]
+    save_file = 'china_telecom_custom_bimodal.png'
     plot_baselines_graphs(save_file, x_labels_5, y_labels, y_data, h_lines)
