@@ -1,24 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mtick
 
 
 def plot_baselines_graphs(save_file, x_labels, y_labels, y_data, h_lines=None):
     y_max = 0
-    title: str = "Routing Policy MLU Vs. Optimal"
+    title: str = "Hybrid-Routing MLU Vs. Optimal"
     fig = plt.figure(figsize=(10, 8), dpi=80)
+    ax = fig.add_subplot(1, 1, 1)
     for i in range(len(y_labels)):
-        plt.plot(x_labels, y_data[i], label=y_labels[i])
+        ax.plot(x_labels, y_data[i], label=y_labels[i])
         y_max = max(y_max, max(y_data[i]))
 
     plt.ylabel("Average Congestion Vs. Optimal Ratio")
     if h_lines is not None:
         for h_line in h_lines:
-            plt.axhline(y=h_line[0], label=h_line[1], color=h_line[2], linestyle="dashed")
+            ax.axhline(y=h_line[0], label=h_line[1], color=h_line[2], linestyle="dashed")
             y_max = max(y_max, h_line[0])
     plt.title(title)
     plt.legend()
     plt.grid()
     plt.yticks(np.arange(0, y_max + 1, step=1))
+    fmt = '%.0f%%'  # Format you want the ticks, e.g. '40%'
+    yticks = mtick.FormatStrFormatter(fmt)
+    ax.yaxis.set_major_formatter(yticks)
     plt.savefig(save_file)
     plt.show()
 
