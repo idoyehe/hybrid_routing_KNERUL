@@ -48,10 +48,10 @@ def parse_rl_optimization_cross_topologies(traffic):
 
     topo_data = dict()
 
-    for i,topo in enumerate(topologies_raw_names):
+    for i, topo in enumerate(topologies_raw_names):
         topo_data[topologies[i]], _, _ = __parse_testing_set(data[topo][traffic]["results"]["testing_sets"], False, x_raw_labels)
 
-    x_labels = ("Non-Initialized\nRL", "Link Weight\nInitialization", "Initialized\nRL")
+    x_labels = ("Uniform\nLink Weight\nInitialized RL", "Optimized\nLink Weight\nInitialization", "Optimized\nLink Weight\nInitialized RL")
     return x_labels, topo_data
 
 
@@ -90,8 +90,21 @@ def parsing_data_results(topology_name, traffic, obliv_base):
     y_data["Key Nodes Training Set"] = y_data_lp_train
     y_data["Testing Sets Averaged"] = y_data_test
 
-    x_labels = ("Non-Initialized\nRL", "Link Weight\nInitialization", "Initialized\nRL", "1 Key Node", "2 Key Nodes", "3 Key Nodes", "4 Key Nodes",
-                "5 Key Nodes") if "5_key_node" in data_topo_traffic["RL_training_set"].keys() else (
-        "Non-Initialized\nRL", "Link Weight\nInitialization", "Initialized\nRL", "1 Key Node", "2 Key Nodes", "3 Key Nodes", "4 Key Nodes")
+    x_labels = ("Uniform\nLink\nWeight\nInitialized\nRL",
+                "Optimized\nLink\nWeight\nInitialization",
+                "Optimized\nLink\nWeight\nInitialized\nRL",
+                "Hybrid\nRouting\n1 Key\nNode",
+                "Hybrid\nRouting\n2 Key\nNodes",
+                "Hybrid\nRouting\n3 Key\nNodes",
+                "Hybrid\nRouting\n4 Key\nNodes",
+                "Hybrid\nRouting\n5 Key\nNodes") \
+        if "5_key_node" in data_topo_traffic["RL_training_set"].keys() \
+        else ("Uniform\nLink\nWeight\nInitialized\nRL",
+              "Optimized\nLink\nWeight\nInitialization",
+              "Optimized\nLink\nWeight\nInitialized\nRL",
+              "Hybrid\nRouting\n1 Key\nNode",
+              "Hybrid\nRouting\n2 Key\nNodes",
+              "Hybrid\nRouting\n3 Key\nNodes",
+              "Hybrid\nRouting\n4 Key\nNodes")
 
     return x_labels, y_data, h_lines
