@@ -36,6 +36,25 @@ def __parse_testing_set(data_testing_set, obliv_base, x_labels):
     return y_data, oblivious_routing_ratios, averaged_tm_optimal_routing_ratios
 
 
+def parse_rl_optimization_cross_topologies(traffic):
+    # Opening JSON file
+    f = open(JSON_PATH)
+    # returns JSON object as a dictionary
+    data = js.load(f)
+    f.close()
+    x_raw_labels = ("naive_RL", "first_RL_phase")
+    topologies_raw_names = ("Claranet", "GoodNet", "ScaleFree30Nodes", "GEANT", "China_Telecom")
+    topologies = ("Claranet", "GoodNet", "Random Scale Free 30 Nodes", "GEANT", "China Telecom")
+
+    topo_data = dict()
+
+    for i,topo in enumerate(topologies_raw_names):
+        topo_data[topologies[i]], _, _ = __parse_testing_set(data[topo][traffic]["results"]["testing_sets"], False, x_raw_labels)
+
+    x_labels = ("Non-Initialized\nRL", "Link Weight\nInitialization", "Initialized\nRL")
+    return x_labels, topo_data
+
+
 def parsing_data_results(topology_name, traffic, obliv_base):
     # Opening JSON file
     f = open(JSON_PATH)
@@ -73,6 +92,6 @@ def parsing_data_results(topology_name, traffic, obliv_base):
 
     x_labels = ("Non-Initialized\nRL", "Link Weight\nInitialization", "Initialized\nRL", "1 Key Node", "2 Key Nodes", "3 Key Nodes", "4 Key Nodes",
                 "5 Key Nodes") if "5_key_node" in data_topo_traffic["RL_training_set"].keys() else (
-    "Non-Initialized\nRL", "Link Weight\nInitialization", "Initialized\nRL", "1 Key Node", "2 Key Nodes", "3 Key Nodes", "4 Key Nodes")
+        "Non-Initialized\nRL", "Link Weight\nInitialization", "Initialized\nRL", "1 Key Node", "2 Key Nodes", "3 Key Nodes", "4 Key Nodes")
 
     return x_labels, y_data, h_lines
