@@ -42,17 +42,20 @@ def parse_rl_optimization_cross_topologies(traffic):
     # returns JSON object as a dictionary
     data = js.load(f)
     f.close()
-    x_raw_labels = ("naive_RL", "first_RL_phase")
+    raw_labels = ("naive_RL", "first_RL_phase")
     topologies_raw_names = ("Claranet", "GoodNet", "ScaleFree30Nodes", "GEANT", "China_Telecom")
-    topologies = ("Claranet", "GoodNet", "Random Scale Free 30 Nodes", "GEANT", "China Telecom")
+    topologies = ("Claranet", "GoodNet", "Random Scale Free\n30 Nodes", "GEANT", "China Telecom")
 
-    topo_data = dict()
+    y_data = dict()
+    x_labels = ("Uniform Link Weight\nInitialized RL", "Optimized Link Weight\nInitialization", "Optimized Link Weight\nInitialized RL")
 
-    for i, topo in enumerate(topologies_raw_names):
-        topo_data[topologies[i]], _, _ = __parse_testing_set(data[topo][traffic]["results"]["testing_sets"], False, x_raw_labels)
+    for i,label in enumerate(x_labels):
+        y_data[label] = []
+        for topo in topologies_raw_names:
+            _y_data, _, _ = __parse_testing_set(data[topo][traffic]["results"]["testing_sets"], False, raw_labels)
+            y_data[label].append(_y_data[i])
 
-    x_labels = ("Uniform\nLink Weight\nInitialized RL", "Optimized\nLink Weight\nInitialization", "Optimized\nLink Weight\nInitialized RL")
-    return x_labels, topo_data
+    return topologies, y_data
 
 
 def parsing_data_results(topology_name, traffic, obliv_base):
