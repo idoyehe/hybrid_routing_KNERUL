@@ -89,9 +89,9 @@ def parsing_data_results(topology_name, traffic, obliv_base):
                    ("Averaged TM Optimal Routing", "blue", np.mean(averaged_tm_optimal_routing_ratios))]
 
     y_data = dict()
-    y_data["Non-Key Nodes Training Set"] = y_data_rl_train
-    y_data["Key Nodes Training Set"] = y_data_lp_train
-    y_data["Testing Sets Averaged"] = y_data_test
+    y_data["Non-Key Nodes Train Set"] = y_data_rl_train
+    y_data["Key Nodes Train Set"] = y_data_lp_train
+    y_data["Test Sets"] = y_data_test
 
     x_labels = ("Uniform\nLink\nWeight\nInitialized\nRL",
                 "Optimized\nLink\nWeight\nInitialization",
