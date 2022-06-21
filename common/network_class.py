@@ -6,7 +6,6 @@ refactoring on 24/04/2020
 @by: Ido Yehezkel
 """
 from common.consts import EdgeConsts
-import numpy as np
 import networkx as nx
 from common.logger import logger
 import matplotlib.pyplot as plt
@@ -244,8 +243,8 @@ class NetworkClass(object):
         if label is not None:
             edge_labels = dict([((u, v,), d[label]) for u, v, d in g.edges(data=True)])
             nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels)
-        values = [node for node in g.nodes()]
-        nx.draw(g, pos, node_color=values, with_labels=True)
+        # values = [node for node in g.nodes()]
+        nx.draw(g, pos, with_labels=True, node_shape="o", node_color='none', edgecolors='black')
         plt.show()
 
     def __capacity_map(self):
@@ -278,7 +277,7 @@ class NetworkClass(object):
             for u in self.nodes:
                 self._elephant_percentages[u] = self._outgoing_capacity[u] / self._total_capacity
 
-            assert error_bound(np.sum(self._elephant_percentages),1.0)
+            assert error_bound(np.sum(self._elephant_percentages), 1.0)
         return self._elephant_percentages
 
     def __randomize_pairs(self, percent):
