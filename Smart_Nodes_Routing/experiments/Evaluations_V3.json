@@ -9,6 +9,7 @@
           "Reduce_source_destination_to_destination_routing": 1.9591,
           "oblivious_routing": 2.1012,
           "averaged_tm_optimal_routing_scheme": 2.0347,
+          "max_tm_optimal_routing_scheme": 2.0517,
           "naive_RL": [
             1.9415,
             1.9513,
@@ -47,6 +48,7 @@
           "Reduce_source_destination_to_destination_routing": 1.9281,
           "oblivious_routing": 2.1212,
           "averaged_tm_optimal_routing_scheme": 2.0673,
+          "max_tm_optimal_routing_scheme": 2.064,
           "naive_RL": [
             1.9775,
             1.9731,
@@ -108,6 +110,13 @@
             2.0274,
             2.0517,
             2.0234
+          ],
+          "max_tm_optimal_routing_scheme": [
+            2.057,
+            2.0317,
+            2.0328,
+            2.0537,
+            2.033
           ],
           "naive_RL": [
             1.9757,
@@ -171,6 +180,7 @@
           "Reduce_source_destination_to_destination_routing": 2.866071934,
           "oblivious_routing": 2.927,
           "averaged_tm_optimal_routing_scheme": 3.0572,
+          "max_tm_optimal_routing_scheme": 3.0627,
           "naive_RL": [
             2.835,
             2.8038,
@@ -209,6 +219,7 @@
           "Reduce_source_destination_to_destination_routing": 2.881725147,
           "oblivious_routing": 2.9001,
           "averaged_tm_optimal_routing_scheme": 3.0446,
+          "max_tm_optimal_routing_scheme": 3.0469,
           "naive_RL": [
             2.8225,
             2.8228,
@@ -258,18 +269,25 @@
             2.9123
           ],
           "oblivious_routing": [
-            2.1233,
-            2.1073,
-            2.1222,
-            2.1097,
-            2.0909
+            2.8975,
+            2.8922,
+            2.8894,
+            2.9065,
+            2.9048
           ],
           "averaged_tm_optimal_routing_scheme": [
-            2.0486,
-            2.0343,
-            2.0274,
-            2.0517,
-            2.0234
+            3.0760,
+            3.0547,
+            3.0503,
+            3.0568,
+            3.0678
+          ],
+          "max_tm_optimal_routing_scheme": [
+            3.0628,
+            3.0473,
+            3.0269,
+            3.0526,
+            3.0477
           ],
           "naive_RL": [
             2.8493,
@@ -333,6 +351,7 @@
           "Reduce_source_destination_to_destination_routing": 1.5931,
           "oblivious_routing": 1.6252,
           "averaged_tm_optimal_routing_scheme": 1.7434,
+          "max_tm_optimal_routing_scheme": 1.7448,
           "naive_RL": [
             1.6248,
             1.6396,
@@ -371,6 +390,7 @@
           "Reduce_source_destination_to_destination_routing": 1.6385,
           "oblivious_routing": 1.6594,
           "averaged_tm_optimal_routing_scheme": 1.7552,
+          "max_tm_optimal_routing_scheme": 1.7625,
           "naive_RL": [
             1.6643,
             1.6433,
@@ -432,6 +452,13 @@
             1.7485,
             1.7353,
             1.7341
+          ],
+          "max_tm_optimal_routing_scheme": [
+            1.7871,
+            1.7613,
+            1.7357,
+            1.7393,
+            1.7477
           ],
           "naive_RL": [
             1.6624,
@@ -496,6 +523,7 @@
           "Reduce_source_destination_to_destination_routing": 1.25664,
           "oblivious_routing": 1.2488,
           "averaged_tm_optimal_routing_scheme": 1.4819,
+          "max_tm_optimal_routing_scheme": 1.5004,
           "naive_RL": [
             1.7199,
             1.7144,
@@ -539,6 +567,7 @@
           "Reduce_source_destination_to_destination_routing": 1.27514,
           "oblivious_routing": 1.2525,
           "averaged_tm_optimal_routing_scheme": 1.5157,
+          "max_tm_optimal_routing_scheme": 1.4885,
           "naive_RL": [
             1.7204,
             1.7164,
@@ -605,6 +634,13 @@
             1.4861,
             1.4959,
             1.4950
+          ],
+          "max_tm_optimal_routing_scheme": [
+            1.4988,
+            1.4821,
+            1.4952,
+            1.4905,
+            1.497
           ],
           "naive_RL": [
             1.7236,
@@ -675,6 +711,7 @@
           "Reduce_source_destination_to_destination_routing": 4.1076,
           "oblivious_routing": 4.1066,
           "averaged_tm_optimal_routing_scheme": 4.5655,
+          "max_tm_optimal_routing_scheme": 4.5676,
           "naive_RL": [
             4.7021,
             4.6802,
@@ -719,6 +756,7 @@
           "Reduce_source_destination_to_destination_routing": 4.1364,
           "oblivious_routing": 4.122,
           "averaged_tm_optimal_routing_scheme": 4.605,
+          "max_tm_optimal_routing_scheme": 4.5878,
           "naive_RL": [
             4.7356,
             4.7391,
@@ -790,6 +828,13 @@
             4.5990,
             4.5394
           ],
+          "max_tm_optimal_routing_scheme": [
+            4.5673,
+            4.5761,
+            4.5814,
+            4.5748,
+            4.5803
+          ],
           "naive_RL": [
             4.7438,
             4.7175,
@@ -859,6 +904,7 @@
           "Reduce_source_destination_to_destination_routing": 1.9877,
           "oblivious_routing": 1.8277,
           "averaged_tm_optimal_routing_scheme": 2.3231,
+          "max_tm_optimal_routing_scheme": 2.2938,
           "naive_RL": [
             2.149,
             2.1583,
@@ -909,6 +955,7 @@
           "Reduce_source_destination_to_destination_routing": 1.9789,
           "oblivious_routing": 1.8341,
           "averaged_tm_optimal_routing_scheme": 2.325,
+          "max_tm_optimal_routing_scheme": 2.3112,
           "naive_RL": [
             2.1451,
             2.143,
@@ -981,6 +1028,13 @@
             2.2976,
             2.2707
           ],
+          "max_tm_optimal_routing_scheme": [
+            2.292,
+            2.2806,
+            2.3134,
+            2.2901,
+            2.2844
+          ],
           "naive_RL": [
             2.1262,
             2.1115,
@@ -1051,6 +1105,7 @@
           "Reduce_source_destination_to_destination_routing": 1.6495,
           "oblivious_routing": 1.6628,
           "averaged_tm_optimal_routing_scheme": 1.7929,
+          "max_tm_optimal_routing_scheme": 1.7747,
           "naive_RL": [
             1.9783,
             1.9632,
@@ -1090,6 +1145,7 @@
           "Reduce_source_destination_to_destination_routing": 1.6630,
           "oblivious_routing": 1.6787,
           "averaged_tm_optimal_routing_scheme": 1.7508,
+          "max_tm_optimal_routing_scheme": 1.7691,
           "naive_RL": [
             1.9832,
             1.9864,
@@ -1157,6 +1213,13 @@
             1.7969,
             1.7287
           ],
+          "max_tm_optimal_routing_scheme": [
+            1.7691,
+            1.7605,
+            1.7649,
+            1.7571,
+            1.764
+          ],
           "naive_RL": [
             1.9793,
             1.9742,
@@ -1219,6 +1282,7 @@
           "Reduce_source_destination_to_destination_routing": 2.2758,
           "oblivious_routing": 2.49277,
           "averaged_tm_optimal_routing_scheme": 2.3236,
+          "max_tm_optimal_routing_scheme": 2.3307,
           "naive_RL": [
             2.7669,
             2.7524,
@@ -1259,6 +1323,7 @@
           "Reduce_source_destination_to_destination_routing": 2.2298,
           "oblivious_routing": 2.49178,
           "averaged_tm_optimal_routing_scheme": 2.3351,
+          "max_tm_optimal_routing_scheme": 2.3314,
           "naive_RL": [
             2.7747,
             2.7649,
@@ -1320,6 +1385,13 @@
             2.3585,
             2.3316,
             2.3317
+          ],
+          "max_tm_optimal_routing_scheme": [
+            2.3414,
+            2.3618,
+            2.3604,
+            2.3376,
+            2.354
           ],
           "naive_RL": [
             2.755,
@@ -1384,6 +1456,7 @@
           "Reduce_source_destination_to_destination_routing": 42.4014,
           "oblivious_routing": 2.53974288,
           "averaged_tm_optimal_routing_scheme": 2.5535,
+          "max_tm_optimal_routing_scheme": 3.168,
           "naive_RL": [
             2.6299,
             2.633,
@@ -1423,6 +1496,7 @@
           "Reduce_source_destination_to_destination_routing": 82.1920,
           "oblivious_routing": 2.548604309,
           "averaged_tm_optimal_routing_scheme": 2.9658,
+          "max_tm_optimal_routing_scheme": 3.2235,
           "naive_RL": [
             2.6334,
             2.6353,
@@ -1484,6 +1558,13 @@
             2.5128,
             3.2314,
             2.8998
+          ],
+          "max_tm_optimal_routing_scheme": [
+            3.1706,
+            3.2284,
+            3.223,
+            3.2106,
+            3.2656
           ],
           "naive_RL": [
             2.6217,
@@ -1547,6 +1628,7 @@
           "Reduce_source_destination_to_destination_routing": 22.8342,
           "oblivious_routing": 20.09000603,
           "averaged_tm_optimal_routing_scheme": 25.5652,
+          "max_tm_optimal_routing_scheme": 25.5218,
           "naive_RL": [
             24.0980,
             25.7866,
@@ -1585,6 +1667,7 @@
           "Reduce_source_destination_to_destination_routing": 23.5511,
           "oblivious_routing": 20.5549807,
           "averaged_tm_optimal_routing_scheme": 26.2258,
+          "max_tm_optimal_routing_scheme": 26.238,
           "naive_RL": [
             24.720,
             24.6521,
@@ -1647,6 +1730,13 @@
             25.9465,
             25.6426,
             25.3348
+          ],
+          "max_tm_optimal_routing_scheme": [
+            25.172,
+            25.7446,
+            25.8249,
+            25.7369,
+            25.3196
           ],
           "naive_RL": [
             24.251,
@@ -1711,6 +1801,7 @@
           "Reduce_source_destination_to_destination_routing": 2.2948,
           "oblivious_routing": 2.146218637,
           "averaged_tm_optimal_routing_scheme": 2.2711,
+          "max_tm_optimal_routing_scheme": 2.1988,
           "naive_RL": [
             2.7046,
             2.7196,
@@ -1754,6 +1845,7 @@
           "Reduce_source_destination_to_destination_routing": 2.4298,
           "oblivious_routing": 2.135841496,
           "averaged_tm_optimal_routing_scheme": 2.2904,
+          "max_tm_optimal_routing_scheme": 2.1981,
           "naive_RL": [
             2.693,
             2.7002,
@@ -1820,6 +1912,13 @@
             2.2815,
             2.2142,
             2.2086
+          ],
+          "max_tm_optimal_routing_scheme": [
+            2.2079,
+            2.1991,
+            2.207,
+            2.1961,
+            2.1977
           ],
           "naive_RL": [
             2.7175,
@@ -1890,6 +1989,7 @@
           "Reduce_source_destination_to_destination_routing": 2.76839,
           "oblivious_routing": 1.70023,
           "averaged_tm_optimal_routing_scheme": 1.91250,
+          "max_tm_optimal_routing_scheme": 1.939,
           "naive_RL": [
             1.8561,
             1.861,
@@ -1934,6 +2034,7 @@
           "Reduce_source_destination_to_destination_routing": 1.74380,
           "oblivious_routing": 1.68978,
           "averaged_tm_optimal_routing_scheme": 1.92180,
+          "max_tm_optimal_routing_scheme": 1.9245,
           "naive_RL": [
             1.836,
             1.8355,
@@ -2000,6 +2101,13 @@
             1.90470,
             1.92500,
             1.92710
+          ],
+          "max_tm_optimal_routing_scheme": [
+            1.9245,
+            1.8918,
+            1.9139,
+            1.9262,
+            1.9372
           ],
           "naive_RL": [
             1.8445,
