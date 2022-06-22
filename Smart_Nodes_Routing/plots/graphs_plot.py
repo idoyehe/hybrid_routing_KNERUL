@@ -20,9 +20,9 @@ def _getOptions(args=argv[1:]):
 
 def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lines=None):
     bar_design = dict()
-    bar_design["Non-Key Nodes Train Set"] = {"color": "#aac2a1", "hatch": '\\', "alpha": 0.8}
-    bar_design["Key Nodes Train Set"] = {"color": "#cef0cc", "hatch": '/', "alpha": 0.8}
-    bar_design["Test Sets"] = {"color": "darkgreen", "fill": True, "hatch": None, "alpha": 1.0}
+    bar_design["Non-Key Nodes Train Set"] = {"hatch": None}
+    bar_design["Key Nodes Train Set"] = {"hatch": '\\'}
+    bar_design["Test Sets"] = {"hatch": "."}
 
     fontsize = 11
     fig = plt.figure(figsize=(7.3, 5))
@@ -39,9 +39,8 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
         y_data, yerr = tuple(zip(*value))
         ax.bar(ind + (offset * offset_value), y_data, width=width, align='center', label=y_label, yerr=yerr,
                error_kw=dict(lw=0.8, capsize=1.8, capthick=0.8, ecolor='black'),
-               color=bar_design[y_label]["color"],
+               fill=False,
                hatch=bar_design[y_label]["hatch"],
-               alpha=bar_design[y_label]["alpha"]
                )
         offset += 1
         y_tick_offset = min(y_tick_offset, y_data[-2] - y_data[-1])
@@ -51,15 +50,15 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
 
     plt.ylabel("Maximum Link Utilization Ratio", fontsize=fontsize)
     for h_line in h_lines:
-        ax.axhline(y=h_line[2], label=h_line[0], color=h_line[1], linestyle="dashed")
-        y_max = max(y_max, h_line[2])
+        ax.axhline(y=h_line[3], label=h_line[0], color=h_line[1], linestyle=h_line[2])
+        y_max = max(y_max, h_line[3])
 
     plt.legend(fontsize=fontsize)
-    ax.yaxis.grid()  # grid lines
+    ax.yaxis.grid(alpha=0.5)  # grid lines
     ax.set_axisbelow(True)  # grid lines are behind the rest
     bottom = 0.0 if oblivious_baseline else 1.0
     plt.ylim(bottom=bottom)
-    plt.yticks(np.arange(bottom, 1.97, step=y_tick_offset * 3.5), fontsize=fontsize)
+    plt.yticks(np.arange(bottom, 1.34, step=y_tick_offset * 5.5), fontsize=fontsize)
     ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
     plt.tight_layout()
     plt.savefig(save_file)
@@ -124,10 +123,9 @@ if __name__ == "__main__":
         })
         suffix = "pgf"
 
-
     baseline_name = "oblivious" if oblivious_baseline else "optimal"
 
-    save_file = "{}_{}_baseline_{}.{}".format(topology_name, traffic_name, baseline_name,suffix)
+    save_file = "{}_{}_baseline_{}.{}".format(topology_name, traffic_name, baseline_name, suffix)
 
     x_labels, y_data, h_lines = parsing_data_results(topology_name, traffic_name, oblivious_baseline)
     plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lines)
