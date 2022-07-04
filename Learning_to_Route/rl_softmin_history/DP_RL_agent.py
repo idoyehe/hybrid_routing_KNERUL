@@ -19,22 +19,22 @@ RL_ENV_HISTORY_GYM_ID: str = 'rl-env-history-v0'
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
     parser.add_argument("-p", "--dumped_path", type=str, help="The path of the dumped file")
+    parser.add_argument("-p_test", "--dumped_path_test", type=str, help="The path of the dumped test file")
     parser.add_argument("-arch", "--mlp_architecture", type=str, help="The architecture of the neural network")
     parser.add_argument("-gamma", "--gamma", type=float, help="Gamma Value", default=0)
     parser.add_argument("-n_envs", "--number_of_envs", type=int, help="Number of vectorized environments", default=1)
-    parser.add_argument("-n_steps", "--number_of_steps", type=int, help="Number of steps per ppo agent", default=100)
-    parser.add_argument("-tts", "--total_timesteps", type=str, help="Agent Total timesteps", default="1000")
+    parser.add_argument("-n_steps", "--number_of_steps", type=int, help="Number of steps per ppo agent", default=384)
+    parser.add_argument("-tts", "--total_timesteps", type=eval, help="Agent Total timesteps", default='384*500')
     parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=0)
     parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
-                        default=350)
+                        default=1024)
     parser.add_argument("-s_diag", "--save_diagnostics", type=eval, help="Dump env diagnostics", default=False)
     parser.add_argument("-s_weights", "--save_links_weights", type=eval, help="Dump links weights", default=False)
     parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
     parser.add_argument("-l_agent", "--load_agent", type=str, help="Load a dumped agent", default=None)
 
     options = parser.parse_args(args)
-    options.total_timesteps = eval(options.total_timesteps)
     options.mlp_architecture = [int(layer_width) for layer_width in options.mlp_architecture.split(",")]
     return options
 
@@ -44,6 +44,7 @@ if __name__ == "__main__":
     mlp_arch = args.mlp_architecture
     gamma = args.gamma
     dumped_path = args.dumped_path
+    dumped_path_test = args.dumped_path_test
     n_envs = args.number_of_envs
     n_steps = args.number_of_steps
     total_timesteps = args.total_timesteps
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     num_test_observations = min(num_train_observations * 2, 20000)
 
     checkpoint_callback = CheckpointCallback(save_freq=1000,
-                                             save_path='/home/idoye/PycharmProjects/Research_Implementing/Learning_to_Route/logs/',
+                                             save_path='C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\logs\\',
                                              name_prefix='rl_agent')
 
     logger.info("Data loaded from: {}".format(dumped_path))
@@ -72,6 +73,7 @@ if __name__ == "__main__":
                      'max_steps': episode_length,
                      'history_length': history_length,
                      'path_dumped': dumped_path,
+                     'test_file': dumped_path_test,
                      'num_train_observations': num_train_observations,
                      'num_test_observations': num_test_observations}
                  )
@@ -126,5 +128,6 @@ if __name__ == "__main__":
     rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, num_test_observations)
     rewards_file = open(rewards_file_name, 'wb')
     rewards_list = np.array(rewards_list)
+    print("Average Reward: {}".format(np.mean(rewards_list)))
     np.save(rewards_file, rewards_list)
     rewards_file.close()

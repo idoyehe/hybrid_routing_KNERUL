@@ -49,7 +49,7 @@ def parse_rl_optimization_cross_topologies(traffic):
     topologies = ("Claranet", "GoodNet", "Random Scale Free\n30 Nodes", "GEANT", "China Telecom")
 
     y_data = dict()
-    x_labels = ("Uniform Link Weight\nInitialized RL", "Optimized Link Weight\nInitialization", "Optimized Link Weight\nInitialized RL")
+    x_labels = ("Learning to Route RL", "Optimized Link Weight\nInitialization", "Optimized Link Weight\nInitialized RL")
 
     for i, label in enumerate(x_labels):
         y_data[label] = []
@@ -100,7 +100,7 @@ def parsing_data_results(topology_name, traffic, obliv_base):
     y_data["Key Nodes Train Set"] = y_data_lp_train
     y_data["Test Sets"] = y_data_test
 
-    x_labels = ("Uniform\nLink\nWeight\nInitialized\nRL",
+    x_labels = ("Learning\nto\nRoute\nRL",
                 "Optimized\nLink\nWeight\nInitialization",
                 "Optimized\nLink\nWeight\nInitialized\nRL",
                 "Hybrid\nRouting\n1 Key\nNode",
@@ -109,7 +109,7 @@ def parsing_data_results(topology_name, traffic, obliv_base):
                 "Hybrid\nRouting\n4 Key\nNodes",
                 "Hybrid\nRouting\n5 Key\nNodes") \
         if "5_key_node" in data_topo_traffic["RL_training_set"].keys() \
-        else ("Uniform\nLink\nWeight\nInitialized\nRL",
+        else ("Learning\nto\nRoute\nRL",
               "Optimized\nLink\nWeight\nInitialization",
               "Optimized\nLink\nWeight\nInitialized\nRL",
               "Hybrid\nRouting\n1 Key\nNode",

@@ -37,16 +37,16 @@ class RL_Env(Env):
 
         self._initial_weights = train_loaded_dict[DumpsConsts.INITIAL_WEIGHTS]
 
-        self._tms = train_loaded_dict[DumpsConsts.TMs]
-        random.shuffle(self._tms)
-        self._tms = self._tms[0:num_train_observations]
+        self._tms_train = train_loaded_dict[DumpsConsts.TMs]
+        random.shuffle(self._tms_train)
+        self._tms_train = self._tms_train[0:num_train_observations]
 
         self._tms_test = test_loaded_dict[DumpsConsts.TMs]
         random.shuffle(self._tms_test)
         self._tms_test = self._tms_test[0:num_test_observations]
         self._tm_type = train_loaded_dict[DumpsConsts.MATRIX_TYPE]
 
-        assert len(self._tms) == num_train_observations
+        assert len(self._tms_train) == num_train_observations
         assert len(self._tms_test) == num_test_observations
 
 

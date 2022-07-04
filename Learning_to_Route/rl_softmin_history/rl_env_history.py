@@ -16,11 +16,12 @@ class RL_Env_History(RL_Env):
     def __init__(self,
                  max_steps,
                  path_dumped=None,
+                 test_file=None,
                  history_length=None,
                  num_train_observations=None,
                  num_test_observations=None,
                  testing=False):
-        super(RL_Env_History, self).__init__(max_steps=max_steps, path_dumped=path_dumped,
+        super(RL_Env_History, self).__init__(max_steps=max_steps, path_dumped=path_dumped,test_file=test_file,
                                              history_length=history_length,
                                              num_train_observations=num_train_observations,
                                              num_test_observations=num_test_observations, testing=testing)
