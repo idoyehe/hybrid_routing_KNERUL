@@ -237,14 +237,19 @@ class NetworkClass(object):
         assert isinstance(self.get_graph, nx.DiGraph)
         return self.get_graph.in_edges(node, data=data)
 
-    def print_network(self, label=None):
+    def print_network(self, label=None, hubs=None):
         g = self.get_graph
         pos = nx.spring_layout(g)
         if label is not None:
             edge_labels = dict([((u, v,), d[label]) for u, v, d in g.edges(data=True)])
             nx.draw_networkx_edge_labels(g, pos, edge_labels=edge_labels)
-        # values = [node for node in g.nodes()]
-        nx.draw(g, pos, with_labels=True, node_shape="o", node_color='none', edgecolors='black')
+        values = ['none' for node in g.nodes()]
+        if hubs is not None:
+            values = ['gray' for node in g.nodes()]
+            for hub in hubs:
+                values[hub] = 'forestgreen'
+
+        nx.draw(g, pos, with_labels=True, node_shape="o", node_color=values, edgecolors='black')
         plt.show()
 
     def __capacity_map(self):
