@@ -115,7 +115,7 @@ class RL_Env(Env):
                 _observations_episodes_optimals.append(np.array(_episode_optimals))
             return np.array(_observations_episodes), np.array(_observations_episodes_optimals)
 
-        train_set_gen = self._sample_tm(self._tms)
+        train_set_gen = self._sample_tm(self._tms_train)
         test_set_gen = self._sample_tm(self._tms_test)
         self._train_observations, self._opt_train_observations = __create_observation(self._num_train_observations, train_set_gen)
         self._test_observations, self._opt_test_observations = __create_observation(self._num_test_observations, test_set_gen)
