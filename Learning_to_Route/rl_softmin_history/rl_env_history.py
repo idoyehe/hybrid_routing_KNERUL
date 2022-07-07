@@ -14,17 +14,16 @@ from soft_min_optimizer import SoftMinOptimizer
 class RL_Env_History(RL_Env):
 
     def __init__(self,
-                 max_steps,
                  path_dumped=None,
                  test_file=None,
                  history_length=None,
-                 num_train_observations=None,
-                 num_test_observations=None,
+                 num_train_episodes=None,
+                 num_test_episodes=None,
                  testing=False):
-        super(RL_Env_History, self).__init__(max_steps=max_steps, path_dumped=path_dumped,test_file=test_file,
+        super(RL_Env_History, self).__init__(path_dumped=path_dumped, test_file=test_file,
                                              history_length=history_length,
-                                             num_train_observations=num_train_observations,
-                                             num_test_observations=num_test_observations, testing=testing)
+                                             num_train_episodes=num_train_episodes,
+                                             num_test_episodes=num_test_episodes, testing=testing)
 
         assert isinstance(self._optimizer, SoftMinOptimizer)
         self._diagnostics = list()
@@ -74,8 +73,9 @@ class RL_Env_History(RL_Env):
                 except Exception as _:
                     logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
                                 "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion, optimal_val))
+            cost_congestion_ratio = max(cost_congestion_ratio, 1.0)
 
-        cost_congestion_ratio = max(cost_congestion_ratio, 1.0)
+
         logger.debug("SoftMin  Congestion :{}".format(max_congestion))
         logger.debug("Optimal  Congestion :{}".format(optimal_val))
         logger.debug("Congestion Ratio :{}".format(cost_congestion_ratio))

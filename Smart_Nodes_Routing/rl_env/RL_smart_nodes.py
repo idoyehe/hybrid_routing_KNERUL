@@ -7,12 +7,11 @@ from common.static_routing.optimal_load_balancing import *
 class RL_Smart_Nodes(RL_Env):
 
     def __init__(self,
-                 max_steps=1,
                  path_dumped=None,
                  test_file=None,
                  history_length=0,
-                 num_train_observations=None,
-                 num_test_observations=None,
+                 num_train_episodes=None,
+                 num_test_episodes=None,
                  weights_factor=EnvConsts.WEIGHTS_FACTOR,
                  action_weight_lb=EnvConsts.WEIGHT_LB,
                  action_weight_ub=EnvConsts.WEIGHT_UB,
@@ -22,14 +21,14 @@ class RL_Smart_Nodes(RL_Env):
         self._action_weight_lb = action_weight_lb
         self._action_weight_ub = action_weight_ub
 
-        super(RL_Smart_Nodes, self).__init__(max_steps=max_steps, path_dumped=path_dumped, test_file=test_file,
+        super(RL_Smart_Nodes, self).__init__(path_dumped=path_dumped, test_file=test_file,
                                              history_length=history_length,
-                                             num_train_observations=num_train_observations,
-                                             num_test_observations=num_test_observations, testing=testing)
+                                             num_train_episodes=num_train_episodes,
+                                             num_test_episodes=num_test_episodes, testing=testing)
 
         assert isinstance(self._optimizer, Optimizer_Abstract)
         self._diagnostics = list()
-        self.softMin_initial_expected_congestion()
+        # self.softMin_initial_expected_congestion()
 
 
     def _set_action_space(self):

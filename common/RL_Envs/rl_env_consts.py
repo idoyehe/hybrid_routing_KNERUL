@@ -12,7 +12,7 @@ class EnvsStrings:
 
 class EnvConsts:
     SOFTMIN_GAMMA = -2.0
-    WEIGHTS_FACTOR = 10
+    WEIGHTS_FACTOR = 1.0
     EPSILON = 1.0e-8
     INFTY = 1.0e8
     WEIGHT_LB = 1.0e-3

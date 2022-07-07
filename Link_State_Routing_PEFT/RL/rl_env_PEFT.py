@@ -11,14 +11,14 @@ class RL_Env_PEFT(RL_Env):
                  path_dumped=None,
                  history_length=None,
                  history_action_type=None,
-                 num_train_observations=None,
-                 num_test_observations=None,
+                 num_train_episodes=None,
+                 num_test_episodes=None,
                  testing=False):
         super(RL_Env_PEFT, self).__init__(max_steps=max_steps, path_dumped=path_dumped,
                                           history_length=history_length,
                                           history_action_type=history_action_type,
-                                          num_train_observations=num_train_observations,
-                                          num_test_observations=num_test_observations, testing=testing)
+                                          num_train_episodes=num_train_episodes,
+                                          num_test_episodes=num_test_episodes, testing=testing)
 
         self._num_edges = self._network.get_num_edges
         assert isinstance(self._optimizer, Optimizer_Abstract)

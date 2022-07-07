@@ -24,11 +24,10 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-gamma", "--gamma", type=float, help="Gamma Value", default=0)
     parser.add_argument("-n_envs", "--number_of_envs", type=int, help="Number of vectorized environments", default=1)
     parser.add_argument("-n_steps", "--number_of_steps", type=int, help="Number of steps per ppo agent", default=384)
-    parser.add_argument("-tts", "--total_timesteps", type=eval, help="Agent Total timesteps", default='384*500')
-    parser.add_argument("-ep_len", "--episode_length", type=int, help="Episode Length", default=1)
+    parser.add_argument("-tts", "--total_timesteps", type=eval, help="Agent Total timesteps", default='384*1000')
     parser.add_argument("-h_len", "--history_length", type=int, help="History Length", default=0)
-    parser.add_argument("-n_obs", "--number_of_observations", type=int, help="Number of observations to load",
-                        default=1024)
+    parser.add_argument("-n_eps", "--num_train_episodes", type=int, help="Number of observations to load", default=1024)
+    parser.add_argument("-n_tst_eps", "--num_test_episodes", type=int, help="Number of observations to load", default=1024)
     parser.add_argument("-s_diag", "--save_diagnostics", type=eval, help="Dump env diagnostics", default=False)
     parser.add_argument("-s_weights", "--save_links_weights", type=eval, help="Dump links weights", default=False)
     parser.add_argument("-s_agent", "--save_model_agent", type=eval, help="save the model agent", default=False)
@@ -48,15 +47,13 @@ if __name__ == "__main__":
     n_envs = args.number_of_envs
     n_steps = args.number_of_steps
     total_timesteps = args.total_timesteps
-    episode_length = args.episode_length
     history_length = args.history_length
-    num_train_observations = args.number_of_observations
+    num_train_episodes = args.num_train_episodes
+    num_test_episodes = args.num_test_episodes
     save_diagnostics = args.save_diagnostics
     save_links_weights = args.save_links_weights
     save_model_agent = args.save_model_agent
     load_agent = args.load_agent
-
-    num_test_observations = min(num_train_observations * 2, 20000)
 
     checkpoint_callback = CheckpointCallback(save_freq=1000,
                                              save_path='C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Learning_to_Route\\logs\\',
@@ -70,12 +67,11 @@ if __name__ == "__main__":
         register(id=RL_ENV_HISTORY_GYM_ID,
                  entry_point='rl_env_history:RL_Env_History',
                  kwargs={
-                     'max_steps': episode_length,
                      'history_length': history_length,
                      'path_dumped': dumped_path,
                      'test_file': dumped_path_test,
-                     'num_train_observations': num_train_observations,
-                     'num_test_observations': num_test_observations}
+                     'num_train_episodes': num_train_episodes,
+                     'num_test_episodes': num_test_episodes}
                  )
     env = make_vec_env(RL_ENV_HISTORY_GYM_ID, n_envs=n_envs)
     if load_agent is None:
@@ -94,40 +90,44 @@ if __name__ == "__main__":
 
         env_diagnostics = env.envs[0].env.diagnostics
         if save_diagnostics:
-            diag_dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, num_train_observations)
+            diag_dump_file_name = "{}_agent_diagnostics_{}".format(args.dumped_path, num_train_episodes)
             diag_dump_file = open(diag_dump_file_name, 'wb')
             np.save(diag_dump_file, env_diagnostics)
             diag_dump_file.close()
 
     if save_model_agent and load_agent is None:
-        save_path = "{}_model_agent_{}".format(dumped_path, num_train_observations)
+        save_path = "{}_model_agent_{}".format(dumped_path, num_train_episodes)
         model.save(path=save_path)
 
     if load_agent is not None:
         model = PPO.load(load_agent, env)
 
     logger.info("Testing Part")
+    test_set_MLU_expectation = env.envs[0].get_test_set_MLU_expectation
+
     env.envs[0].env.testing(True)
     obs = env.reset()
     rewards_list = list()
     diagnostics = list()
-    for _ in range(num_test_observations):
-        action, _states = model.predict(obs)
+    for _ in range(num_test_episodes):
+        action, _states = model.predict(obs, deterministic=True)
         obs, reward, dones, info = env.step(action)
         diagnostics.extend(info)
-        env.reset()
+        obs = env.reset()
         rewards_list.append(reward[0] * -1)
 
     if save_links_weights:
-        link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, num_train_observations)
+        link_weights_file_name = "{}_agent_link_weights_{}.npy".format(args.dumped_path, num_test_episodes)
         link_weights_file = open(link_weights_file_name, 'wb')
         link_weights_matrix = np.array([step_data["links_weights"] for step_data in diagnostics]).transpose()
         np.save(link_weights_file, link_weights_matrix)
         link_weights_file.close()
 
-    rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, num_test_observations)
+    rewards_file_name = "{}_agent_rewards_{}.npy".format(args.dumped_path, num_test_episodes)
     rewards_file = open(rewards_file_name, 'wb')
     rewards_list = np.array(rewards_list)
     print("Average Reward: {}".format(np.mean(rewards_list)))
+
+    print("MLU Expectation Ratio: {}".format(np.mean(rewards_list) / test_set_MLU_expectation))
     np.save(rewards_file, rewards_list)
     rewards_file.close()

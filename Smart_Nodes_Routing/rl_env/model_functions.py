@@ -22,9 +22,8 @@ def _create_random_TMs_list(traffic_matrices_list):
 
 def build_clean_smart_nodes_env(train_file: str,
                                 test_file: str,
-                                num_train_observations: int,
-                                num_test_observations: int,
-                                episode_length: int = 1,
+                                num_train_episodes: int,
+                                num_test_episodes: int,
                                 history_length: int = 0,
                                 weights_factor=EnvConsts.WEIGHTS_FACTOR,
                                 action_weight_lb=EnvConsts.WEIGHT_LB,
@@ -33,8 +32,8 @@ def build_clean_smart_nodes_env(train_file: str,
     logger.info("Train data loaded from: {}".format(train_file))
     logger.info("Test data loaded from: {}".format(test_file))
 
-    logger.info("Train observations: {}".format(num_train_observations))
-    logger.info("Test observations: {}".format(num_test_observations))
+    logger.info("Train Episodes: {}".format(num_train_episodes))
+    logger.info("Test Episodes: {}".format(num_test_episodes))
 
     if EnvsStrings.RL_ENV_SMART_NODES_GYM_ID in envs.registry.env_specs:
         del envs.registry.env_specs[EnvsStrings.RL_ENV_SMART_NODES_GYM_ID]
@@ -42,12 +41,11 @@ def build_clean_smart_nodes_env(train_file: str,
     register(id=EnvsStrings.RL_ENV_SMART_NODES_GYM_ID,
              entry_point='Smart_Nodes_Routing.rl_env.RL_smart_nodes:RL_Smart_Nodes',
              kwargs={
-                 'max_steps': episode_length,
                  'history_length': history_length,
                  'path_dumped': train_file,
                  'test_file': test_file,
-                 'num_train_observations': num_train_observations,
-                 'num_test_observations': num_test_observations,
+                 'num_train_episodes': num_train_episodes,
+                 'num_test_episodes': num_test_episodes,
                  'weights_factor': weights_factor,
                  'action_weight_lb': action_weight_lb,
                  'action_weight_ub': action_weight_ub})
