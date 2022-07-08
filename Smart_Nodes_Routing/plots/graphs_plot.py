@@ -11,8 +11,8 @@ def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
     parser.add_argument("-topo", "--topology_name", type=str, help="The topology name")
     parser.add_argument("-traffic", "--traffic_name", type=str, help="The traffic distribution name")
-    parser.add_argument("-obliv_base", "--oblivious_baseline", type=eval, help="If oblivious is the baseline",
-                        default=False)
+    parser.add_argument("-obliv_base", "--oblivious_baseline", type=eval,
+                        help="If oblivious is the baseline", default=False)
     parser.add_argument("-pgf", "--pgf", type=eval, help="PGF format", default=False)
     options = parser.parse_args(args)
     return options
@@ -56,10 +56,10 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
     ax.set_axisbelow(True)  # grid lines are behind the rest
     bottom = 0.0 if oblivious_baseline else 1.0
     plt.ylim(bottom=bottom)
-    y_max = np.round(y_max+0.1,2)
+    y_max = np.round(y_max + 0.1, 2)
     y_min = 1.0
     y_ticks = 21
-    y_tick_offset = (y_max-y_min)/y_ticks
+    y_tick_offset = (y_max - y_min) / y_ticks
     plt.yticks(np.arange(y_min, y_max, step=y_tick_offset), fontsize=fontsize)
     ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
     plt.tight_layout()
@@ -69,7 +69,7 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
 
 def plot_cross_topologies_graphs(save_file, topologies, y_data):
     bar_design = dict()
-    bar_design["Learning to Route RL"] = {"color": "#aac2a1", "alpha": 1.0, "hatch": None}
+    bar_design["Random Initialized RL"] = {"color": "#aac2a1", "alpha": 1.0, "hatch": None}
     bar_design["Link Weight Initialization"] = {"color": "darkgreen", "alpha": 1.0, "hatch": None}
     bar_design["Link Weight Initialized RL"] = {"color": "forestgreen", "alpha": 1.0, "hatch": None}
     fontsize = 12
@@ -100,10 +100,10 @@ def plot_cross_topologies_graphs(save_file, topologies, y_data):
     ax.yaxis.grid(alpha=0.5)  # grid lines
     ax.set_axisbelow(True)  # grid lines are behind the rest
     plt.ylim(bottom=1.0)
-    y_max = np.round(y_max+0.05,2)
+    y_max = np.round(y_max + 0.1, 2)
     y_min = 1.0
     y_ticks = 21
-    y_tick_offset = (y_max-y_min)/y_ticks
+    y_tick_offset = (y_max - y_min) / y_ticks
     plt.yticks(np.arange(y_min, y_max, step=y_tick_offset), fontsize=fontsize)
     ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
     plt.tight_layout()
@@ -128,15 +128,15 @@ if __name__ == "__main__":
             'pgf.rcfonts': False,
         })
         suffix = "pgf"
+    if topology_name == "all":
+        save_file = "{}_{}.{}".format("link_weights_init", traffic_name, suffix)
+        topologies, y_data = parse_rl_optimization_cross_topologies(traffic_name)
+        plot_cross_topologies_graphs(save_file, topologies, y_data)
 
-    baseline_name = "oblivious" if oblivious_baseline else "optimal"
+    else:
+        baseline_name = "oblivious" if oblivious_baseline else "optimal"
+        save_file = "{}_{}_baseline_{}.{}".format(topology_name, traffic_name, baseline_name, suffix)
+        x_labels, y_data, h_lines = parsing_data_results(topology_name, traffic_name, oblivious_baseline)
+        plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lines)
 
-    save_file = "{}_{}_baseline_{}.{}".format(topology_name, traffic_name, baseline_name, suffix)
 
-    x_labels, y_data, h_lines = parsing_data_results(topology_name, traffic_name, oblivious_baseline)
-    plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lines)
-    #
-    # save_file = "{}_{}.{}".format("link_weights_init", traffic_name, suffix)
-    #
-    # topologies, y_data = parse_rl_optimization_cross_topologies(traffic_name)
-    # plot_cross_topologies_graphs(save_file, topologies, y_data)

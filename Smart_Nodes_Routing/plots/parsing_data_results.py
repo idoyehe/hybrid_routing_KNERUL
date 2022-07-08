@@ -17,23 +17,26 @@ def __parse_training_set(data_training_set, obliv_base, x_labels):
     for label in x_labels:
         label_ratios = [s / baseline for s in data_training_set[label]]
         y_data.append((np.mean(label_ratios), np.std(label_ratios)))
-    y_data.insert(1, (weight_initialization_ratio, 0))
+    # y_data.insert(1, (weight_initialization_ratio, 0))
 
     return y_data, oblivious_routing_ratio, averaged_tm_optimal_routing_ratio, max_tm_optimal_routing_ratio
 
 
-def __parse_testing_set(data_testing_set, obliv_base, x_labels):
+def __parse_testing_set(data_testing_set, obliv_base, x_labels,weight_init=False):
     baselines = data_testing_set["oblivious_routing"] if obliv_base else data_testing_set["optimal"]
     oblivious_routing_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set["oblivious_routing"])]
     averaged_tm_optimal_routing_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set["averaged_tm_optimal_routing_scheme"])]
     max_tm_optimal_routing_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set["max_tm_optimal_routing_scheme"])]
-    weight_initialization_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set["smart_weight_initialization"])]
+    if weight_init:
+        weight_initialization_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set["smart_weight_initialization"])]
 
     y_data = list()
     for label in x_labels:
         label_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set[label])]
         y_data.append((np.mean(label_ratios), np.std(label_ratios)))
-    y_data.insert(1, (np.mean(weight_initialization_ratios), np.std(weight_initialization_ratios)))
+
+    if weight_init:
+        y_data.insert(1, (np.mean(weight_initialization_ratios), np.std(weight_initialization_ratios)))
 
     return y_data, oblivious_routing_ratios, averaged_tm_optimal_routing_ratios, max_tm_optimal_routing_ratios
 
@@ -49,12 +52,12 @@ def parse_rl_optimization_cross_topologies(traffic):
     topologies = ("Claranet", "GoodNet", "Scale Free\n30 Nodes", "GEANT", "China Telecom")
 
     y_data = dict()
-    x_labels = ("Learning to Route RL", "Link Weight Initialization", "Link Weight Initialized RL")
+    x_labels = ("Random Initialized RL", "Link Weight Initialization", "Link Weight Initialized RL")
 
     for i, label in enumerate(x_labels):
         y_data[label] = []
         for topo in topologies_raw_names:
-            _y_data, _, _, _ = __parse_testing_set(data[topo][traffic]["results"]["testing_sets"], False, raw_labels)
+            _y_data, _, _, _ = __parse_testing_set(data[topo][traffic]["results"]["testing_sets"], False, raw_labels,True)
             y_data[label].append(_y_data[i])
 
     return topologies, y_data
@@ -100,8 +103,7 @@ def parsing_data_results(topology_name, traffic, obliv_base):
     y_data["Key Nodes Train Set"] = y_data_lp_train
     y_data["Test Sets"] = y_data_test
 
-    x_labels = ("Learning\nto\nRoute",
-                "Initialization\nLink\nWeight",
+    x_labels = ("Random\nInitialized\nRL",
                 "Link\nWeight\nInitialized\nRL",
                 "Hybrid\nRouting\n1 Key\nNode",
                 "Hybrid\nRouting\n2 Key\nNodes",
@@ -109,8 +111,7 @@ def parsing_data_results(topology_name, traffic, obliv_base):
                 "Hybrid\nRouting\n4 Key\nNodes",
                 "Hybrid\nRouting\n5 Key\nNodes") \
         if "5_key_node" in data_topo_traffic["RL_training_set"].keys() \
-        else ("Learning\nto\nRoute",
-              "Initialization\nLink\nWeight",
+        else ("Random\nInitialized\nRL",
               "Link\nWeight\nInitialized\nRL",
               "Hybrid\nRouting\n1 Key\nNode",
               "Hybrid\nRouting\n2 Key\nNodes",

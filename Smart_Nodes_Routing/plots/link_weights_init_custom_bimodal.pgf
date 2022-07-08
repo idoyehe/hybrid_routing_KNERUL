@@ -1800,7 +1800,7 @@
 \definecolor{textcolor}{rgb}{0.000000,0.000000,0.000000}%
 \pgfsetstrokecolor{textcolor}%
 \pgfsetfillcolor{textcolor}%
-\pgftext[x=5.060452in,y=4.583333in,left,base]{\color{textcolor}\rmfamily\fontsize{12.000000}{14.400000}\selectfont Learning to Route RL}%
+\pgftext[x=5.060452in,y=4.583333in,left,base]{\color{textcolor}\rmfamily\fontsize{12.000000}{14.400000}\selectfont Random Initialized RL}%
 \end{pgfscope}%
 \begin{pgfscope}%
 \pgfsetbuttcap%
