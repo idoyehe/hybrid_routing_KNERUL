@@ -15,8 +15,8 @@ class EnvConsts:
     WEIGHTS_FACTOR = 1.0
     EPSILON = 1.0e-8
     INFTY = 1.0e8
-    WEIGHT_LB = 1.0e-3
-    WEIGHT_UB = 3.0e1
+    WEIGHT_LB = 1
+    WEIGHT_UB = 5
     ZERO = 0.0
     GAMMA = 0
 

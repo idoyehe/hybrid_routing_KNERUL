@@ -7,9 +7,9 @@
     "policy_updates": 250
   },
   "learning": {
-    "train_file": "China_Telecom_tms_42X42_length_1024_custom_bimodal_sparsity_0.3_train",
-    "test_file": "China_Telecom_tms_42X42_length_1024_custom_bimodal_sparsity_0.3_test_3",
-    "lp_file": "China_Telecom_tms_42X42_length_4096_custom_bimodal_sparsity_0.3_LP",
+    "train_file": "China_Telecom_tms_42X42_length_1024_gravity_sparsity_0.3_train",
+    "test_file": "China_Telecom_tms_42X42_length_1024_gravity_sparsity_0.3_test_0",
+    "lp_file": "China_Telecom_tms_42X42_length_1024_gravity_sparsity_0.3_LP",
     "num_train_observations": 1024,
     "num_test_observations": 1024,
     "policy_updates": 1000,
@@ -19,6 +19,6 @@
     "batch_size": 128,
     "weights_factor": 1,
     "weight_lb": 0.7,
-    "weight_ub": 12
+    "weight_ub": 14
   }
 }
