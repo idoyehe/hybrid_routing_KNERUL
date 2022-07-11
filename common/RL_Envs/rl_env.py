@@ -89,7 +89,7 @@ class RL_Env(Env):
         random.shuffle(tm_set)
         for idx, tuple_element in enumerate(tm_set):
             tm, opt = tuple_element
-            yield tm_set[0]
+            yield tm, opt
 
     def _init_all_observations(self):
         def __create_episode(_episode_tms_len, set_gen):

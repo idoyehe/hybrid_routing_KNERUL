@@ -56,9 +56,9 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
     ax.set_axisbelow(True)  # grid lines are behind the rest
     bottom = 0.0 if oblivious_baseline else 1.0
     plt.ylim(bottom=bottom)
-    y_max = np.round(y_max + 0.1, 2)
+    y_max = np.round(y_max + 0.08, 2)
     y_min = 1.0
-    y_ticks = 21
+    y_ticks = 23
     y_tick_offset = (y_max - y_min) / y_ticks
     plt.yticks(np.arange(y_min, y_max, step=y_tick_offset), fontsize=fontsize)
     ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
