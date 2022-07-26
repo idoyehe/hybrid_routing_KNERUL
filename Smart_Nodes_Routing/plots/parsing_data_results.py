@@ -8,31 +8,31 @@ JSON_PATH = os.path.join(DIR_NAME, "../experiments/Evaluations_V3.json")
 
 def __parse_training_set(data_training_set, obliv_base, x_labels):
     baseline = data_training_set["oblivious_routing"] if obliv_base else data_training_set["optimal"]
-    oblivious_routing_ratio = data_training_set["oblivious_routing"] / baseline
-    averaged_tm_optimal_routing_ratio = data_training_set["averaged_tm_optimal_routing_scheme"] / baseline
-    max_tm_optimal_routing_ratio = data_training_set["max_tm_optimal_routing_scheme"] / baseline
-    weight_initialization_ratio = data_training_set["smart_weight_initialization"] / baseline
+    oblivious_routing_ratio = (data_training_set["oblivious_routing"] / baseline - 1) * 100
+    averaged_tm_optimal_routing_ratio = (data_training_set["averaged_tm_optimal_routing_scheme"] / baseline - 1) * 100
+    max_tm_optimal_routing_ratio = (data_training_set["max_tm_optimal_routing_scheme"] / baseline - 1) * 100
+    weight_initialization_ratio = (data_training_set["smart_weight_initialization"] / baseline - 1) * 100
 
     y_data = list()
     for label in x_labels:
-        label_ratios = [s / baseline for s in data_training_set[label]]
+        label_ratios = [(s / baseline - 1) * 100 for s in data_training_set[label]]
         y_data.append((np.mean(label_ratios), np.std(label_ratios)))
     # y_data.insert(1, (weight_initialization_ratio, 0))
 
     return y_data, oblivious_routing_ratio, averaged_tm_optimal_routing_ratio, max_tm_optimal_routing_ratio
 
 
-def __parse_testing_set(data_testing_set, obliv_base, x_labels,weight_init=False):
+def __parse_testing_set(data_testing_set, obliv_base, x_labels, weight_init=False):
     baselines = data_testing_set["oblivious_routing"] if obliv_base else data_testing_set["optimal"]
-    oblivious_routing_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set["oblivious_routing"])]
-    averaged_tm_optimal_routing_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set["averaged_tm_optimal_routing_scheme"])]
-    max_tm_optimal_routing_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set["max_tm_optimal_routing_scheme"])]
+    oblivious_routing_ratios = [(s / baselines[i] - 1) * 100 for i, s in enumerate(data_testing_set["oblivious_routing"])]
+    averaged_tm_optimal_routing_ratios = [(s / baselines[i] - 1) * 100 for i, s in enumerate(data_testing_set["averaged_tm_optimal_routing_scheme"])]
+    max_tm_optimal_routing_ratios = [(s / baselines[i] - 1) * 100 for i, s in enumerate(data_testing_set["max_tm_optimal_routing_scheme"])]
     if weight_init:
-        weight_initialization_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set["smart_weight_initialization"])]
+        weight_initialization_ratios = [(s / baselines[i] - 1) * 100 for i, s in enumerate(data_testing_set["smart_weight_initialization"])]
 
     y_data = list()
     for label in x_labels:
-        label_ratios = [s / baselines[i] for i, s in enumerate(data_testing_set[label])]
+        label_ratios = [(s / baselines[i] - 1) * 100 for i, s in enumerate(data_testing_set[label])]
         y_data.append((np.mean(label_ratios), np.std(label_ratios)))
 
     if weight_init:
@@ -57,7 +57,7 @@ def parse_rl_optimization_cross_topologies(traffic):
     for i, label in enumerate(x_labels):
         y_data[label] = []
         for topo in topologies_raw_names:
-            _y_data, _, _, _ = __parse_testing_set(data[topo][traffic]["results"]["testing_sets"], False, raw_labels,True)
+            _y_data, _, _, _ = __parse_testing_set(data[topo][traffic]["results"]["testing_sets"], False, raw_labels, True)
             y_data[label].append(_y_data[i])
 
     return topologies, y_data

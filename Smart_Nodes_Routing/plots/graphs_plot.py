@@ -37,7 +37,7 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
     for y_label, value in y_data.items():
         y_data, yerr = tuple(zip(*value))
         ax.bar(ind + (offset * offset_value), y_data, width=width, align='center', label=y_label, yerr=yerr,
-               error_kw=dict(ecolor='black', capsize=3),
+               error_kw=dict(ecolor='black', capsize=3.5),
                color=bar_design[y_label]["color"], fill=True,
                hatch=bar_design[y_label]["hatch"],
                )
@@ -46,7 +46,7 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
 
     plt.xticks(ind, x_labels, rotation=0, fontsize=fontsize)
 
-    plt.ylabel("Maximum Link Utilization Ratio", fontsize=fontsize)
+    plt.ylabel("Relative Inefficiency [%]", fontsize=fontsize)
     for h_line in h_lines:
         ax.axhline(y=h_line[3], label=h_line[0], color=h_line[1], linestyle=h_line[2])
         y_max = max(y_max, h_line[3])
@@ -54,14 +54,13 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
     plt.legend(fontsize=fontsize)
     ax.yaxis.grid(alpha=0.5)  # grid lines
     ax.set_axisbelow(True)  # grid lines are behind the rest
-    bottom = 0.0 if oblivious_baseline else 1.0
-    plt.ylim(bottom=bottom)
-    y_max = np.round(y_max + 0.08, 2)
-    y_min = 1.0
+    plt.ylim(bottom=0.0)
+    y_max = np.round(y_max + 4, 2)
+    y_min = 0.0
     y_ticks = 23
     y_tick_offset = (y_max - y_min) / y_ticks
     plt.yticks(np.arange(y_min, y_max, step=y_tick_offset), fontsize=fontsize)
-    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
+    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1f'))
     plt.tight_layout()
     plt.savefig(save_file)
     plt.show()
@@ -72,7 +71,7 @@ def plot_cross_topologies_graphs(save_file, topologies, y_data):
     bar_design["Random Initialized RL"] = {"color": "#aac2a1", "alpha": 1.0, "hatch": None}
     bar_design["Link Weight Initialization"] = {"color": "darkgreen", "alpha": 1.0, "hatch": None}
     bar_design["Link Weight Initialized RL"] = {"color": "forestgreen", "alpha": 1.0, "hatch": None}
-    fontsize = 12
+    fontsize = 15
     fig = plt.figure(figsize=(7.3, 5))
     ax = plt.subplot()
     ax.autoscale(enable=True)
@@ -94,18 +93,18 @@ def plot_cross_topologies_graphs(save_file, topologies, y_data):
 
     plt.xticks(ind, topologies, rotation=0, fontsize=fontsize)
 
-    plt.ylabel("MLU Expectation Ratio", fontsize=fontsize)
+    plt.ylabel("Relative Inefficiency [%]", fontsize=fontsize)
 
     plt.legend(fontsize=fontsize)
     ax.yaxis.grid(alpha=0.5)  # grid lines
     ax.set_axisbelow(True)  # grid lines are behind the rest
-    plt.ylim(bottom=1.0)
-    y_max = np.round(y_max + 0.1, 2)
-    y_min = 1.0
+    plt.ylim(bottom=0.0)
+    y_max = np.round(y_max + 1, 2)
+    y_min = 0.0
     y_ticks = 21
     y_tick_offset = (y_max - y_min) / y_ticks
     plt.yticks(np.arange(y_min, y_max, step=y_tick_offset), fontsize=fontsize)
-    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.2f'))
+    ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1f'))
     plt.tight_layout()
     plt.savefig(save_file)
     plt.show()
