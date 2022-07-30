@@ -27,6 +27,7 @@ class NetworkClass(object):
         self._all_edges = self._graph.edges
 
         self._capacities = None  # this is a vector of capacities
+        self._edge_capacity_map = None  # this is a dict of capacities
         self._all_pairs = None
         self._num_nodes = len(self._graph.nodes)
         self._num_edges = len(self._all_edges)
@@ -188,6 +189,7 @@ class NetworkClass(object):
         self._capacities = np.zeros(num_edges)
         self._id2edge_map = dict()
         self._edge2id_map = dict()
+        self._edge_capacity_map = dict()
         edge_id = 0
         for i in range(len(graph_adjacency)):
             for j in range(len(graph_adjacency)):
@@ -197,8 +199,14 @@ class NetworkClass(object):
                     self._capacities[edge_id] = self.get_edge_key((i, j), EdgeConsts.CAPACITY_STR)
                     self._id2edge_map[edge_id] = (i, j)
                     self._edge2id_map[(i, j)] = edge_id
+                    self._edge_capacity_map[(i, j)] = self._capacities[edge_id]
                     edge_id += 1
         return ingoing, outgoing, self._capacities
+
+    def get_edge_capacity_map(self):
+        if self._edge_capacity_map is None:  # for happens only once
+            self.build_edges_map()
+        return self._edge_capacity_map
 
     def get_id2edge_map(self):
         if self._id2edge_map is None:
