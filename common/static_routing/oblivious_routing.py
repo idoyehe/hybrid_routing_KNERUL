@@ -18,6 +18,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-topo", "--topology_url", type=str, help="The url to load graph topology from")
     parser.add_argument("-dumps_list", "--list_of_dumps", type=str, help="The path for the list of dumped train file")
     parser.add_argument("-save", "--save_dump", type=eval, help="Save the results in ad dump", default=True)
+    parser.add_argument("-oblv_dumps", "--oblivious_dumps", type=str, help="Splitting Ratios", default=None)
     options = parser.parse_args(args)
     return options
 
@@ -160,22 +161,27 @@ if __name__ == "__main__":
     topology_url = args.topology_url
     list_of_dumps = args.list_of_dumps
     save_dump = args.save_dump
+    oblivious_dumps = args.oblivious_dumps
 
     list_of_dumps = list_of_dumps.split(",")
 
     net = NetworkClass(topology_zoo_loader(topology_url))
-    oblivious_ratio, src_dst_splitting_ratios = oblivious_routing_scheme(net)
+    if oblivious_dumps is None:
+        oblivious_ratio, src_dst_splitting_ratios = oblivious_routing_scheme(net)
+    else:
+        obliv_dict = load_dump_file(oblivious_dumps)
+        oblivious_ratio, src_dst_splitting_ratios = obliv_dict[DumpsConsts.OBLIVIOUS_RATIO], obliv_dict[DumpsConsts.OBLIVIOUS_SRC_DST_SPR]
+
     print("The oblivious ratio for {} is {}".format(net.get_title, oblivious_ratio))
 
-    result:list = list()
+    result: list = list()
     for dump_path in list_of_dumps:
         name = dump_path.split("_")[-1]
         loaded_dict = load_dump_file(dump_path)
         tms = np.array(list(zip(*loaded_dict[DumpsConsts.TMs]))[0])
         oblivious_mean_congestion = multiple_matrices_traffic_distribution(net, tms, src_dst_splitting_ratios)[0]
         print("{} Tms: Oblivious Mean Congestion Result: {}".format(name, oblivious_mean_congestion))
-        result.append((name,oblivious_mean_congestion))
-
+        result.append((name, oblivious_mean_congestion))
 
     if save_dump:
         dict2dump = dict()
