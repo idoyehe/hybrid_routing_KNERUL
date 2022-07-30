@@ -49,7 +49,7 @@ def parse_rl_optimization_cross_topologies(traffic):
     f.close()
     raw_labels = ("naive_RL", "first_RL_phase")
     topologies_raw_names = ("Claranet", "GoodNet", "ScaleFree30Nodes", "GEANT", "China_Telecom")
-    topologies = ("Claranet", "GoodNet", "Scale Free\n30 Nodes", "GEANT", "China Telecom")
+    topologies = ("Claranet", "GoodNet", "Scale Free\n30 Nodes", "GEANT", "China\nTelecom")
 
     y_data = dict()
     x_labels = ("Random Initialized RL", "Link Weight Initialization", "Link Weight Initialized RL")
@@ -104,18 +104,18 @@ def parsing_data_results(topology_name, traffic, obliv_base):
     y_data["Test Sets"] = y_data_test
 
     x_labels = ("Random\nInitialized\nRL",
-                "Link\nWeight\nInitialized\nRL",
-                "Hybrid\nRouting\n1 Key\nNode",
-                "Hybrid\nRouting\n2 Key\nNodes",
-                "Hybrid\nRouting\n3 Key\nNodes",
-                "Hybrid\nRouting\n4 Key\nNodes",
-                "Hybrid\nRouting\n5 Key\nNodes") \
+                "KNERL\nRL",
+                "KNERL\n1 Key\nNode",
+                "KNERL\n2 Key\nNodes",
+                "KNERL\n3 Key\nNodes",
+                "KNERL\n4 Key\nNodes",
+                "KNERL\n5 Key\nNodes") \
         if "5_key_node" in data_topo_traffic["RL_training_set"].keys() \
         else ("Random\nInitialized\nRL",
-              "Link\nWeight\nInitialized\nRL",
-              "Hybrid\nRouting\n1 Key\nNode",
-              "Hybrid\nRouting\n2 Key\nNodes",
-              "Hybrid\nRouting\n3 Key\nNodes",
-              "Hybrid\nRouting\n4 Key\nNodes")
+              "KNERL\nRL",
+              "KNERL\n1 Key\nNode",
+              "KNERL\n2 Key\nNodes",
+              "KNERL\n3 Key\nNodes",
+              "KNERL\n4 Key\nNodes")
 
     return x_labels, y_data, h_lines
