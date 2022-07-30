@@ -15,17 +15,20 @@ if __name__ == "__main__":
         net = NetworkClass(topology_zoo_loader(topo[0]))
         net.print_network(hubs=topo[1])
         print("{}'s Links and capacities".format(net.get_title))
-        num_links=net.get_num_edges
-        num_cols=4
+        num_links = net.get_num_edges
+        num_cols = 4
         links_per_col = num_links / 4
         dict_of_links_capacities = net.get_edge_capacity_map()
 
+
         def link_capacity_generator():
             for link, capacity in dict_of_links_capacities.items():
-                yield link,capacity
+                yield link, capacity
+
+
         remain = 0
         if int(links_per_col) < links_per_col:
-            remain = (links_per_col - int(links_per_col))*num_cols
+            remain = (links_per_col - int(links_per_col)) * num_cols
             assert int(remain) == remain
             remain = int(remain)
 
@@ -36,7 +39,7 @@ if __name__ == "__main__":
             row = list()
             for c in range(num_cols):
                 row.append("{} & {}".format(*next(capacity_generator)))
-            row[-1] +='\\\\'
+            row[-1] += '\\\\'
             row = ' & '.join(row)
             rows.append(row)
 
@@ -58,11 +61,3 @@ if __name__ == "__main__":
             pass
 
         print(rows)
-
-
-
-
-
-
-
-
