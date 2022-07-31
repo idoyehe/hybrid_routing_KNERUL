@@ -8,7 +8,7 @@
   },
   "learning": {
     "train_file": "ScaleFree30Nodes_tms_30X30_length_1024_custom_bimodal_sparsity_0.4_train",
-    "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_custom_bimodal_sparsity_0.4_test_0",
+    "test_file": "ScaleFree30Nodes_tms_30X30_length_1024_custom_bimodal_sparsity_0.4_train",
     "lp_file": "ScaleFree30Nodes_tms_30X30_length_4096_custom_bimodal_sparsity_0.4_LP",
     "num_train_observations": 1024,
     "num_test_observations": 1024,
