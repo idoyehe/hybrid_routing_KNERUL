@@ -65,10 +65,8 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
         for u, v in net_direct.edges:
             edge_capacity = net_direct.get_edge_key((u, v), EdgeConsts.CAPACITY_STR)
             reduced_flows = list(filter(lambda src_dst: src_dst[1] != u, tm_active_flows))
-            m_link_load = sum(vars_flows_src_dst_per_edge[src, dst, u, v] * tms_list_length * demands_ratios[m_idx, src, dst] for src, dst in reduced_flows)
+            m_link_load = sum(vars_flows_src_dst_per_edge[src, dst, u, v] * demands_ratios[m_idx, src, dst] for src, dst in reduced_flows)
             mcf_problem.addLConstr(m_link_load, GRB.LESS_EQUAL, edge_capacity * vars_bt_per_matrix[m_idx])
-
-    aggregate_tm *= 1 / tms_list_length
 
     for src, dst in active_flows:
         # Flow conservation at the source
