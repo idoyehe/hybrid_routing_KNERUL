@@ -1,5 +1,5 @@
 {
-  "Claranet": {
+  "claranet": {
     "gravity": {
       "sparsity": 0.3,
       "results": {
@@ -513,7 +513,7 @@
       }
     }
   },
-  "GoodNet": {
+  "goodNet": {
     "gravity": {
       "sparsity": 0.3,
       "results": {
@@ -1095,7 +1095,7 @@
       }
     }
   },
-  "ScaleFree30Nodes": {
+  "scaleFree30Nodes": {
     "gravity": {
       "sparsity": 0.3,
       "results": {
@@ -1791,7 +1791,7 @@
       }
     }
   },
-  "China_Telecom": {
+  "china_Telecom": {
     "gravity": {
       "sparsity": 0.3,
       "results": {

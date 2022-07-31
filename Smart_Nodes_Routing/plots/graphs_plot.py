@@ -18,14 +18,14 @@ def _getOptions(args=argv[1:]):
     return options
 
 
-def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lines=None,y_ticks_int=True):
+def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lines=None,y_ticks_int=False):
     bar_design = dict()
     bar_design["Non-Key Nodes Train Set"] = {"color": "#aac2a1", "alpha": 1.0, "hatch": None}
     bar_design["Key Nodes Train Set"] = {"color": "darkgreen", "alpha": 1.0, "hatch": None}
     bar_design["Test Sets"] = {"color": "forestgreen", "alpha": 1.0, "hatch": None}
 
     fontsize = 15
-    fig = plt.figure(figsize=(7.3, 5))
+    fig = plt.figure(figsize=(12, 10))
     ax = plt.subplot()
     ax.autoscale(enable=True)
     ind = np.arange(len(x_labels))
@@ -37,7 +37,7 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
     for y_label, value in y_data.items():
         y_data, yerr = tuple(zip(*value))
         ax.bar(ind + (offset * offset_value), y_data, width=width, align='center', label=y_label, yerr=yerr,
-               error_kw=dict(ecolor='black', capsize=3.5),
+               error_kw=dict(ecolor='black', capsize=7),
                color=bar_design[y_label]["color"], fill=True,
                hatch=bar_design[y_label]["hatch"],
                )
@@ -51,7 +51,7 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
         ax.axhline(y=h_line[3], label=h_line[0], color=h_line[1], linestyle=h_line[2])
         y_max = max(y_max, h_line[3])
 
-    plt.legend(fontsize=12.5,loc='best')
+    plt.legend(fontsize=fontsize,loc='best')
     ax.yaxis.grid(alpha=0.5)  # grid lines
     ax.set_axisbelow(True)  # grid lines are behind the rest
     plt.ylim(bottom=0.0)
@@ -64,7 +64,7 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
     else:
         y_max = np.round(y_max + 4, 2)
         y_min = 0.0
-        y_ticks = 23
+        y_ticks = 30
         y_tick_offset = (y_max - y_min) / y_ticks
         plt.yticks(np.arange(y_min, y_max, step=y_tick_offset), fontsize=fontsize)
         ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1f'))
@@ -73,13 +73,13 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
     plt.show()
 
 
-def plot_cross_topologies_graphs(save_file, topologies, y_data,y_ticks_int=True):
+def plot_cross_topologies_graphs(save_file, topologies, y_data,y_ticks_int=False):
     bar_design = dict()
     bar_design["Random Initialized RL"] = {"color": "#aac2a1", "alpha": 1.0, "hatch": None}
     bar_design["Link Weight Initialization"] = {"color": "darkgreen", "alpha": 1.0, "hatch": None}
     bar_design["Link Weight Initialized RL"] = {"color": "forestgreen", "alpha": 1.0, "hatch": None}
     fontsize = 16
-    fig = plt.figure(figsize=(7.3, 5))
+    fig = plt.figure(figsize=(12, 10))
     ax = plt.subplot()
     ax.autoscale(enable=True)
     ind = np.arange(len(topologies))
@@ -91,7 +91,7 @@ def plot_cross_topologies_graphs(save_file, topologies, y_data,y_ticks_int=True)
     for y_label, value in y_data.items():
         y_data, yerr = tuple(zip(*value))
         ax.bar(ind + (offset * offset_value), y_data, width=width, align='center', label=y_label, yerr=yerr,
-               error_kw=dict(ecolor='black', capsize=5),
+               error_kw=dict(ecolor='black', capsize=7),
                color=bar_design[y_label]["color"], fill=True,
                hatch=bar_design[y_label]["hatch"])
 
@@ -102,7 +102,7 @@ def plot_cross_topologies_graphs(save_file, topologies, y_data,y_ticks_int=True)
 
     plt.ylabel("Relative Inefficiency [%]", fontsize=fontsize)
 
-    plt.legend(fontsize=12.5,loc='best')
+    plt.legend(fontsize=fontsize,loc='best')
     ax.yaxis.grid(alpha=0.5)  # grid lines
     ax.set_axisbelow(True)  # grid lines are behind the rest
     plt.ylim(bottom=0.0)
@@ -112,9 +112,9 @@ def plot_cross_topologies_graphs(save_file, topologies, y_data,y_ticks_int=True)
         y_tick_step = 2
         plt.yticks(np.arange(y_min, y_max, step=y_tick_step), fontsize=fontsize)
     else:
-        y_max = np.round(y_max + 2, 2)
+        y_max = np.round(y_max + 5, 2)
         y_min = 0.0
-        y_ticks = 21
+        y_ticks = 30
         y_tick_offset = (y_max - y_min) / y_ticks
         plt.yticks(np.arange(y_min, y_max, step=y_tick_offset), fontsize=fontsize)
         ax.yaxis.set_major_formatter(mtick.FormatStrFormatter('%.1f'))
