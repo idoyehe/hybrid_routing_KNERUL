@@ -69,7 +69,7 @@ class RL_Env_History(RL_Env):
 
             if cost_congestion_ratio < 1.0:
                 try:
-                    assert error_bound(cost_congestion_ratio, optimal_val)
+                    assert error_bound(max_congestion, optimal_val)
                 except Exception as _:
                     logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
                                 "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion, optimal_val))

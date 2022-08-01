@@ -31,7 +31,6 @@ class RL_Smart_Nodes(RL_Env):
         # self.softMin_initial_expected_congestion()
         # exit(0)
 
-
     def _set_action_space(self):
         self._action_space = spaces.Box(low=self._action_weight_lb, high=self._action_weight_ub, shape=(self._num_edges,), dtype=np.float64)
 
@@ -67,13 +66,25 @@ class RL_Smart_Nodes(RL_Env):
         max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = self.optimizer_step(
             links_weights, tm, optimal_congestion)
 
-        cost_congestion_ratio = max_congestion
+        cost = max_congestion
+
+        if self._testing:
+            cost_congestion_ratio = max_congestion / optimal_congestion
+
+            if cost_congestion_ratio < 1.0:
+                try:
+                    assert error_bound(max_congestion, optimal_congestion)
+                except Exception as _:
+                    logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
+                                "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion, optimal_congestion))
+
+                cost = 1.0 * optimal_congestion
 
         logger.debug("optimal Congestion :{}".format(optimal_congestion))
-        logger.debug("Max Congestion :{}".format(max_congestion))
-        logger.debug("Congestion Ratio :{}".format(max_congestion/optimal_congestion))
+        logger.debug("Max Congestion :{}".format(cost))
+        logger.debug("Congestion Ratio :{}".format(max_congestion / optimal_congestion))
 
-        return cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
+        return cost, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link
 
     def optimizer_step(self, links_weights, tm, optimal_value):
         max_congestion, most_congested_link, flows_to_dest_per_node, total_congestion_per_link, total_load_per_link = \
@@ -91,5 +102,6 @@ class RL_Smart_Nodes(RL_Env):
 
     def softMin_initial_expected_congestion(self):
         dst_splitting_ratios = self._optimizer.calculating_destination_based_spr(self._initial_weights)
-        a = np.mean([super(SmartNodesOptimizer,self._optimizer)._calculating_traffic_distribution(dst_splitting_ratios, tm[0])[0] for tm in self._test_observations])
+        a = np.mean([super(SmartNodesOptimizer, self._optimizer)._calculating_traffic_distribution(dst_splitting_ratios, tm[0])[0] for tm in
+                     self._test_observations])
         logger.info("SoftMin Initial Expected Congestion: {}".format(a))
