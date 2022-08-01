@@ -48,7 +48,7 @@ def parse_rl_optimization_cross_topologies(traffic):
     data = js.load(f)
     f.close()
     raw_labels = ("naive_RL", "first_RL_phase")
-    topologies_raw_names = ("Claranet", "GoodNet", "ScaleFree30Nodes", "GEANT", "China_Telecom")
+    topologies_raw_names = ("claranet", "goodNet", "scaleFree30Nodes", "GEANT", "china_Telecom")
     topologies = ("Claranet", "GoodNet", "Scale Free\n30 Nodes", "GEANT", "China\nTelecom")
 
     y_data = dict()
