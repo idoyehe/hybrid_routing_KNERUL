@@ -40,7 +40,7 @@ class RL_Smart_Nodes(RL_Env):
 
     def step(self, links_weights):
         links_weights *= self._weight_factor
-        cost_congestion_ratio, most_congested_link, flows_to_dest_per_node, \
+        cost, most_congested_link, flows_to_dest_per_node, \
         total_congestion_per_link, total_load_per_link = self._process_action_get_cost(links_weights)
 
         self._is_terminal = self._tm_start_index + 1 == self._episode_len
@@ -56,7 +56,7 @@ class RL_Smart_Nodes(RL_Env):
 
         self._tm_start_index += 1
         observation = self._get_observation()
-        reward = cost_congestion_ratio * self._NORM_FACTOR
+        reward = cost * self._NORM_FACTOR
         done = self._is_terminal
         return observation, reward, done, info
 
@@ -69,16 +69,14 @@ class RL_Smart_Nodes(RL_Env):
         cost = max_congestion
 
         if self._testing:
-            cost_congestion_ratio = max_congestion / optimal_congestion
-
-            if cost_congestion_ratio < 1.0:
+            if max_congestion < optimal_congestion:
                 try:
                     assert error_bound(max_congestion, optimal_congestion)
                 except Exception as _:
                     logger.info("BUG!! Cost Congestion Ratio is {} not validate error bound!\n"
-                                "Max Congestion: {}\nOptimal Congestion: {}".format(cost_congestion_ratio, max_congestion, optimal_congestion))
+                                "Max Congestion: {}\nOptimal Congestion: {}".format(max_congestion/optimal_congestion, max_congestion, optimal_congestion))
 
-                cost = 1.0 * optimal_congestion
+            cost = max(max_congestion,optimal_congestion)
 
         logger.debug("optimal Congestion :{}".format(optimal_congestion))
         logger.debug("Max Congestion :{}".format(cost))

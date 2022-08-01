@@ -2048,22 +2048,21 @@
           ],
           "1_key_node": [
             1.69257,
-            1.703,
+            1.7061,
             1.6894
           ],
           "2_key_node": [
             1.69120,
-            1.7061,
+            1.703,
             1.6882
           ],
           "3_key_node": [
             1.69100,
             1.69172,
-            1.74
+            1.69100
           ],
           "4_key_node": [
             1.69043,
-            1.6973,
             1.689
           ],
           "5_key_node": [
@@ -2164,6 +2163,133 @@
             1.68480,
             1.70740,
             1.70860
+          ]
+        }
+      }
+    },
+    "custom_bimodal_0.4": {
+      "properties": "G_1(1.0,0.1)  G_2(0.1,0.01)",
+      "sparsity": 0.4,
+      "results": {
+        "RL_training_set": {
+          "size": 1024,
+          "optimal": 1.0691673920487927,
+          "Reduce_source_destination_to_destination_routing": 1.9357967744332751,
+          "oblivious_routing": 1.0692086376914993,
+          "averaged_tm_optimal_routing_scheme": 1.1825,
+          "max_tm_optimal_routing_scheme": 1.1813,
+          "naive_RL": [],
+          "smart_weight_initialization": 1.0788928364514554,
+          "first_RL_phase": [
+            1.075,
+            1.0774,
+            1.0765
+          ],
+          "1_key_node": [
+            1.06990,
+            1.075896,
+            1.0686799
+
+          ],
+          "2_key_node": [
+          ],
+          "3_key_node": [
+          ],
+          "4_key_node": [
+          ],
+          "5_key_node": [
+          ]
+        },
+        "LP_training_set": {
+          "size": 4096,
+          "optimal": 1.0687874443803833,
+          "Reduce_source_destination_to_destination_routing": 2.009287182228123,
+          "oblivious_routing": 1.0689557857980168,
+          "averaged_tm_optimal_routing_scheme": 1.189,
+          "max_tm_optimal_routing_scheme": 1.1884,
+          "naive_RL": [
+          ],
+          "smart_weight_initialization": 1.0803951859875092,
+          "first_RL_phase": [
+            1.0705,
+            1.0724,
+            1.0726,
+            1.0733
+          ],
+          "1_key_node": [
+          ],
+          "2_key_node": [
+          ],
+          "3_key_node": [
+          ],
+          "4_key_node": [
+          ],
+          "5_key_node": [
+          ]
+        },
+        "testing_sets": {
+          "size": 1024,
+          "optimal": [
+            1.0809164521960064,
+            1.078128451603768,
+            1.0755331435080688,
+            1.0647976994965012,
+            1.0653760185542172
+          ],
+          "Reduce_source_destination_to_destination_routing": [
+            1.9268789942762095,
+            1.8741892131664124,
+            1.0869876462101193,
+            1.0749073471420436,
+            1.0818615260586384
+          ],
+          "oblivious_routing": [
+            1.08092282258349,
+            1.0782453306467987,
+            1.0756215927587363,
+            1.0653177246936156,
+            1.065498269851174
+          ],
+          "averaged_tm_optimal_routing_scheme": [
+            1.1833,
+            1.1922,
+            1.1904,
+            1.1863,
+            1.1865
+          ],
+          "max_tm_optimal_routing_scheme": [
+            1.189,
+            1.1916,
+            1.1915,
+            1.1902,
+            1.1801
+          ],
+          "naive_RL": [
+          ],
+          "smart_weight_initialization": [
+            1.0904654043514177,
+            1.0886813532578534,
+            1.0866352541010724,
+            1.0758702574359982,
+            1.075206242875903
+          ],
+          "first_RL_phase": [
+            1.0818,
+            1.0843,
+            1.07605,
+            1.073,
+            1.0696
+          ],
+          "1_key_node": [
+
+          ],
+          "2_key_node": [
+          ],
+          "3_key_node": [
+          ],
+          "4_key_node": [
+          ],
+          "5_key_node": [
           ]
         }
       }
