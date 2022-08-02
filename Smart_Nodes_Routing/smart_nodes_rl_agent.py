@@ -36,7 +36,7 @@ if __name__ == "__main__":
     lp_file = config_folder + config["lp_file"]
     lp_tms = load_dump_file(lp_file)["tms"]
 
-    PRE_POLICY_UPDATE = 100
+    PRE_POLICY_UPDATE = 0
     if load_agent is None:
         logger.info("********* Iteration 0 Starts *********")
         model, single_env, weights_factor = model_learn(config_folder, "Iteration_0", load_agent, load_network)

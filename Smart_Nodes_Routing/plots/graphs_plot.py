@@ -24,7 +24,7 @@ def plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lin
     bar_design["Key Nodes Train Set"] = {"color": "darkgreen", "alpha": 1.0, "hatch": None}
     bar_design["Test Sets"] = {"color": "forestgreen", "alpha": 1.0, "hatch": None}
 
-    fontsize = 15
+    fontsize = 20
     fig = plt.figure(figsize=(12, 10))
     ax = plt.subplot()
     ax.autoscale(enable=True)
@@ -78,7 +78,7 @@ def plot_cross_topologies_graphs(save_file, topologies, y_data,y_ticks_int=False
     bar_design["Random Initialized RL"] = {"color": "#aac2a1", "alpha": 1.0, "hatch": None}
     bar_design["Link Weight Initialization"] = {"color": "darkgreen", "alpha": 1.0, "hatch": None}
     bar_design["Link Weight Initialized RL"] = {"color": "forestgreen", "alpha": 1.0, "hatch": None}
-    fontsize = 16
+    fontsize = 20
     fig = plt.figure(figsize=(12, 10))
     ax = plt.subplot()
     ax.autoscale(enable=True)

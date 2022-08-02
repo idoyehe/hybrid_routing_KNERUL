@@ -1791,7 +1791,7 @@
       }
     }
   },
-  "china_Telecom": {
+  "china_telecom": {
     "gravity": {
       "sparsity": 0.3,
       "results": {
