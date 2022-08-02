@@ -169,7 +169,7 @@ def model_learn(config_folder: str, learning_title: str, model_path: str = None,
 
     total_timesteps = policy_updates * n_steps
     callback_path = CALLBACK_PATH(network.get_title) + learning_title + SEPERATOR
-    checkpoint_callback = CheckpointCallback(save_freq=n_steps * 100, save_path=callback_path, name_prefix=EnvsStrings.RL_ENV_SMART_NODES_GYM_ID)
+    checkpoint_callback = CheckpointCallback(save_freq=n_steps * 50, save_path=callback_path, name_prefix=EnvsStrings.RL_ENV_SMART_NODES_GYM_ID)
     ppo_model.learn(total_timesteps=total_timesteps, callback=checkpoint_callback)
     single_env.get_network.store_network_object(callback_path, env_train_observations)
 
