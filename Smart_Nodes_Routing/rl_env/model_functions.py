@@ -90,7 +90,6 @@ def run_testing(model, env, num_test_observations, link_weights=None):
     rewards_list = list()
     predict_link_weights = link_weights is None
     for _ in range(num_test_observations):
-        obs = env.reset()
         if predict_link_weights:
             link_weights, _ = model.predict(env.reset(), deterministic=True)
         _, reward, dones, info = env.step(link_weights)
