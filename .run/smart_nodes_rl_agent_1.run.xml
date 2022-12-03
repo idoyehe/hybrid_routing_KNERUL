@@ -1,0 +1,24 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="smart_nodes_rl_agent_1" type="PythonConfigurationType" factoryName="Python">
+    <module name="Research_Implementing" />
+    <option name="INTERPRETER_OPTIONS" value="" />
+    <option name="PARENT_ENVS" value="true" />
+    <envs>
+      <env name="PYTHONUNBUFFERED" value="1" />
+    </envs>
+    <option name="SDK_HOME" value="" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Smart_Nodes_Routing" />
+    <option name="IS_MODULE_SDK" value="true" />
+    <option name="ADD_CONTENT_ROOTS" value="true" />
+    <option name="ADD_SOURCE_ROOTS" value="true" />
+    <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+    <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Smart_Nodes_Routing/smart_nodes_rl_agent.py" />
+    <option name="PARAMETERS" value="-cfg C:\Users\IdoYe\PycharmProjects\Research_Implementing\common\TMs_DB\GEANT\ -n_iter 1 -n_sn 1 -s_nodes (4,) -l_agent C:\Users\IdoYe\PycharmProjects\Research_Implementing\Smart_Nodes_Routing\experiments\GEANT\GEANT_2048LP_gravity\GEANT_agent_baseline_0_smart_node\Iteration_0\rl-smart_nodes-v0_480000_steps.zip" />
+    <option name="SHOW_COMMAND_LINE" value="false" />
+    <option name="EMULATE_TERMINAL" value="false" />
+    <option name="MODULE_MODE" value="false" />
+    <option name="REDIRECT_INPUT" value="false" />
+    <option name="INPUT_FILE" value="" />
+    <method v="2" />
+  </configuration>
+</component>
