@@ -143,13 +143,13 @@ def topology_zoo_loader(url: str, units=SizeConsts.ONE_Gb):
         local_path = url
         from platform import system
         if system() == "Linux":
-            local_path = "/home/idoye/PycharmProjects/Research_Implementing/common/graphs_gmls" + \
+            local_path = "/home/idoye/PycharmProjects/hybrid_routing_with_KNERL/common/graphs_gmls" + \
                          local_path.replace("\\", "/").split("/graphs_gmls")[1]
         elif system() == 'Windows':
-            local_path = "C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\common\\graphs_gmls" + \
+            local_path = "C:\\Users\\IdoYe\\PycharmProjects\\hybrid_routing_with_KNERL\\common\\graphs_gmls" + \
                          local_path.replace("/", "\\").split("\\graphs_gmls")[1]
         elif system() == "Darwin":
-            local_path = "/Users/idoye/PycharmProjects/Research_Implementing/common/graphs_gmls" + \
+            local_path = "/Users/idoye/PycharmProjects/hybrid_routing_with_KNERL/common/graphs_gmls" + \
                          local_path.replace("\\", "/").split("/graphs_gmls")[1]
 
         else:
