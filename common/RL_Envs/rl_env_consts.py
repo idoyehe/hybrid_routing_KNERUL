@@ -1,9 +1,9 @@
-from common.utils import IS_LINUX
+from common.utils import SEPERATOR
+import os
 
-CALLBACK_PERFIX_PATH = '/home/idoye/PycharmProjects/Research_Implementing/Smart_Nodes_Routing/experiments/' if IS_LINUX \
-    else 'C:\\Users\\IdoYe\\PycharmProjects\\Research_Implementing\\Smart_Nodes_Routing\\experiments\\'
+CALLBACK_PERFIX_PATH = os.path.join(os.getcwd(),"experiments")
 
-CALLBACK_PATH = lambda title: CALLBACK_PERFIX_PATH + '{}_callbacks_batch/'.format(title)
+CALLBACK_PATH = lambda title: os.path.join(os.getcwd(),f"{title}_callbacks_batch{SEPERATOR}")
 
 
 class EnvsStrings:
