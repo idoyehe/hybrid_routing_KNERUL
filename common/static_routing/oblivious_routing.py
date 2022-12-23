@@ -31,16 +31,16 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
         for v in net_directed.nodes:
             if v == src:
                 from_its_source = sum(arch_f_vars_dict[flow + out_edge] for out_edge in net_directed.out_edges_by_node(src))
-                assert error_bound(from_its_source, 1.0)
                 to_its_src = sum(arch_f_vars_dict[flow + in_edge] for in_edge in net_directed.in_edges_by_node(src))
-                assert error_bound(to_its_src)
+                assert error_bound(from_its_source - to_its_src, 1.0)
+                # assert error_bound(to_its_src)
 
             elif v == dst:
                 from_its_dst = sum(arch_f_vars_dict[flow + out_edge] for out_edge in net_directed.out_edges_by_node(dst))
-                assert error_bound(from_its_dst)
+                # assert error_bound(from_its_dst)
 
                 to_its_dst = sum(arch_f_vars_dict[flow + in_edge] for in_edge in net_directed.in_edges_by_node(dst))
-                assert error_bound(to_its_dst, 1.0)
+                assert error_bound(to_its_dst - from_its_dst, 1.0)
 
             else:
                 assert v not in flow
@@ -83,14 +83,13 @@ def aux_oblivious_routing_scheme(net: NetworkClass, gurobi_env, oblivious_ratio=
         flow = (src, dst)
         # Flow conservation at the source
         _flow_out_from_source = sum(flow_src_dst_edge_vars_dict[flow + out_arch] for out_arch in net_directed.out_edges_by_node(src))
-        oblivious_lp.addConstrs((flow_src_dst_edge_vars_dict[flow + in_arch] == 0.0 for in_arch in net_directed.in_edges_by_node(src)))
-        oblivious_lp.addLConstr(_flow_out_from_source, GRB.EQUAL, 1.0)
+        _flow_in_to_source = sum(flow_src_dst_edge_vars_dict[flow + in_arch] for in_arch in net_directed.in_edges_by_node(src))
+        oblivious_lp.addLConstr(_flow_out_from_source - _flow_in_to_source, GRB.EQUAL, 1.0)
 
         # Flow conservation at the destination
-        _flow_out_from_dest = oblivious_lp.addConstrs(
-            (flow_src_dst_edge_vars_dict[flow + out_arch] == 0.0 for out_arch in net_directed.out_edges_by_node(dst)))
+        _flow_out_from_dest = sum(flow_src_dst_edge_vars_dict[flow + out_arch] for out_arch in net_directed.out_edges_by_node(dst))
         _flow_in_to_dest = sum(flow_src_dst_edge_vars_dict[flow + in_arch] for in_arch in net_directed.in_edges_by_node(dst))
-        oblivious_lp.addLConstr(_flow_in_to_dest, GRB.EQUAL, 1.0)
+        oblivious_lp.addLConstr(_flow_in_to_dest - _flow_out_from_dest, GRB.EQUAL, 1.0)
 
         for u in net_directed.nodes:
             if u in flow:

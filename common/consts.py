@@ -46,3 +46,6 @@ class DumpsConsts:
     OBLIVIOUS_RATIO = "oblivious_ratio"
     OBLIVIOUS_MEAN_CONGESTION = "oblivious_mean_congestion"
     OBLIVIOUS_SRC_DST_SPR = "oblivious_src_dst_spr"
+    COPE_RATIO = "cope_ratio"
+    COPE_MEAN_CONGESTION = "cope_mean_congestion"
+    COPE_SRC_DST_SPR = "cope_src_dst_spr"
