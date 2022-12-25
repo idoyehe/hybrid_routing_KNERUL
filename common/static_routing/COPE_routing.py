@@ -39,7 +39,7 @@ def __validate_solution(net_directed: NetworkClass, arch_f_vars_dict):
                 assert error_bound(to_some_v, from_some_v)
 
 
-def cope_routing_scheme(net: NetworkClass, expected_tms):
+def cope_routing_scheme(net: NetworkClass, penalty_envelop, expected_tms):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, 1)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
@@ -49,15 +49,15 @@ def cope_routing_scheme(net: NetworkClass, expected_tms):
     gb_env.setParam(GRB.Param.BarConvTol, Consts.BAR_CONV_TOL)
     gb_env.start()
 
-    cope_ratio, src_dst_splitting_ratio = aux_cope_routing_scheme(net, expected_tms, gb_env)
+    cope_ratio, src_dst_splitting_ratio = aux_cope_routing_scheme(net, penalty_envelop, expected_tms, gb_env)
     return cope_ratio, src_dst_splitting_ratio
 
 
-def aux_cope_routing_scheme(net: NetworkClass, expected_tms, gurobi_env, cope_ratio=None) -> object:
+def aux_cope_routing_scheme(net: NetworkClass, penalty_envelop, expected_tms, gurobi_env, cope_ratio=None) -> object:
     net_directed = net
     cope_lp = gb.Model(name="Common-case Optimization with Penalty Envelope -- COPE Routing LP", env=gurobi_env)
 
-    active_od_pairs = [(src, dst) for src, dst in net_directed.get_all_pairs()]
+    od_pairs = [(src, dst) for src, dst in net_directed.get_all_pairs()]
 
     if cope_ratio is None:
         r_bar_var = cope_lp.addVar(name="r", lb=0.0, vtype=GRB.CONTINUOUS)
@@ -65,10 +65,10 @@ def aux_cope_routing_scheme(net: NetworkClass, expected_tms, gurobi_env, cope_ra
     else:
         r_bar_var = cope_ratio
 
-    flow_src_dst_edge_vars_dict = cope_lp.addVars(active_od_pairs, net_directed.edges, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
+    flow_src_dst_edge_vars_dict = cope_lp.addVars(od_pairs, net_directed.edges, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
 
     # f is a routing -> constrains
-    for src, dst in active_od_pairs:
+    for src, dst in od_pairs:
         assert src != dst
         flow = (src, dst)
         # Flow conservation at the source
@@ -97,30 +97,34 @@ def aux_cope_routing_scheme(net: NetworkClass, expected_tms, gurobi_env, cope_ra
     pe_bar_edges_vars_dict = cope_lp.addVars(net_directed.edges, net_directed.nodes, net_directed.nodes, name="Pe_BAR", lb=0.0, vtype=GRB.CONTINUOUS)
     pe_edges_vars_dict = cope_lp.addVars(net_directed.edges, net_directed.nodes, net_directed.nodes, name="Pe", lb=0.0, vtype=GRB.CONTINUOUS)
 
-    lambda_src_dst_edge_vars_dict = cope_lp.addVars(active_od_pairs, net_directed.edges, name="lambada", vtype=GRB.CONTINUOUS)
+    lambda_src_dst_edge_vars_dict = cope_lp.addVars(net_directed.edges, od_pairs, name="lambada", vtype=GRB.CONTINUOUS,lb=-GRB.INFINITY)
 
     cope_lp.update()
 
     for _l in net_directed.edges:
         _l_m_bar_sum = sum(pi_bar_edges_vars_dict[_l + _m] * net_directed.get_edge_key(_m, EdgeConsts.CAPACITY_STR) for _m in net_directed.edges)
+        cope_lp.addLConstr(_l_m_bar_sum, GRB.LESS_EQUAL, penalty_envelop)
+
         _l_m_sum = sum(pi_edges_vars_dict[_l + _m] * net_directed.get_edge_key(_m, EdgeConsts.CAPACITY_STR) for _m in net_directed.edges)
-        cope_lp.addLConstr(_l_m_bar_sum, GRB.LESS_EQUAL, r_bar_var)
         cope_lp.addLConstr(_l_m_sum, GRB.LESS_EQUAL, r_bar_var)
 
-        capacity_e = net_directed.get_edge_key(_l, EdgeConsts.CAPACITY_STR)
-        cope_lp.addConstrs((flow_src_dst_edge_vars_dict[flow + _l] <= pe_bar_edges_vars_dict[_l + flow] * capacity_e for flow in active_od_pairs))
-        cope_lp.addConstrs((flow_src_dst_edge_vars_dict[flow + _l] <= (pe_edges_vars_dict[_l + flow] - lambda_src_dst_edge_vars_dict[flow + _l]) * capacity_e for flow in active_od_pairs))
+        capacity_l = net_directed.get_edge_key(_l, EdgeConsts.CAPACITY_STR)
 
+        cope_lp.addConstrs((flow_src_dst_edge_vars_dict[od + _l] / capacity_l <= pe_bar_edges_vars_dict[_l + od] for od in od_pairs))
+
+        cope_lp.addConstrs((flow_src_dst_edge_vars_dict[od + _l] / capacity_l <= pe_edges_vars_dict[_l + od] - lambda_src_dst_edge_vars_dict[_l + od] for od in od_pairs))
+
+        cope_lp.update()
 
         for i in net_directed.nodes:
             cope_lp.addLConstr(pe_edges_vars_dict[_l + (i, i)], GRB.EQUAL, 0.0)
             cope_lp.addLConstr(pe_bar_edges_vars_dict[_l + (i, i)], GRB.EQUAL, 0.0)
+
             cope_lp.addConstrs((pi_edges_vars_dict[_l + (j, k)] + pe_edges_vars_dict[_l + (i, j)] - pe_edges_vars_dict[_l + (i, k)] >= 0.0 for j, k in net_directed.edges))
             cope_lp.addConstrs((pi_bar_edges_vars_dict[_l + (j, k)] + pe_bar_edges_vars_dict[_l + (i, j)] - pe_bar_edges_vars_dict[_l + (i, k)] >= 0.0 for j, k in net_directed.edges))
 
         for tm in expected_tms:
-            cope_lp.addLConstr(sum(lambda_src_dst_edge_vars_dict[flow + _l] * tm[flow] for flow in active_od_pairs), GRB.GREATER_EQUAL, 0.0)
-
+            cope_lp.addLConstr(sum(lambda_src_dst_edge_vars_dict[_l + od] * tm[od] for od in od_pairs), GRB.GREATER_EQUAL, 0.0)
 
     try:
         logger.info("LP Submit to Solve {}".format(cope_lp.ModelName))
@@ -146,7 +150,7 @@ def aux_cope_routing_scheme(net: NetworkClass, expected_tms, gurobi_env, cope_ra
     src_dst_splitting_ratios = np.zeros(
         shape=(net_directed.get_num_nodes, net_directed.get_num_nodes, net_directed.get_num_nodes, net_directed.get_num_nodes), dtype=np.float64)
 
-    for src, dst in active_od_pairs:
+    for src, dst in od_pairs:
         flow = (src, dst)
         for u in net_directed.nodes:
             if u == dst:
@@ -163,6 +167,7 @@ def aux_cope_routing_scheme(net: NetworkClass, expected_tms, gurobi_env, cope_ra
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses path for dump file")
     parser.add_argument("-train_dump", "--train_dump", type=str, help="The path for the train dump")
+    parser.add_argument("-obliv_dump", "--oblivious_dump", type=str, help="The path for the oblivious dump")
     parser.add_argument("-dumps_list", "--list_of_dumps", type=str, help="The path for the list of dumped train file")
     parser.add_argument("-save", "--save_dump", type=eval, help="Save the results in file dump", default=True)
     parser.add_argument("-cope_dumps", "--cope_dumps", type=str, help="Splitting Ratios", default=None)
@@ -177,14 +182,22 @@ if __name__ == "__main__":
     list_of_dumps = args.list_of_dumps
     save_dump = args.save_dump
     cope_dumps = args.cope_dumps
+    oblivious_dump = load_dump_file(args.oblivious_dump)
 
     list_of_dumps = list_of_dumps.split(",")
 
+    obliv_ratio = oblivious_dump[DumpsConsts.OBLIVIOUS_RATIO]
+
+
+
     expected_tms = np.array(list(zip(*train_dump[DumpsConsts.TMs]))[0])
 
+    penalty_envelop = obliv_ratio * 1.2
+
     net = NetworkClass(topology_zoo_loader(topology_url))
+    print("The Oblivious ratio for {} is {}".format(net.get_title, obliv_ratio))
     if cope_dumps is None:
-        cope_ratio, src_dst_splitting_ratios = cope_routing_scheme(net, expected_tms)
+        cope_ratio, src_dst_splitting_ratios = cope_routing_scheme(net, penalty_envelop, expected_tms)
     else:
         cope_dict = load_dump_file(cope_dumps)
         cope_ratio, src_dst_splitting_ratios = cope_dict[DumpsConsts.COPE_RATIO], cope_dict[DumpsConsts.COPE_SRC_DST_SPR]
