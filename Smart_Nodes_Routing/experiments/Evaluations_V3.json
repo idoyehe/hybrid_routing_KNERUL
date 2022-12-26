@@ -1158,6 +1158,7 @@
           "optimal": 1.3137,
           "Reduce_source_destination_to_destination_routing": 1.6495,
           "oblivious_routing": 1.6624194332430167,
+          "cope_routing": 1.4672345085922114,
           "averaged_tm_optimal_routing_scheme": 1.7929,
           "max_tm_optimal_routing_scheme": 1.7747,
           "naive_RL": [
@@ -1198,6 +1199,7 @@
           "optimal": 1.3261,
           "Reduce_source_destination_to_destination_routing": 1.6630,
           "oblivious_routing": 1.67836760832575,
+          "cope_routing": 1.4871611924065409,
           "averaged_tm_optimal_routing_scheme": 1.7508,
           "max_tm_optimal_routing_scheme": 1.7691,
           "naive_RL": [
@@ -1259,6 +1261,13 @@
             1.6589663239397276,
             1.6559741209915009,
             1.6626744343662072
+          ],
+          "cope_routing": [
+            1.471719330948012,
+            1.4740940287450939,
+            1.4716341013800376,
+            1.471092716637159,
+            1.4770050475202323
           ],
           "averaged_tm_optimal_routing_scheme": [
             1.7794,
@@ -1335,6 +1344,7 @@
           "optimal": 2.1529,
           "Reduce_source_destination_to_destination_routing": 2.2758,
           "oblivious_routing": 2.4925848767668084,
+          "cope_routing": 2.239527096704518,
           "averaged_tm_optimal_routing_scheme": 2.3236,
           "max_tm_optimal_routing_scheme": 2.3307,
           "naive_RL": [
@@ -1376,6 +1386,7 @@
           "optimal": 2.1661,
           "Reduce_source_destination_to_destination_routing": 2.2298,
           "oblivious_routing": 2.491620104361204,
+          "cope_routing": 2.239527096704518,
           "averaged_tm_optimal_routing_scheme": 2.3351,
           "max_tm_optimal_routing_scheme": 2.3314,
           "naive_RL": [
@@ -1432,6 +1443,13 @@
             2.4941649190028032,
             2.508403994815791,
             2.489461157846749
+          ],
+          "cope_routing": [
+            2.239527096704518,
+            2.239527096704518,
+            2.239527096704518,
+            2.239527096704518,
+            2.239527096704518
           ],
           "averaged_tm_optimal_routing_scheme": [
             2.3371,
