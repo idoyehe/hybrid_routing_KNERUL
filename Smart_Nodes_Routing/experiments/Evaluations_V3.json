@@ -8,7 +8,7 @@
           "optimal": 1.5862,
           "Reduce_source_destination_to_destination_routing": 1.9591,
           "oblivious_routing": 2.101242800056439,
-          "cope_routing": 2.101365875070454,
+          "cope_routing": 1.8380221090343305,
           "averaged_tm_optimal_routing_scheme": 2.0347,
           "max_tm_optimal_routing_scheme": 2.0517,
           "naive_RL": [
@@ -48,7 +48,7 @@
           "optimal": 1.5988,
           "Reduce_source_destination_to_destination_routing": 1.9281,
           "oblivious_routing": 2.1211880499165807,
-          "cope_routing": 2.121303324933253,
+          "cope_routing": 1.8569104251261264,
           "averaged_tm_optimal_routing_scheme": 2.0673,
           "max_tm_optimal_routing_scheme": 2.064,
           "naive_RL": [
@@ -107,11 +107,11 @@
             2.09094969685806
           ],
           "cope_routing": [
-            2.1234810961076938,
-            2.107421018735262,
-            2.1223191099908383,
-            2.1098124071093975,
-            2.091061581422257
+            1.8601399958332738,
+            1.8464435013021487,
+            1.8594047398884546,
+            1.8479887827560093,
+            1.8309294815848267
           ],
           "averaged_tm_optimal_routing_scheme": [
             2.0486,
@@ -1386,7 +1386,7 @@
           "optimal": 2.1661,
           "Reduce_source_destination_to_destination_routing": 2.2298,
           "oblivious_routing": 2.491620104361204,
-          "cope_routing": 2.239527096704518,
+          "cope_routing": 2.2580755773277597,
           "averaged_tm_optimal_routing_scheme": 2.3351,
           "max_tm_optimal_routing_scheme": 2.3314,
           "naive_RL": [
@@ -1445,11 +1445,11 @@
             2.489461157846749
           ],
           "cope_routing": [
-            2.239527096704518,
-            2.239527096704518,
-            2.239527096704518,
-            2.239527096704518,
-            2.239527096704518
+            2.2628565751754524,
+            2.260435416005398,
+            2.2659510341003175,
+            2.2649636432445686,
+            2.2637888210229233
           ],
           "averaged_tm_optimal_routing_scheme": [
             2.3371,
