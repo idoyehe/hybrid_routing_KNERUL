@@ -65,7 +65,7 @@ def aux_cope_routing_scheme(net: NetworkClass, penalty_envelop, expected_tms, gu
     else:
         r_bar_var = cope_ratio
 
-    flow_src_dst_edge_vars_dict = cope_lp.addVars(od_pairs, net_directed.edges, name="f", lb=0.0, vtype=GRB.CONTINUOUS)
+    flow_src_dst_edge_vars_dict = cope_lp.addVars(od_pairs, net_directed.edges, name="f", lb=0.0, ub=1.0, vtype=GRB.CONTINUOUS)
 
     # f is a routing -> constrains
     for src, dst in od_pairs:
@@ -74,12 +74,14 @@ def aux_cope_routing_scheme(net: NetworkClass, penalty_envelop, expected_tms, gu
         # Flow conservation at the source
         _flow_out_from_source = sum(flow_src_dst_edge_vars_dict[flow + out_arch] for out_arch in net_directed.out_edges_by_node(src))
         _flow_in_to_source = sum(flow_src_dst_edge_vars_dict[flow + in_arch] for in_arch in net_directed.in_edges_by_node(src))
-        cope_lp.addLConstr(_flow_out_from_source - _flow_in_to_source, GRB.EQUAL, 1.0)
+        cope_lp.addLConstr(_flow_out_from_source, GRB.EQUAL, 1.0)
+        cope_lp.addLConstr(_flow_in_to_source, GRB.EQUAL, 0.0)
 
         # Flow conservation at the destination
         _flow_out_from_dest = sum(flow_src_dst_edge_vars_dict[flow + out_arch] for out_arch in net_directed.out_edges_by_node(dst))
         _flow_in_to_dest = sum(flow_src_dst_edge_vars_dict[flow + in_arch] for in_arch in net_directed.in_edges_by_node(dst))
-        cope_lp.addLConstr(_flow_in_to_dest - _flow_out_from_dest, GRB.EQUAL, 1.0)
+        cope_lp.addLConstr(_flow_in_to_dest, GRB.EQUAL, 1.0)
+        cope_lp.addLConstr(_flow_out_from_dest, GRB.EQUAL, 0.0)
 
         for u in net_directed.nodes:
             if u in flow:
@@ -97,7 +99,7 @@ def aux_cope_routing_scheme(net: NetworkClass, penalty_envelop, expected_tms, gu
     pe_bar_edges_vars_dict = cope_lp.addVars(net_directed.edges, net_directed.nodes, net_directed.nodes, name="Pe_BAR", lb=0.0, vtype=GRB.CONTINUOUS)
     pe_edges_vars_dict = cope_lp.addVars(net_directed.edges, net_directed.nodes, net_directed.nodes, name="Pe", lb=0.0, vtype=GRB.CONTINUOUS)
 
-    lambda_src_dst_edge_vars_dict = cope_lp.addVars(net_directed.edges, od_pairs, name="lambada", vtype=GRB.CONTINUOUS,lb=-GRB.INFINITY)
+    lambda_src_dst_edge_vars_dict = cope_lp.addVars(net_directed.edges, od_pairs, name="lambada", vtype=GRB.CONTINUOUS, lb=-GRB.INFINITY)
 
     cope_lp.update()
 
@@ -187,8 +189,6 @@ if __name__ == "__main__":
     list_of_dumps = list_of_dumps.split(",")
 
     obliv_ratio = oblivious_dump[DumpsConsts.OBLIVIOUS_RATIO]
-
-
 
     expected_tms = np.array(list(zip(*train_dump[DumpsConsts.TMs]))[0])
 
