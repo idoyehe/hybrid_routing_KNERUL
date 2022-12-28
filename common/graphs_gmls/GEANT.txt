@@ -1,5 +1,8 @@
 graph [
   Network "GEANT"
+  NetworkDate "2009_02"
+  DateYear "2009"
+  LastProcessed "2011_09_01"
   node [
     id 0
     label "NL"
