@@ -31,6 +31,7 @@ class TMType:
     GRAVITY = "gravity"
     UNIFORM = "uniform"
     POISSON = "poisson"
+    REAL = "real_traffic"
 
 
 class DumpsConsts:

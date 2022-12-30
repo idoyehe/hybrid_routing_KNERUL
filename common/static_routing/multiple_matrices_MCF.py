@@ -45,6 +45,8 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
 
     """Building Constraints"""
     total_objective = vars_bt_per_matrix.sum() * tm_prob
+    mcf_problem.addLConstr(total_objective, GRB.GREATER_EQUAL, 1.7737474948730467)
+    mcf_problem.addLConstr(total_objective, GRB.LESS_EQUAL, 1.8)
 
     if expected_objective is None:
         mcf_problem.setObjective(total_objective, GRB.MINIMIZE)
