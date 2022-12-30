@@ -160,6 +160,9 @@ if __name__ == "__main__":
         dict2dump[DumpsConsts.EXPECTED_CONGESTION] = expected_congestion
         dict2dump[DumpsConsts.OPTIMAL_SPLITTING_RATIOS] = optimal_src_dst_splitting_ratios
         dict2dump[DumpsConsts.DEST_EXPECTED_CONGESTION] = dst_mean_congestion
+        dict2dump[DumpsConsts.NET_PATH] = topology_url
+        dict2dump[DumpsConsts.EXPECTED_CONGESTION] = expected_congestion
+        dict2dump[DumpsConsts.INITIAL_WEIGHTS] = initial_weights
 
     dump_dictionary(filename, dict2dump)
     print("Dumps the Tms to:\n{}".format(filename))

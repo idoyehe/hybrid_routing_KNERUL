@@ -5,6 +5,7 @@ from common.static_routing.optimal_load_balancing import optimal_load_balancing_
 from common.network_class import NetworkClass
 from common.topologies import topology_zoo_loader
 from common.logger import logger
+from common.consts import DumpsConsts
 from common.utils import load_dump_file
 from Link_State_Routing_PEFT.RL.PEFT_optimizer import PEFTOptimizer
 from Learning_to_Route.rl_softmin_history.soft_min_optimizer import SoftMinOptimizer
@@ -138,7 +139,7 @@ if __name__ == "__main__":
     weights = PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity, stop_threshold=1 / net.get_num_edges,factor=5)
     # print("Link Weights:\n{}".format(weights))
     # assert loaded_dict['initial_weights'] is None
-    loaded_dict['initial_weights'] = weights
+    loaded_dict[DumpsConsts.INITIAL_WEIGHTS] = weights
 
     import pickle
 

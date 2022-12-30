@@ -62,7 +62,12 @@ class Optimizer_Abstract(object):
             demands = traffic_matrix[:, dst]
             assert all(psi[dst][:] == 0)
             assert psi.shape == (net_direct.get_num_nodes, net_direct.get_num_nodes)
-            flows_to_dest_per_node[dst] = demands @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
+
+            try:
+                flows_to_dest_per_node[dst] = demands @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
+            except npl.LinAlgError as e:
+                warnings.warn(str(e))
+                flows_to_dest_per_node[dst] = demands @ npl.pinv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
 
         self.__validate_flow(net_direct, traffic_matrix, flows_to_dest_per_node, active_dest, dst_splitting_ratios)
 
