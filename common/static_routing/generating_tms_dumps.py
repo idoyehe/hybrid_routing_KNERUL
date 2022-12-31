@@ -38,8 +38,8 @@ def _get_initial_weights(net, traffic_matrix, necessary_capacity):
     return w_u_v
 
 
-def calculating_expected_congestion(net_direct, traffic_matrices_list, calc_initial_weights_flag: bool = False):
-    expected_objective, _, necessary_capacity_per_tm, optimal_src_dst_splitting_ratios = multiple_tms_mcf_LP_solver(net_direct, traffic_matrices_list)
+def calculating_expected_congestion(net_direct, traffic_matrices_list,lb, calc_initial_weights_flag: bool = False):
+    expected_objective, _, necessary_capacity_per_tm, optimal_src_dst_splitting_ratios = multiple_tms_mcf_LP_solver(net_direct, traffic_matrices_list,lb)
     aggregate_tm = sum(traffic_matrices_list)
     initial_weights = None
     if calc_initial_weights_flag:
@@ -139,9 +139,10 @@ if __name__ == "__main__":
         tms_opt_zipped_list = dict2dump[DumpsConsts.TMs]
 
     traffic_matrix_list = list(list(zip(*tms_opt_zipped_list))[0])
+    lb = np.mean(list(list(zip(*tms_opt_zipped_list))[1]))
     # expected_objective, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = None,None,None,None
     expected_congestion, optimal_src_dst_splitting_ratios, initial_weights, dst_mean_congestion = calculating_expected_congestion(net_direct,
-                                                                                                                                  traffic_matrix_list,
+                                                                                                                                  traffic_matrix_list,lb,
                                                                                                                                   initial_weights_flag)
 
     if filename is None:

@@ -13,7 +13,7 @@ from random import shuffle
 from tabulate import tabulate
 
 
-def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
+def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list, lb):
     gb_env = gb.Env(empty=True)
     gb_env.setParam(GRB.Param.OutputFlag, Consts.OUTPUT_FLAG)
     gb_env.setParam(GRB.Param.NumericFocus, Consts.NUMERIC_FOCUS)
@@ -22,12 +22,11 @@ def multiple_tms_mcf_LP_solver(net: NetworkClass, traffic_matrix_list):
     gb_env.setParam(GRB.Param.Presolve, Consts.PRESOLVE)
     gb_env.start()
 
-    expected_objective, r_per_mtrx, necessary_capacity_per_tm, src_dst_splitting_ratios = _aux_multiple_tms_mcf_LP_solver(net, traffic_matrix_list,
-                                                                                                                          gb_env)
+    expected_objective, r_per_mtrx, necessary_capacity_per_tm, src_dst_splitting_ratios = _aux_multiple_tms_mcf_LP_solver(net, traffic_matrix_list, lb, gb_env)
     return expected_objective, r_per_mtrx, necessary_capacity_per_tm, src_dst_splitting_ratios
 
 
-def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, gurobi_env,
+def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_list, lb, gurobi_env,
                                     expected_objective=None):
     """Preparation"""
     mcf_problem = gb.Model(name="LP expected max congestion, given network topology, Traffic Matrices distribution",
@@ -45,11 +44,10 @@ def _aux_multiple_tms_mcf_LP_solver(net_direct: NetworkClass, traffic_matrices_l
 
     """Building Constraints"""
     total_objective = vars_bt_per_matrix.sum() * tm_prob
-    mcf_problem.addLConstr(total_objective, GRB.GREATER_EQUAL, 1.7737474948730467)
-    mcf_problem.addLConstr(total_objective, GRB.LESS_EQUAL, 1.8)
 
     if expected_objective is None:
         mcf_problem.setObjective(total_objective, GRB.MINIMIZE)
+        mcf_problem.addLConstr(total_objective, GRB.GREATER_EQUAL, lb)
     else:
         mcf_problem.addLConstr(total_objective, GRB.LESS_EQUAL, expected_objective)
 
