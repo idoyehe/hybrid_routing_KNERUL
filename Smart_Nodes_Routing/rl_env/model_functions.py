@@ -55,8 +55,8 @@ def build_clean_smart_nodes_env(train_file: str,
 
 def build_clean_smart_nodes_model(model_envs, learning_rate: float, n_steps: int,
                                   batch_size: int,
+                                  log_std_init: float,
                                   mlp_arch=None,
-                                  log_std_init=-1.5,
                                   gamma: float = EnvConsts.GAMMA) -> PPO:
     if mlp_arch is None:
         mlp_arch = [1]
@@ -135,6 +135,7 @@ def model_learn(config_folder: str, learning_title: str, model_path: str = None,
     action_weight_lb = config["weight_lb"]
     action_weight_ub = config["weight_ub"]
     n_envs = config["n_envs"]
+    log_std_init = config.get("log_std_init",None)
 
     learning_rate = config["learning_rate"]
     batch_size = config["batch_size"]
@@ -159,7 +160,7 @@ def model_learn(config_folder: str, learning_title: str, model_path: str = None,
         ppo_model = PPO.load(model_path, _envs)
         logger.info("********* Agent is Loaded *********")
     else:
-        ppo_model = build_clean_smart_nodes_model(_envs, learning_rate, n_steps, batch_size)
+        ppo_model = build_clean_smart_nodes_model(_envs, learning_rate, n_steps, batch_size,log_std_init=log_std_init)
         model_parameters = ppo_model.get_parameters()
         model_parameters['policy']['action_net.weight'] *= 0
         model_parameters['policy']['action_net.bias'] = torch.tensor(single_env.get_initial_weights, device=DEVICE, dtype=torch.float64)

@@ -82,7 +82,7 @@ class PEFT_Model(nn.Module):
         new_weights = torch.zeros_like(self._weights)
         for u, v in self._network.edges:
             edge_idx = self._network.get_edge2id(u, v)
-            new_weights[edge_idx] = self._weights[edge_idx] - self._lr * self._weights.grad[edge_idx]
+            new_weights[edge_idx] = max(0,self._weights[edge_idx] - self._lr * self._weights.grad[edge_idx])
 
         self._weights = nn.Parameter(new_weights)
 
