@@ -138,7 +138,6 @@ if __name__ == "__main__":
 
     weights = PEFT_training_loop_with_init(net, traffic_matrix, necessary_capacity, stop_threshold=1 / net.get_num_edges,factor=5)
     # print("Link Weights:\n{}".format(weights))
-    # assert loaded_dict['initial_weights'] is None
     loaded_dict[DumpsConsts.INITIAL_WEIGHTS] = weights
 
     import pickle
