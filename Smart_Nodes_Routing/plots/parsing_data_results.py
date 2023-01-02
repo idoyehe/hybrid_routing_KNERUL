@@ -98,9 +98,11 @@ def parsing_data_results(topology_name, traffic, obliv_base):
         h_lines = [("Averaged TM Optimal Routing", "black", "dotted", np.mean(averaged_tm_optimal_routing_ratios)),
                    ("Max TM Optimal Routing", "red", "dashed", np.mean(max_tm_optimal_routing_ratios))]
     else:
-        h_lines = [("Oblivious Routing", "blue", "solid", np.mean(oblivious_routing_ratios)), ("Cope Routing", "orange", "solid", np.mean(cope_routing_ratios)),
+        h_lines = [("Oblivious Routing", "blue", "solid", np.mean(oblivious_routing_ratios)),
+                   ("Cope Routing", "orange", "solid", np.mean(cope_routing_ratios)),
                    ("Averaged TM Optimal Routing", "black", "dotted", np.mean(averaged_tm_optimal_routing_ratios)),
-                   ("Max TM Optimal Routing", "red", "dashed", np.mean(max_tm_optimal_routing_ratios))]
+                   ("Max TM Optimal Routing", "red", "dashed", np.mean(max_tm_optimal_routing_ratios))
+                   ]
 
     y_data = dict()
     y_data["Non-Key Nodes Train Set"] = y_data_rl_train
