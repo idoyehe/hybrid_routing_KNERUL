@@ -1,0 +1,25 @@
+{
+  "tuning": {
+    "train_file": "GEANT_V2_tms_22X2_length_1024_real_traffic_train",
+    "test_file": "GEANT_V2_tms_22X2_length_1024_real_traffic_train",
+    "num_train_observations": 512,
+    "num_test_observations": 256,
+    "policy_updates": 250
+  },
+  "learning": {
+    "train_file": "GEANT_V2_tms_22X2_length_1024_real_traffic_train",
+    "test_file": "GEANT_V2_tms_22X2_length_1024_real_traffic_test_0",
+    "lp_file": "GEANT_V2_tms_22X2_length_4096_real_traffic_LP",
+    "num_train_observations": 1024,
+    "num_test_observations": 1024,
+    "policy_updates": 1000,
+    "n_envs": 1,
+    "n_steps": 384,
+    "learning_rate": 0.003,
+    "log_std_init": 0,
+    "batch_size": 128,
+    "weights_factor": 1,
+    "weight_lb": 0.5,
+    "weight_ub": 15
+  }
+}
