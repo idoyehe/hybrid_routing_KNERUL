@@ -1,0 +1,521 @@
+2023-01-21 10:20:40 INFO     Train data loaded from: C:\Users\idoye\PycharmProjects\hybrid_routing_with_KNERL\common\TMs_DB\GEANT_V2\GEANT_V2_tms_22X2_length_1024_real_traffic_train
+2023-01-21 10:20:40 INFO     Test data loaded from: C:\Users\idoye\PycharmProjects\hybrid_routing_with_KNERL\common\TMs_DB\GEANT_V2\GEANT_V2_tms_22X2_length_1024_real_traffic_test_0
+2023-01-21 10:20:40 INFO     Train Episodes: 1024
+2023-01-21 10:20:40 INFO     Test Episodes: 1024
+2023-01-21 10:20:40 INFO     Creating Network Class
+2023-01-21 10:20:40 INFO     Expected Congestion: 1.7525374123534656
+2023-01-21 10:20:40 INFO     Dest Mean Congestion Result: 2.2151008620018775
+Network GEANT_V2 has been created
+2023-01-21 10:20:40 INFO     ********* Agent is Loaded *********
+2023-01-21 10:20:40 INFO     ***************** Iteration 0 Finished ******************
+2023-01-21 10:20:40 INFO     ***** Iteration 1, Evaluating Smart Node  *****
+2023-01-21 10:20:40 INFO     Set parameter Username
+2023-01-21 10:20:40 INFO     Set parameter Method to value 1
+2023-01-21 10:20:40 INFO     Set parameter NumericFocus to value 3
+2023-01-21 10:20:40 INFO     Set parameter Presolve to value 2
+2023-01-21 10:20:40 INFO     Academic license - for non-commercial use only - expires 2023-11-28
+Set parameter Username
+Set parameter Method to value 1
+Set parameter NumericFocus to value 3
+Set parameter Presolve to value 2
+Academic license - for non-commercial use only - expires 2023-11-28
+2023-01-21 10:31:33 INFO     LP Submit to Solve Multiple Matrices MCF Problem Finding Smart Nodes (19, 9, 1, 15) Source-Target Routing Scheme
+2023-01-21 10:31:33 INFO     Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (win64)
+2023-01-21 10:31:33 INFO     
+2023-01-21 10:31:33 INFO     CPU model: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz, instruction set [SSE2|AVX|AVX2]
+2023-01-21 10:31:33 INFO     Thread count: 6 physical cores, 12 logical processors, using up to 12 threads
+2023-01-21 10:31:33 INFO     
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (win64)
+
+CPU model: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz, instruction set [SSE2|AVX|AVX2]
+Thread count: 6 physical cores, 12 logical processors, using up to 12 threads
+
+2023-01-21 10:31:33 INFO     Optimize a model with 329961 rows, 37360 columns and 117775238 nonzeros
+Optimize a model with 329961 rows, 37360 columns and 117775238 nonzeros
+Model fingerprint: 0x4f7c7154
+2023-01-21 10:31:34 INFO     Model fingerprint: 0x4f7c7154
+2023-01-21 10:31:34 INFO     Coefficient statistics:
+2023-01-21 10:31:34 INFO       Matrix range     [2e-09, 1e+01]
+2023-01-21 10:31:34 INFO       Objective range  [2e-04, 2e-04]
+Coefficient statistics:
+  Matrix range     [2e-09, 1e+01]
+  Objective range  [2e-04, 2e-04]
+2023-01-21 10:31:34 INFO       Bounds range     [0e+00, 0e+00]
+2023-01-21 10:31:34 INFO       RHS range        [2e-08, 1e+04]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e-08, 1e+04]
+Presolve removed 0 rows and 0 columns (presolve time = 7s) ...
+2023-01-21 10:31:41 INFO     Presolve removed 0 rows and 0 columns (presolve time = 7s) ...
+2023-01-21 10:31:46 INFO     Presolve removed 16935 rows and 4305 columns (presolve time = 12s) ...
+Presolve removed 16935 rows and 4305 columns (presolve time = 12s) ...
+2023-01-21 10:31:56 INFO     Presolve removed 16977 rows and 4305 columns (presolve time = 22s) ...
+Presolve removed 16977 rows and 4305 columns (presolve time = 22s) ...
+2023-01-21 10:32:23 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 49s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 49s) ...
+2023-01-21 10:32:30 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 56s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 56s) ...
+2023-01-21 10:32:37 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 63s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 63s) ...
+2023-01-21 10:32:53 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 79s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 79s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 88s) ...
+2023-01-21 10:33:01 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 88s) ...
+2023-01-21 10:33:12 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 98s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 98s) ...
+2023-01-21 10:33:14 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 100s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 100s) ...
+Presolve removed 44519 rows and 7678 columns (presolve time = 106s) ...
+2023-01-21 10:33:20 INFO     Presolve removed 44519 rows and 7678 columns (presolve time = 106s) ...
+Presolve removed 44519 rows and 7678 columns (presolve time = 113s) ...
+2023-01-21 10:33:27 INFO     Presolve removed 44519 rows and 7678 columns (presolve time = 113s) ...
+2023-01-21 10:33:29 INFO     Presolve removed 44519 rows and 7678 columns (presolve time = 115s) ...
+Presolve removed 44519 rows and 7678 columns (presolve time = 115s) ...
+2023-01-21 10:33:31 INFO     Presolve removed 44519 rows and 7678 columns
+Presolve removed 44519 rows and 7678 columns
+Presolve time: 298.40s
+Presolved: 31881 rows, 294682 columns, 104465515 nonzeros
+2023-01-21 10:36:31 INFO     Presolve time: 298.40s
+2023-01-21 10:36:31 INFO     Presolved: 31881 rows, 294682 columns, 104465515 nonzeros
+2023-01-21 10:36:31 INFO     
+
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                        317s
+2023-01-21 10:36:50 INFO     Iteration    Objective       Primal Inf.    Dual Inf.      Time
+2023-01-21 10:36:50 INFO            0      handle free variables                        317s
+2023-01-21 10:37:04 INFO         6179    3.6756880e+36   3.385507e+37   3.675688e+06    331s
+    6179    3.6756880e+36   3.385507e+37   3.675688e+06    331s
+2023-01-21 10:37:09 INFO         6604    7.8145861e+35   3.032779e+35   7.814586e+05    336s
+    6604    7.8145861e+35   3.032779e+35   7.814586e+05    336s
+2023-01-21 10:37:13 INFO         7052    6.8838188e+35   2.664894e+35   6.883819e+05    340s
+    7052    6.8838188e+35   2.664894e+35   6.883819e+05    340s
+2023-01-21 10:37:18 INFO         7564    5.8849756e+35   2.259129e+35   5.884976e+05    345s
+    7564    5.8849756e+35   2.259129e+35   5.884976e+05    345s
+2023-01-21 10:37:24 INFO         8140    4.7866071e+35   1.820527e+35   4.786607e+05    350s
+    8140    4.7866071e+35   1.820527e+35   4.786607e+05    350s
+2023-01-21 10:37:29 INFO         8716    3.6009420e+35   1.339459e+35   3.600942e+05    355s
+    8716    3.6009420e+35   1.339459e+35   3.600942e+05    355s
+2023-01-21 10:37:34 INFO         9292    2.6076080e+35   9.278347e+34   2.607608e+05    360s
+    9292    2.6076080e+35   9.278347e+34   2.607608e+05    360s
+    9932    1.5949899e+35   5.226423e+34   1.594990e+05    365s
+2023-01-21 10:37:38 INFO         9932    1.5949899e+35   5.226423e+34   1.594990e+05    365s
+   10572    4.5282906e+34   1.005948e+34   4.528291e+04    370s
+2023-01-21 10:37:43 INFO        10572    4.5282906e+34   1.005948e+34   4.528291e+04    370s
+2023-01-21 10:37:48 INFO        11276    1.6104568e+33   1.367124e+33   1.610457e+03    375s
+   11276    1.6104568e+33   1.367124e+33   1.610457e+03    375s
+2023-01-21 10:37:53 INFO        11916    4.6514784e+32   8.946193e+33   4.651478e+02    380s
+   11916    4.6514784e+32   8.946193e+33   4.651478e+02    380s
+2023-01-21 10:37:58 INFO        12553    2.5351791e+00   1.032900e+02   0.000000e+00    385s
+   12553    2.5351791e+00   1.032900e+02   0.000000e+00    385s
+   12937    2.1657613e+00   1.402168e+02   0.000000e+00    391s
+2023-01-21 10:38:04 INFO        12937    2.1657613e+00   1.402168e+02   0.000000e+00    391s
+   13193    1.9807316e+00   1.802658e+01   0.000000e+00    396s
+2023-01-21 10:38:09 INFO        13193    1.9807316e+00   1.802658e+01   0.000000e+00    396s
+   13577    1.9147290e+00   3.741045e+01   0.000000e+00    402s
+2023-01-21 10:38:15 INFO        13577    1.9147290e+00   3.741045e+01   0.000000e+00    402s
+2023-01-21 10:38:19 INFO        13833    1.8839603e+00   1.340127e+01   0.000000e+00    406s
+   13833    1.8839603e+00   1.340127e+01   0.000000e+00    406s
+   14089    1.8775982e+00   1.196422e+01   0.000000e+00    410s
+2023-01-21 10:38:23 INFO        14089    1.8775982e+00   1.196422e+01   0.000000e+00    410s
+2023-01-21 10:38:29 INFO        14473    1.8714291e+00   1.843625e+00   0.000000e+00    416s
+   14473    1.8714291e+00   1.843625e+00   0.000000e+00    416s
+   14729    1.8693513e+00   3.228671e+00   0.000000e+00    420s
+2023-01-21 10:38:33 INFO        14729    1.8693513e+00   3.228671e+00   0.000000e+00    420s
+2023-01-21 10:38:39 INFO        15113    1.8673853e+00   3.009704e+00   0.000000e+00    426s
+   15113    1.8673853e+00   3.009704e+00   0.000000e+00    426s
+   15369    1.8662601e+00   2.263692e+01   0.000000e+00    431s
+2023-01-21 10:38:44 INFO        15369    1.8662601e+00   2.263692e+01   0.000000e+00    431s
+2023-01-21 10:38:49 INFO        15625    1.8652835e+00   2.012539e+01   0.000000e+00    436s
+   15625    1.8652835e+00   2.012539e+01   0.000000e+00    436s
+2023-01-21 10:38:54 INFO        15881    1.8644813e+00   7.179651e+00   0.000000e+00    441s
+   15881    1.8644813e+00   7.179651e+00   0.000000e+00    441s
+   16137    1.8640510e+00   1.520232e+01   0.000000e+00    446s
+2023-01-21 10:38:59 INFO        16137    1.8640510e+00   1.520232e+01   0.000000e+00    446s
+   16393    1.8635870e+00   3.454423e+00   0.000000e+00    451s
+2023-01-21 10:39:04 INFO        16393    1.8635870e+00   3.454423e+00   0.000000e+00    451s
+2023-01-21 10:39:08 INFO        16649    1.8633897e+00   2.188715e+00   0.000000e+00    455s
+   16649    1.8633897e+00   2.188715e+00   0.000000e+00    455s
+2023-01-21 10:39:15 INFO        17033    1.8630185e+00   8.379565e+00   0.000000e+00    462s
+   17033    1.8630185e+00   8.379565e+00   0.000000e+00    462s
+2023-01-21 10:39:19 INFO        17289    1.8616685e+00   7.551614e+00   0.000000e+00    466s
+   17289    1.8616685e+00   7.551614e+00   0.000000e+00    466s
+   17673    1.8525885e+00   8.571779e-01   0.000000e+00    471s
+2023-01-21 10:39:24 INFO        17673    1.8525885e+00   8.571779e-01   0.000000e+00    471s
+2023-01-21 10:39:30 INFO        18185    1.8441489e+00   2.446298e-03   0.000000e+00    476s
+   18185    1.8441489e+00   2.446298e-03   0.000000e+00    476s
+   18396    1.8435686e+00   0.000000e+00   8.849000e-03    502s
+2023-01-21 10:39:55 INFO        18396    1.8435686e+00   0.000000e+00   8.849000e-03    502s
+2023-01-21 10:40:00 INFO     Extra simplex iterations after uncrush: 448
+Extra simplex iterations after uncrush: 448
+2023-01-21 10:40:23 INFO        18844   -3.5343707e+25   3.931259e+33   1.809598e-02    530s
+   18844   -3.5343707e+25   3.931259e+33   1.809598e-02    530s
+2023-01-21 10:40:46 INFO        18945   -1.1323380e+25   1.119313e+33   5.830809e-03    553s
+   18945   -1.1323380e+25   1.119313e+33   5.830809e-03    553s
+2023-01-21 10:41:12 INFO        19046   -3.7626446e+24   4.576452e+32   1.964520e-03    579s
+   19046   -3.7626446e+24   4.576452e+32   1.964520e-03    579s
+2023-01-21 10:41:25 INFO        19147   -3.3818611e+24   2.059158e+32   1.779189e-03    592s
+   19147   -3.3818611e+24   2.059158e+32   1.779189e-03    592s
+2023-01-21 10:41:36 INFO        19248    1.2759755e+23   6.884944e+32   0.000000e+00    603s
+   19248    1.2759755e+23   6.884944e+32   0.000000e+00    603s
+2023-01-21 10:41:51 INFO        19349    2.8578006e+23   9.303441e+33   0.000000e+00    618s
+   19349    2.8578006e+23   9.303441e+33   0.000000e+00    618s
+2023-01-21 10:42:06 INFO        19450    3.9916629e+23   2.412785e+33   0.000000e+00    633s
+   19450    3.9916629e+23   2.412785e+33   0.000000e+00    633s
+2023-01-21 10:42:20 INFO        19551    5.6043879e+23   7.207874e+31   0.000000e+00    647s
+   19551    5.6043879e+23   7.207874e+31   0.000000e+00    647s
+2023-01-21 10:42:34 INFO        19652    7.0978739e+23   6.360860e+33   1.338295e-06    661s
+   19652    7.0978739e+23   6.360860e+33   1.338295e-06    661s
+   19753    7.9729103e+23   1.051600e+32   0.000000e+00    676s
+2023-01-21 10:42:49 INFO        19753    7.9729103e+23   1.051600e+32   0.000000e+00    676s
+2023-01-21 10:43:03 INFO        19854    8.9432654e+23   2.190416e+33   0.000000e+00    690s
+   19854    8.9432654e+23   2.190416e+33   0.000000e+00    690s
+   19955    1.8164143e+00   1.084074e+08   0.000000e+00    705s
+2023-01-21 10:43:18 INFO        19955    1.8164143e+00   1.084074e+08   0.000000e+00    705s
+   20056    1.8203907e+00   5.539993e+07   0.000000e+00    720s
+2023-01-21 10:43:33 INFO        20056    1.8203907e+00   5.539993e+07   0.000000e+00    720s
+   20157    1.8230659e+00   2.434575e+06   0.000000e+00    733s
+2023-01-21 10:43:46 INFO        20157    1.8230659e+00   2.434575e+06   0.000000e+00    733s
+   20258    1.8243096e+00   2.089557e+06   0.000000e+00    746s
+2023-01-21 10:43:59 INFO        20258    1.8243096e+00   2.089557e+06   0.000000e+00    746s
+2023-01-21 10:44:13 INFO        20359    1.8264878e+00   1.776705e+06   0.000000e+00    760s
+   20359    1.8264878e+00   1.776705e+06   0.000000e+00    760s
+2023-01-21 10:44:27 INFO        20460    1.8268663e+00   5.973702e+05   0.000000e+00    773s
+   20460    1.8268663e+00   5.973702e+05   0.000000e+00    773s
+2023-01-21 10:44:39 INFO        20561    1.8287693e+00   3.132492e+08   0.000000e+00    786s
+   20561    1.8287693e+00   3.132492e+08   0.000000e+00    786s
+2023-01-21 10:44:54 INFO        20662    1.8302627e+00   7.667663e+06   0.000000e+00    801s
+   20662    1.8302627e+00   7.667663e+06   0.000000e+00    801s
+   20763    1.8311794e+00   5.873463e+06   0.000000e+00    813s
+2023-01-21 10:45:06 INFO        20763    1.8311794e+00   5.873463e+06   0.000000e+00    813s
+   20864    1.8337086e+00   1.096625e+07   0.000000e+00    826s
+2023-01-21 10:45:19 INFO        20864    1.8337086e+00   1.096625e+07   0.000000e+00    826s
+2023-01-21 10:45:32 INFO        20965    1.8345349e+00   1.362534e+05   0.000000e+00    839s
+   20965    1.8345349e+00   1.362534e+05   0.000000e+00    839s
+2023-01-21 10:45:43 INFO        21066    1.8348363e+00   3.708636e+06   0.000000e+00    850s
+   21066    1.8348363e+00   3.708636e+06   0.000000e+00    850s
+2023-01-21 10:45:57 INFO        21167    1.8362625e+00   9.683359e+06   0.000000e+00    864s
+   21167    1.8362625e+00   9.683359e+06   0.000000e+00    864s
+2023-01-21 10:46:09 INFO        21268    1.8367822e+00   1.359421e+05   0.000000e+00    876s
+   21268    1.8367822e+00   1.359421e+05   0.000000e+00    876s
+2023-01-21 10:46:22 INFO        21369    1.8373675e+00   1.698333e+07   0.000000e+00    888s
+   21369    1.8373675e+00   1.698333e+07   0.000000e+00    888s
+2023-01-21 10:46:34 INFO        21470    1.8378628e+00   9.821241e+06   0.000000e+00    901s
+   21470    1.8378628e+00   9.821241e+06   0.000000e+00    901s
+2023-01-21 10:46:45 INFO        21571    1.8387123e+00   8.668376e+06   0.000000e+00    912s
+   21571    1.8387123e+00   8.668376e+06   0.000000e+00    912s
+   21672    1.8390184e+00   3.489190e+06   0.000000e+00    925s
+2023-01-21 10:46:58 INFO        21672    1.8390184e+00   3.489190e+06   0.000000e+00    925s
+   21773    1.8391965e+00   9.334969e+04   0.000000e+00    938s
+2023-01-21 10:47:11 INFO        21773    1.8391965e+00   9.334969e+04   0.000000e+00    938s
+   21874    1.8394286e+00   6.958123e+05   0.000000e+00    951s
+2023-01-21 10:47:24 INFO        21874    1.8394286e+00   6.958123e+05   0.000000e+00    951s
+2023-01-21 10:47:37 INFO        21975    1.8397644e+00   2.769469e+06   0.000000e+00    964s
+   21975    1.8397644e+00   2.769469e+06   0.000000e+00    964s
+2023-01-21 10:47:50 INFO        22076    1.8400021e+00   3.714500e+04   0.000000e+00    977s
+   22076    1.8400021e+00   3.714500e+04   0.000000e+00    977s
+   22177    1.8401440e+00   1.094823e+05   0.000000e+00    991s
+2023-01-21 10:48:04 INFO        22177    1.8401440e+00   1.094823e+05   0.000000e+00    991s
+   22278    1.8402156e+00   2.997566e+06   0.000000e+00   1003s
+2023-01-21 10:48:16 INFO        22278    1.8402156e+00   2.997566e+06   0.000000e+00   1003s
+2023-01-21 10:48:27 INFO        22379    1.8405038e+00   2.386396e+05   0.000000e+00   1014s
+   22379    1.8405038e+00   2.386396e+05   0.000000e+00   1014s
+2023-01-21 10:48:38 INFO        22480    1.8405440e+00   4.141651e+04   0.000000e+00   1025s
+   22480    1.8405440e+00   4.141651e+04   0.000000e+00   1025s
+   22581    1.8406250e+00   1.851249e+04   0.000000e+00   1036s
+2023-01-21 10:48:49 INFO        22581    1.8406250e+00   1.851249e+04   0.000000e+00   1036s
+   22682    1.8406373e+00   1.026123e+02   0.000000e+00   1048s
+2023-01-21 10:49:01 INFO        22682    1.8406373e+00   1.026123e+02   0.000000e+00   1048s
+   22783    1.8406945e+00   9.247471e+01   0.000000e+00   1059s
+2023-01-21 10:49:12 INFO        22783    1.8406945e+00   9.247471e+01   0.000000e+00   1059s
+2023-01-21 10:49:22 INFO        22884    1.8407028e+00   1.552215e-04   0.000000e+00   1069s
+   22884    1.8407028e+00   1.552215e-04   0.000000e+00   1069s
+2023-01-21 10:49:55 INFO        22987    1.8426597e+00   0.000000e+00   5.235296e+01   1102s
+   22987    1.8426597e+00   0.000000e+00   5.235296e+01   1102s
+2023-01-21 10:50:05 INFO        23088    1.8426203e+00   0.000000e+00   5.128929e-02   1112s
+   23088    1.8426203e+00   0.000000e+00   5.128929e-02   1112s
+2023-01-21 10:50:17 INFO     Extra simplex iterations from dual to original model: 4321
+2023-01-21 10:50:17 INFO        23165    1.8426151e+00   0.000000e+00   0.000000e+00   1124s
+2023-01-21 10:50:17 INFO     
+2023-01-21 10:50:17 INFO     Solved in 23165 iterations and 1123.88 seconds (927.09 work units)
+2023-01-21 10:50:17 INFO     Optimal objective  1.842615057e+00
+Extra simplex iterations from dual to original model: 4321
+   23165    1.8426151e+00   0.000000e+00   0.000000e+00   1124s
+
+Solved in 23165 iterations and 1123.88 seconds (927.09 work units)
+Optimal objective  1.842615057e+00
+2023-01-21 10:50:18 INFO     ****Done!****
+2023-01-21 10:50:18 INFO     Smart Nodes Set      Expected Objective
+-----------------  --------------------
+(19, 9, 1, 15)                  1.84262
+2023-01-21 10:50:18 INFO     Best smart node set (19, 9, 1, 15) with expected objective of 1.8426150567045434
+2023-01-21 10:50:18 INFO     ********** Iteration 1, Smart Nodes:(19, 9, 1, 15)  ***********
+2023-01-21 10:50:18 INFO     ********* Iteration 1 Starts, Agent is learning *********
+2023-01-21 10:50:18 INFO     ***** Iteration 2, Evaluating Smart Node  *****
+2023-01-21 10:50:18 INFO     Set parameter Username
+2023-01-21 10:50:18 INFO     Set parameter Method to value 1
+2023-01-21 10:50:18 INFO     Set parameter NumericFocus to value 3
+2023-01-21 10:50:18 INFO     Set parameter Presolve to value 2
+2023-01-21 10:50:18 INFO     Academic license - for non-commercial use only - expires 2023-11-28
+Set parameter Username
+Set parameter Method to value 1
+Set parameter NumericFocus to value 3
+Set parameter Presolve to value 2
+Academic license - for non-commercial use only - expires 2023-11-28
+2023-01-21 10:59:57 INFO     LP Submit to Solve Multiple Matrices MCF Problem Finding Smart Nodes (19, 9, 1, 15) Source-Target Routing Scheme
+2023-01-21 10:59:57 INFO     Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (win64)
+Gurobi Optimizer version 10.0.0 build v10.0.0rc2 (win64)
+
+CPU model: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz, instruction set [SSE2|AVX|AVX2]
+Thread count: 6 physical cores, 12 logical processors, using up to 12 threads
+
+Optimize a model with 329961 rows, 37360 columns and 117775238 nonzeros
+2023-01-21 10:59:57 INFO     
+2023-01-21 10:59:57 INFO     CPU model: Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz, instruction set [SSE2|AVX|AVX2]
+2023-01-21 10:59:57 INFO     Thread count: 6 physical cores, 12 logical processors, using up to 12 threads
+2023-01-21 10:59:57 INFO     
+2023-01-21 10:59:57 INFO     Optimize a model with 329961 rows, 37360 columns and 117775238 nonzeros
+2023-01-21 10:59:58 INFO     Model fingerprint: 0x4f7c7154
+Model fingerprint: 0x4f7c7154
+2023-01-21 10:59:58 INFO     Coefficient statistics:
+2023-01-21 10:59:58 INFO       Matrix range     [2e-09, 1e+01]
+2023-01-21 10:59:58 INFO       Objective range  [2e-04, 2e-04]
+2023-01-21 10:59:58 INFO       Bounds range     [0e+00, 0e+00]
+Coefficient statistics:
+  Matrix range     [2e-09, 1e+01]
+  Objective range  [2e-04, 2e-04]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e-08, 1e+04]
+2023-01-21 10:59:58 INFO       RHS range        [2e-08, 1e+04]
+2023-01-21 11:00:05 INFO     Presolve removed 0 rows and 0 columns (presolve time = 7s) ...
+Presolve removed 0 rows and 0 columns (presolve time = 7s) ...
+Presolve removed 16935 rows and 4305 columns (presolve time = 13s) ...
+2023-01-21 11:00:11 INFO     Presolve removed 16935 rows and 4305 columns (presolve time = 13s) ...
+2023-01-21 11:00:13 INFO     Presolve removed 16935 rows and 4305 columns (presolve time = 15s) ...
+Presolve removed 16935 rows and 4305 columns (presolve time = 15s) ...
+2023-01-21 11:00:21 INFO     Presolve removed 16977 rows and 4305 columns (presolve time = 23s) ...
+Presolve removed 16977 rows and 4305 columns (presolve time = 23s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 53s) ...
+2023-01-21 11:00:51 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 53s) ...
+2023-01-21 11:00:59 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 61s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 61s) ...
+2023-01-21 11:01:04 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 66s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 66s) ...
+2023-01-21 11:01:09 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 71s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 71s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 89s) ...
+2023-01-21 11:01:27 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 89s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 98s) ...
+2023-01-21 11:01:35 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 98s) ...
+2023-01-21 11:01:46 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 108s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 108s) ...
+2023-01-21 11:01:48 INFO     Presolve removed 19550 rows and 7258 columns (presolve time = 111s) ...
+Presolve removed 19550 rows and 7258 columns (presolve time = 111s) ...
+Presolve removed 44519 rows and 7678 columns (presolve time = 116s) ...
+2023-01-21 11:01:54 INFO     Presolve removed 44519 rows and 7678 columns (presolve time = 116s) ...
+Presolve removed 44519 rows and 7678 columns (presolve time = 123s) ...
+2023-01-21 11:02:00 INFO     Presolve removed 44519 rows and 7678 columns (presolve time = 123s) ...
+2023-01-21 11:02:05 INFO     Presolve removed 44519 rows and 7678 columns (presolve time = 127s) ...
+2023-01-21 11:02:05 INFO     Presolve removed 44519 rows and 7678 columns
+Presolve removed 44519 rows and 7678 columns (presolve time = 127s) ...
+Presolve removed 44519 rows and 7678 columns
+Presolve time: 312.68s
+Presolved: 31881 rows, 294682 columns, 104465515 nonzeros
+
+2023-01-21 11:05:10 INFO     Presolve time: 312.68s
+2023-01-21 11:05:10 INFO     Presolved: 31881 rows, 294682 columns, 104465515 nonzeros
+2023-01-21 11:05:10 INFO     
+2023-01-21 11:05:25 INFO     Iteration    Objective       Primal Inf.    Dual Inf.      Time
+2023-01-21 11:05:25 INFO            0      handle free variables                        328s
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0      handle free variables                        328s
+    6179    3.6756880e+36   3.385507e+37   3.675688e+06    342s
+2023-01-21 11:05:39 INFO         6179    3.6756880e+36   3.385507e+37   3.675688e+06    342s
+2023-01-21 11:05:42 INFO         6563    7.9096835e+35   3.073432e+35   7.909684e+05    345s
+    6563    7.9096835e+35   3.073432e+35   7.909684e+05    345s
+    7116    6.7756861e+35   2.624933e+35   6.775686e+05    351s
+2023-01-21 11:05:48 INFO         7116    6.7756861e+35   2.624933e+35   6.775686e+05    351s
+2023-01-21 11:05:52 INFO         7628    5.7368997e+35   2.192061e+35   5.736900e+05    355s
+    7628    5.7368997e+35   2.192061e+35   5.736900e+05    355s
+2023-01-21 11:05:57 INFO         8140    4.7866071e+35   1.820527e+35   4.786607e+05    360s
+    8140    4.7866071e+35   1.820527e+35   4.786607e+05    360s
+    8780    3.4701745e+35   1.282724e+35   3.470174e+05    365s
+2023-01-21 11:06:02 INFO         8780    3.4701745e+35   1.282724e+35   3.470174e+05    365s
+2023-01-21 11:06:07 INFO         9356    2.5042521e+35   8.821912e+34   2.504252e+05    370s
+    9356    2.5042521e+35   8.821912e+34   2.504252e+05    370s
+2023-01-21 11:06:12 INFO        10060    1.3890156e+35   4.417768e+34   1.389016e+05    375s
+   10060    1.3890156e+35   4.417768e+34   1.389016e+05    375s
+   10700    1.3973438e+34   5.663201e+33   1.397344e+04    380s
+2023-01-21 11:06:17 INFO        10700    1.3973438e+34   5.663201e+33   1.397344e+04    380s
+2023-01-21 11:06:22 INFO        11340    1.4591213e+33   1.937357e+33   1.459121e+03    385s
+   11340    1.4591213e+33   1.937357e+33   1.459121e+03    385s
+   11852    5.1692029e+32   7.298045e+32   5.169203e+02    390s
+2023-01-21 11:06:27 INFO        11852    5.1692029e+32   7.298045e+32   5.169203e+02    390s
+   12553    2.5351791e+00   1.032900e+02   0.000000e+00    396s
+2023-01-21 11:06:33 INFO        12553    2.5351791e+00   1.032900e+02   0.000000e+00    396s
+2023-01-21 11:06:39 INFO        12937    2.1657613e+00   1.402168e+02   0.000000e+00    402s
+   12937    2.1657613e+00   1.402168e+02   0.000000e+00    402s
+   13193    1.9807316e+00   1.802658e+01   0.000000e+00    406s
+2023-01-21 11:06:43 INFO        13193    1.9807316e+00   1.802658e+01   0.000000e+00    406s
+   13449    1.9351534e+00   3.898708e+01   0.000000e+00    410s
+2023-01-21 11:06:47 INFO        13449    1.9351534e+00   3.898708e+01   0.000000e+00    410s
+2023-01-21 11:06:54 INFO        13833    1.8839603e+00   1.340127e+01   0.000000e+00    417s
+   13833    1.8839603e+00   1.340127e+01   0.000000e+00    417s
+   14089    1.8775982e+00   1.196422e+01   0.000000e+00    421s
+2023-01-21 11:06:58 INFO        14089    1.8775982e+00   1.196422e+01   0.000000e+00    421s
+   14345    1.8732111e+00   1.049175e+00   0.000000e+00    425s
+2023-01-21 11:07:02 INFO        14345    1.8732111e+00   1.049175e+00   0.000000e+00    425s
+   14729    1.8693513e+00   3.228671e+00   0.000000e+00    431s
+2023-01-21 11:07:08 INFO        14729    1.8693513e+00   3.228671e+00   0.000000e+00    431s
+2023-01-21 11:07:12 INFO        14985    1.8679697e+00   4.183906e+00   0.000000e+00    436s
+   14985    1.8679697e+00   4.183906e+00   0.000000e+00    436s
+   15369    1.8662601e+00   2.263692e+01   0.000000e+00    442s
+2023-01-21 11:07:19 INFO        15369    1.8662601e+00   2.263692e+01   0.000000e+00    442s
+2023-01-21 11:07:23 INFO        15625    1.8652835e+00   2.012539e+01   0.000000e+00    446s
+   15625    1.8652835e+00   2.012539e+01   0.000000e+00    446s
+2023-01-21 11:07:28 INFO        15881    1.8644813e+00   7.179651e+00   0.000000e+00    451s
+   15881    1.8644813e+00   7.179651e+00   0.000000e+00    451s
+   16137    1.8640510e+00   1.520232e+01   0.000000e+00    455s
+2023-01-21 11:07:32 INFO        16137    1.8640510e+00   1.520232e+01   0.000000e+00    455s
+2023-01-21 11:07:37 INFO        16393    1.8635870e+00   3.454423e+00   0.000000e+00    460s
+   16393    1.8635870e+00   3.454423e+00   0.000000e+00    460s
+2023-01-21 11:07:44 INFO        16777    1.8632483e+00   5.686389e+00   0.000000e+00    467s
+   16777    1.8632483e+00   5.686389e+00   0.000000e+00    467s
+   17033    1.8630185e+00   8.379565e+00   0.000000e+00    471s
+2023-01-21 11:07:48 INFO        17033    1.8630185e+00   8.379565e+00   0.000000e+00    471s
+2023-01-21 11:07:52 INFO        17289    1.8616685e+00   7.551614e+00   0.000000e+00    475s
+   17289    1.8616685e+00   7.551614e+00   0.000000e+00    475s
+   17673    1.8525885e+00   8.571779e-01   0.000000e+00    480s
+2023-01-21 11:07:57 INFO        17673    1.8525885e+00   8.571779e-01   0.000000e+00    480s
+   18185    1.8441489e+00   2.446298e-03   0.000000e+00    487s
+2023-01-21 11:08:04 INFO        18185    1.8441489e+00   2.446298e-03   0.000000e+00    487s
+   18396    1.8435686e+00   0.000000e+00   8.849000e-03    515s
+2023-01-21 11:08:32 INFO        18396    1.8435686e+00   0.000000e+00   8.849000e-03    515s
+2023-01-21 11:08:36 INFO     Extra simplex iterations after uncrush: 448
+Extra simplex iterations after uncrush: 448
+2023-01-21 11:09:00 INFO        18844   -3.5343707e+25   3.931259e+33   1.809598e-02    543s
+   18844   -3.5343707e+25   3.931259e+33   1.809598e-02    543s
+2023-01-21 11:09:22 INFO        18945   -1.1323380e+25   1.119313e+33   5.830809e-03    565s
+   18945   -1.1323380e+25   1.119313e+33   5.830809e-03    565s
+2023-01-21 11:09:49 INFO        19046   -3.7626446e+24   4.576452e+32   1.964520e-03    592s
+   19046   -3.7626446e+24   4.576452e+32   1.964520e-03    592s
+   19147   -3.3818611e+24   2.059158e+32   1.779189e-03    605s
+2023-01-21 11:10:02 INFO        19147   -3.3818611e+24   2.059158e+32   1.779189e-03    605s
+2023-01-21 11:10:15 INFO        19248    1.2759755e+23   6.884944e+32   0.000000e+00    618s
+   19248    1.2759755e+23   6.884944e+32   0.000000e+00    618s
+   19349    2.8578006e+23   9.303441e+33   0.000000e+00    630s
+2023-01-21 11:10:27 INFO        19349    2.8578006e+23   9.303441e+33   0.000000e+00    630s
+   19450    3.9916629e+23   2.412785e+33   0.000000e+00    642s
+2023-01-21 11:10:39 INFO        19450    3.9916629e+23   2.412785e+33   0.000000e+00    642s
+2023-01-21 11:10:53 INFO        19551    5.6043879e+23   7.207874e+31   0.000000e+00    656s
+   19551    5.6043879e+23   7.207874e+31   0.000000e+00    656s
+   19652    7.0978739e+23   6.360860e+33   1.338295e-06    671s
+2023-01-21 11:11:08 INFO        19652    7.0978739e+23   6.360860e+33   1.338295e-06    671s
+2023-01-21 11:11:22 INFO        19753    7.9729103e+23   1.051600e+32   0.000000e+00    685s
+   19753    7.9729103e+23   1.051600e+32   0.000000e+00    685s
+2023-01-21 11:11:38 INFO        19854    8.9432654e+23   2.190416e+33   0.000000e+00    701s
+   19854    8.9432654e+23   2.190416e+33   0.000000e+00    701s
+   19955    1.8164143e+00   1.084074e+08   0.000000e+00    718s
+2023-01-21 11:11:55 INFO        19955    1.8164143e+00   1.084074e+08   0.000000e+00    718s
+   20056    1.8203907e+00   5.539993e+07   0.000000e+00    732s
+2023-01-21 11:12:09 INFO        20056    1.8203907e+00   5.539993e+07   0.000000e+00    732s
+   20157    1.8230659e+00   2.434575e+06   0.000000e+00    747s
+2023-01-21 11:12:24 INFO        20157    1.8230659e+00   2.434575e+06   0.000000e+00    747s
+   20258    1.8243096e+00   2.089557e+06   0.000000e+00    761s
+2023-01-21 11:12:38 INFO        20258    1.8243096e+00   2.089557e+06   0.000000e+00    761s
+2023-01-21 11:12:50 INFO        20359    1.8264878e+00   1.776705e+06   0.000000e+00    773s
+   20359    1.8264878e+00   1.776705e+06   0.000000e+00    773s
+2023-01-21 11:13:01 INFO        20460    1.8268663e+00   5.973702e+05   0.000000e+00    784s
+   20460    1.8268663e+00   5.973702e+05   0.000000e+00    784s
+2023-01-21 11:13:13 INFO        20561    1.8287693e+00   3.132492e+08   0.000000e+00    796s
+   20561    1.8287693e+00   3.132492e+08   0.000000e+00    796s
+2023-01-21 11:13:27 INFO        20662    1.8302627e+00   7.667663e+06   0.000000e+00    810s
+   20662    1.8302627e+00   7.667663e+06   0.000000e+00    810s
+2023-01-21 11:13:38 INFO        20763    1.8311794e+00   5.873463e+06   0.000000e+00    821s
+   20763    1.8311794e+00   5.873463e+06   0.000000e+00    821s
+   20864    1.8337086e+00   1.096625e+07   0.000000e+00    835s
+2023-01-21 11:13:52 INFO        20864    1.8337086e+00   1.096625e+07   0.000000e+00    835s
+   20965    1.8345349e+00   1.362534e+05   0.000000e+00    848s
+2023-01-21 11:14:05 INFO        20965    1.8345349e+00   1.362534e+05   0.000000e+00    848s
+   21066    1.8348363e+00   3.708636e+06   0.000000e+00    859s
+2023-01-21 11:14:16 INFO        21066    1.8348363e+00   3.708636e+06   0.000000e+00    859s
+2023-01-21 11:14:29 INFO        21167    1.8362625e+00   9.683359e+06   0.000000e+00    872s
+   21167    1.8362625e+00   9.683359e+06   0.000000e+00    872s
+   21268    1.8367822e+00   1.359421e+05   0.000000e+00    884s
+2023-01-21 11:14:41 INFO        21268    1.8367822e+00   1.359421e+05   0.000000e+00    884s
+2023-01-21 11:14:53 INFO        21369    1.8373675e+00   1.698333e+07   0.000000e+00    896s
+   21369    1.8373675e+00   1.698333e+07   0.000000e+00    896s
+   21470    1.8378628e+00   9.821241e+06   0.000000e+00    908s
+2023-01-21 11:15:05 INFO        21470    1.8378628e+00   9.821241e+06   0.000000e+00    908s
+   21571    1.8387123e+00   8.668376e+06   0.000000e+00    920s
+2023-01-21 11:15:17 INFO        21571    1.8387123e+00   8.668376e+06   0.000000e+00    920s
+2023-01-21 11:15:29 INFO        21672    1.8390184e+00   3.489190e+06   0.000000e+00    932s
+   21672    1.8390184e+00   3.489190e+06   0.000000e+00    932s
+2023-01-21 11:15:41 INFO        21773    1.8391965e+00   9.334969e+04   0.000000e+00    944s
+   21773    1.8391965e+00   9.334969e+04   0.000000e+00    944s
+   21874    1.8394286e+00   6.958123e+05   0.000000e+00    955s
+2023-01-21 11:15:52 INFO        21874    1.8394286e+00   6.958123e+05   0.000000e+00    955s
+2023-01-21 11:16:03 INFO        21975    1.8397644e+00   2.769469e+06   0.000000e+00    966s
+   21975    1.8397644e+00   2.769469e+06   0.000000e+00    966s
+   22076    1.8400021e+00   3.714500e+04   0.000000e+00    978s
+2023-01-21 11:16:15 INFO        22076    1.8400021e+00   3.714500e+04   0.000000e+00    978s
+   22177    1.8401440e+00   1.094823e+05   0.000000e+00    991s
+2023-01-21 11:16:28 INFO        22177    1.8401440e+00   1.094823e+05   0.000000e+00    991s
+   22278    1.8402156e+00   2.997566e+06   0.000000e+00   1002s
+2023-01-21 11:16:39 INFO        22278    1.8402156e+00   2.997566e+06   0.000000e+00   1002s
+   22379    1.8405038e+00   2.386396e+05   0.000000e+00   1013s
+2023-01-21 11:16:50 INFO        22379    1.8405038e+00   2.386396e+05   0.000000e+00   1013s
+   22480    1.8405440e+00   4.141651e+04   0.000000e+00   1023s
+2023-01-21 11:17:00 INFO        22480    1.8405440e+00   4.141651e+04   0.000000e+00   1023s
+   22581    1.8406250e+00   1.851249e+04   0.000000e+00   1033s
+2023-01-21 11:17:10 INFO        22581    1.8406250e+00   1.851249e+04   0.000000e+00   1033s
+   22682    1.8406373e+00   1.026123e+02   0.000000e+00   1044s
+2023-01-21 11:17:21 INFO        22682    1.8406373e+00   1.026123e+02   0.000000e+00   1044s
+   22783    1.8406945e+00   9.247471e+01   0.000000e+00   1055s
+2023-01-21 11:17:32 INFO        22783    1.8406945e+00   9.247471e+01   0.000000e+00   1055s
+   22884    1.8407028e+00   1.552215e-04   0.000000e+00   1065s
+2023-01-21 11:17:42 INFO        22884    1.8407028e+00   1.552215e-04   0.000000e+00   1065s
+2023-01-21 11:18:11 INFO        22987    1.8426597e+00   0.000000e+00   5.235296e+01   1094s
+   22987    1.8426597e+00   0.000000e+00   5.235296e+01   1094s
+   23088    1.8426203e+00   0.000000e+00   5.128929e-02   1103s
+2023-01-21 11:18:20 INFO        23088    1.8426203e+00   0.000000e+00   5.128929e-02   1103s
+2023-01-21 11:18:31 INFO     Extra simplex iterations from dual to original model: 4321
+2023-01-21 11:18:31 INFO        23165    1.8426151e+00   0.000000e+00   0.000000e+00   1114s
+2023-01-21 11:18:31 INFO     
+2023-01-21 11:18:31 INFO     Solved in 23165 iterations and 1114.13 seconds (927.09 work units)
+2023-01-21 11:18:31 INFO     Optimal objective  1.842615057e+00
+Extra simplex iterations from dual to original model: 4321
+   23165    1.8426151e+00   0.000000e+00   0.000000e+00   1114s
+
+Solved in 23165 iterations and 1114.13 seconds (927.09 work units)
+Optimal objective  1.842615057e+00
+2023-01-21 11:18:33 INFO     ****Done!****
+2023-01-21 11:18:33 INFO     Smart Nodes Set      Expected Objective
+-----------------  --------------------
+(19, 9, 1, 15)                  1.84262
+2023-01-21 11:18:33 INFO     Best smart node set (19, 9, 1, 15) with expected objective of 1.8426150567045434
+2023-01-21 11:18:33 INFO     ********** Iteration 2, Smart Nodes:(19, 9, 1, 15)  ***********
+2023-01-21 11:18:33 INFO     ********* Iteration 2 Starts, Agent is learning *********
+2023-01-21 11:18:33 INFO     ***** Iteration 3, Evaluating Smart Node  *****
+Set parameter Username
+Set parameter Method to value 1
+Set parameter NumericFocus to value 3
+Set parameter Presolve to value 2
+Academic license - for non-commercial use only - expires 2023-11-28
+2023-01-21 11:18:33 INFO     Set parameter Username
+2023-01-21 11:18:33 INFO     Set parameter Method to value 1
+2023-01-21 11:18:33 INFO     Set parameter NumericFocus to value 3
+2023-01-21 11:18:33 INFO     Set parameter Presolve to value 2
+2023-01-21 11:18:33 INFO     Academic license - for non-commercial use only - expires 2023-11-28
+Traceback (most recent call last):
+  File "C:\Users\idoye\PycharmProjects\hybrid_routing_with_KNERL\Smart_Nodes_Routing\smart_nodes_rl_agent.py", line 59, in <module>
+    number_smart_nodes, smart_nodes_set)
+  File "C:\Users\idoye\PycharmProjects\hybrid_routing_with_KNERL\Smart_Nodes_Routing\rl_env\model_functions.py", line 118, in greedy_best_smart_nodes_and_spr
+    evaluations.append(matrices_mcf_LP_with_smart_nodes_solver_wrapper(current_sn_set))
+  File "C:\Users\idoye\PycharmProjects\hybrid_routing_with_KNERL\Smart_Nodes_Routing\rl_env\smart_nodes_multiple_matrices_MCF_2.py", line 199, in matrices_mcf_LP_with_smart_nodes_solver
+    _aux_mcf_LP_with_smart_nodes_solver(gb_env, net, traffic_matrix_list, destination_based_spr, smart_nodes)
+  File "C:\Users\idoye\PycharmProjects\hybrid_routing_with_KNERL\Smart_Nodes_Routing\rl_env\smart_nodes_multiple_matrices_MCF_2.py", line 88, in _aux_mcf_LP_with_smart_nodes_solver
+    m_link_load = sum(vars_flows_src_dst_per_edge[src, dst, u, v] * demands_ratios[m_idx, src, dst] for src, dst in relevant_flows)
+  File "src\gurobipy\linexpr.pxi", line 480, in gurobipy.LinExpr.__add__
+  File "src\gurobipy\linexpr.pxi", line 48, in gurobipy.LinExpr.__init__
+  File "C:\Program Files\Python37\lib\abc.py", line 137, in __instancecheck__
+    def __instancecheck__(cls, instance):
+KeyboardInterrupt
