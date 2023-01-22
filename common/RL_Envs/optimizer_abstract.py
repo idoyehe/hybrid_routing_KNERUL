@@ -173,7 +173,7 @@ class Optimizer_Abstract(object):
             assert all(psi[dst][:] == 0)
             assert psi.shape == (net_direct.get_num_nodes, net_direct.get_num_nodes)
             try:
-                flows_src2dest_per_node[(src, dst)] = demand @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
+                flows_src2dest_per_node[(src, dst)] = demand @ npl.pinv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
             except:
                 warnings.warn("Singular")
                 flows_src2dest_per_node[(src, dst)] = demand @ npl.pinv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)

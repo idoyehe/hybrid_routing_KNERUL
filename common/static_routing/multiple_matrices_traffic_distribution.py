@@ -33,7 +33,7 @@ def _aux_multiple_tms_mcf_algebraic_solver(net_direct, traffic_matrices_list, sr
         assert all(psi[dst][:] == 0)
         assert psi.shape == (net_direct.get_num_nodes, net_direct.get_num_nodes)
         try:
-            flows_src2dest_per_node[(src, dst)] = demand @ npl.inv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
+            flows_src2dest_per_node[(src, dst)] = demand @ npl.pinv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)
         except npl.LinAlgError as e:
             warnings.warn(str(e))
             flows_src2dest_per_node[(src, dst)] = demand @ npl.pinv(np.identity(net_direct.get_num_nodes, dtype=np.float64) - psi)

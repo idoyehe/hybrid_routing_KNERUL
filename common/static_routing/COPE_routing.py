@@ -173,6 +173,7 @@ def _getOptions(args=argv[1:]):
     parser.add_argument("-dumps_list", "--list_of_dumps", type=str, help="The path for the list of dumped train file")
     parser.add_argument("-save", "--save_dump", type=eval, help="Save the results in file dump", default=True)
     parser.add_argument("-cope_dumps", "--cope_dumps", type=str, help="Splitting Ratios", default=None)
+    parser.add_argument("-factor", "--factor", type=float, default=1.1, help="the factor to multiply oblivious ratio")
     options = parser.parse_args(args)
     return options
 
@@ -184,6 +185,7 @@ if __name__ == "__main__":
     list_of_dumps = args.list_of_dumps
     save_dump = args.save_dump
     cope_dumps = args.cope_dumps
+    factor = args.factor
     oblivious_dump = load_dump_file(args.oblivious_dump)
 
     list_of_dumps = list_of_dumps.split(",")
@@ -192,7 +194,7 @@ if __name__ == "__main__":
 
     expected_tms = np.array(list(zip(*train_dump[DumpsConsts.TMs]))[0])
 
-    penalty_envelop = obliv_ratio * 1.2
+    penalty_envelop = obliv_ratio * factor
 
     net = NetworkClass(topology_zoo_loader(topology_url))
     print("The Oblivious ratio for {} is {}".format(net.get_title, obliv_ratio))
