@@ -10,6 +10,7 @@ from parsing_data_results import parsing_data_results, parse_rl_optimization_cro
 def _getOptions(args=argv[1:]):
     parser = ArgumentParser(description="Parses TMs Generating script arguments")
     parser.add_argument("-topo", "--topology_name", type=str, help="The topology name")
+    parser.add_argument("-method", "--method_name", type=str, help="The method name")
     parser.add_argument("-traffic", "--traffic_name", type=str, help="The traffic distribution name")
     parser.add_argument("-obliv_base", "--oblivious_baseline", type=eval,
                         help="If oblivious is the baseline", default=False)
@@ -127,6 +128,7 @@ if __name__ == "__main__":
     args = _getOptions()
     topology_name = args.topology_name
     traffic_name = args.traffic_name
+    method_name = args.method_name
     oblivious_baseline = args.oblivious_baseline
     pgf = args.pgf
     suffix = "png"
@@ -148,7 +150,7 @@ if __name__ == "__main__":
     else:
         baseline_name = "oblivious" if oblivious_baseline else "optimal"
         save_file = "{}_{}_baseline_{}.{}".format(topology_name, traffic_name, baseline_name, suffix)
-        x_labels, y_data, h_lines = parsing_data_results(topology_name, traffic_name, oblivious_baseline)
+        x_labels, y_data, h_lines = parsing_data_results(method_name, topology_name, traffic_name, oblivious_baseline)
         plot_baselines_graphs(save_file, x_labels, y_data, oblivious_baseline, h_lines)
 
 

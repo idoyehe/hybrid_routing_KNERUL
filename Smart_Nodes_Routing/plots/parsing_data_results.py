@@ -65,16 +65,18 @@ def parse_rl_optimization_cross_topologies(traffic):
     return topologies, y_data
 
 
-def parsing_data_results(topology_name, traffic, obliv_base):
+def parsing_data_results(method_name, topology_name, traffic, obliv_base):
     # Opening JSON file
     f = open(JSON_PATH)
     # returns JSON object as a dictionary
     data = js.load(f)
     f.close()
     data_topo_traffic = data[topology_name][traffic]['results']
-    x_raw_labels = ("naive_RL", "first_RL_phase", "1_key_node", "2_key_node", "3_key_node", "4_key_node",
-                    "5_key_node") if "5_key_node" in data_topo_traffic["RL_training_set"].keys() else (
-        "naive_RL", "first_RL_phase", "1_key_node", "2_key_node", "3_key_node", "4_key_node")
+    x_raw_labels = ["naive_RL", "first_RL_phase", "1_key_node", "2_key_node", "3_key_node", "4_key_node"]
+    if "5_key_node" in data_topo_traffic["RL_training_set"].keys():
+        x_raw_labels.append("5_key_node")
+    if "all_key_node" in data_topo_traffic["RL_training_set"].keys():
+        x_raw_labels.append("all_key_node")
 
     y_data_rl_train, oblivious_routing_ratio_rl_train, averaged_tm_optimal_routing_ratio_rl_train, max_tmoptimal_routing_ratio_rl_train, cope_routing_ratios_rl_train = __parse_training_set(
         data_topo_traffic["RL_training_set"], obliv_base, x_raw_labels)
@@ -109,19 +111,16 @@ def parsing_data_results(topology_name, traffic, obliv_base):
     y_data["Key Nodes Train Set"] = y_data_lp_train
     y_data["Test Sets"] = y_data_test
 
-    x_labels = ("Random\nInitialized\nRL",
-                "KNERL\nRL",
-                "KNERL\n1 Key\nNode",
-                "KNERL\n2 Key\nNodes",
-                "KNERL\n3 Key\nNodes",
-                "KNERL\n4 Key\nNodes",
-                "KNERL\n5 Key\nNodes") \
-        if "5_key_node" in data_topo_traffic["RL_training_set"].keys() \
-        else ("Random\nInitialized\nRL",
-              "KNERL\nRL",
-              "KNERL\n1 Key\nNode",
-              "KNERL\n2 Key\nNodes",
-              "KNERL\n3 Key\nNodes",
-              "KNERL\n4 Key\nNodes")
+    x_labels = ["Random\nInitialized\nRL",
+                f"{method_name}\nRL",
+                f"{method_name}\n1 Key\nNode",
+                f"{method_name}\n2 Key\nNodes",
+                f"{method_name}\n3 Key\nNodes",
+                f"{method_name}\n4 Key\nNodes"]
+
+    if "5_key_node" in data_topo_traffic["RL_training_set"].keys():
+        x_labels.append(f"{method_name}\n5 Key\nNodes")
+    if "all_key_node" in data_topo_traffic["RL_training_set"].keys():
+        x_labels.append(f"{method_name}\nAll Key\nNodes")
 
     return x_labels, y_data, h_lines
