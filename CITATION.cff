@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this code please cite it using the following"
+authors:
+  - family-names: Yehezkel
+    given-names: Ido
+title: "Hybrid Routing with KNERUL"
+version: 1.0.0
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.14054566
+date-released: 2024-11-8
