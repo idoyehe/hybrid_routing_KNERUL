@@ -8,4 +8,5 @@ version: 1.0.0
 identifiers:
   - type: doi
     value: 10.5281/zenodo.14054566
+url: https://github.com/idoyehe/hybrid_routing_KNERUL
 date-released: 2024-11-8
